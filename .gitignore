@@ -1,5 +1,21 @@
-.venv
+# Python Cache Files
+__pycache__/
+
+# Ruff Cache
 .ruff_cache/
+
+# MacOS
+.DS_Store
+
+# Virtual Environment
+.venv
+
+# Environment Variables
+.env
+
+# Database
+db.sqlite3
+
+# Scripts
 Makefile
 scripts.py
-__pycache__/

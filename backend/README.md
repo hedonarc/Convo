@@ -29,7 +29,10 @@ This is the backend for the Chat application, built with Django and Django REST 
 3. Run migrations:
    uv run manage.py migrate
 
-4. Start the development server:
+4. Create admin user:
+   uv run manage.py setup_admin
+
+5. Start the development server:
    uv run manage.py runserver
 
 The server will be available at:
