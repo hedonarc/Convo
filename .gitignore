@@ -1,3 +1,5 @@
 .venv
-scripts.py
+.ruff_cache/
 Makefile
+scripts.py
+__pycache__/
