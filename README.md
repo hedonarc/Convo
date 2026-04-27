@@ -1,1 +1,1 @@
-Its a chat app using React and Django.
+Its a fullstack chat app using React and Django.
