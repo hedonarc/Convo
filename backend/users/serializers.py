@@ -45,11 +45,11 @@ class LoginSerializer(serializers.Serializer):
             try:
                 username_email = User.objects.get(email=username_email).username
             except User.DoesNotExist:
-                raise serializers.ValidationError("Invalid credentials")
+                raise serializers.ValidationError(t("login.invalid_credentials"))
 
         user = authenticate(username=username_email, password=password)
         if not user:
-            raise serializers.ValidationError("Invalid credentials")
+            raise serializers.ValidationError(t("login.invalid_credentials"))
 
         attrs["user"] = user
         return attrs
