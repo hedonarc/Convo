@@ -50,6 +50,7 @@ class RegisterView(APIView):
             data={"message": "You are registered"}, status=status.HTTP_201_CREATED
         )
 
+
 class LoginView(APIView):
     def post(self, request):
         username_email = request.data.get("username")
@@ -57,7 +58,8 @@ class LoginView(APIView):
 
         if not username_email or not password:
             return Response(
-                data={"message": "Username/Email & Password required."}, status=status.HTTP_400_BAD_REQUEST
+                data={"message": "Username/Email & Password required."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Email hai ya nai check kr rha hu
@@ -66,27 +68,31 @@ class LoginView(APIView):
                 username_email = User.objects.get(email=username_email).username
 
             except User.DoesNotExist:
-                return Response({"message": "Invalid credentials"},
-                    status=status.HTTP_401_UNAUTHORIZED)
+                return Response(
+                    {"message": "Invalid credentials"},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
 
         user = authenticate(username=username_email, password=password)
         if not user:
-            return Response({"message": "Invalid Credentials"},status=status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                {"message": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED
+            )
 
         refresh = RefreshToken.for_user(user)
-        token = {
-            "access":str(refresh.access_token), 
-            "refresh":str(refresh)
-            }
+        token = {"access": str(refresh.access_token), "refresh": str(refresh)}
 
-        return Response(data = {
-            "message":'You are logged in.', 
-            "token":token,
-            "user": {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-            }
-        },status=status.HTTP_200_OK)
+        return Response(
+            data={
+                "message": "You are logged in.",
+                "token": token,
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
