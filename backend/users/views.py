@@ -9,15 +9,6 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
-class ProtectedView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        return Response(
-            data={"message": t("protected.authenticated")}, status=status.HTTP_200_OK
-        )
-
-
 class RegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
@@ -106,3 +97,22 @@ class UserDetailView(APIView):
             return Response(
                 {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
             )
+
+
+class UsersListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        search = request.query_params.get("search", "")
+        if search:
+            users = (
+                User.objects.filter(username__icontains=search)
+                | User.objects.filter(email__icontains=search)
+                | User.objects.filter(first_name__icontains=search)
+                | User.objects.filter(last_name__icontains=search)
+            )
+        else:
+            users = User.objects.all()
+
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
