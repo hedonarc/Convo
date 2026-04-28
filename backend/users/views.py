@@ -2,11 +2,10 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from users.serializers import UserSerializer, LoginSerializer
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
@@ -56,10 +55,10 @@ class LoginView(APIView):
         )
 
 
-class GetUserByIdView(APIView):
+class UserDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, user_id):
+    def get(self, __request__, user_id):
         try:
             user = User.objects.get(id=user_id)
             serializer = UserSerializer(user)
@@ -71,50 +70,39 @@ class GetUserByIdView(APIView):
                 {"message": "User not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
+    def patch(self, request, user_id):
+        try:
+            user = User.objects.get(id=user_id)
 
-class UpdateUserView(APIView):
-    permission_classes = [IsAuthenticated]
+            # Update basic fields
+            # Username and Email update will be added in future, commenting for now
 
-    def put(self, request):
-        user = request.user
-        data = request.data
+            # user.username = request.data.get("username", user.username)
+            # user.email = request.data.get("email", user.email)
+            user.first_name = request.data.get("first_name", user.first_name)
+            user.last_name = request.data.get("last_name", user.last_name)
 
-        required_fields = ["username", "email", "first_name", "last_name"]
-        for field in required_fields:
-            if field not in data:
-                return Response(
-                    {"message": f"{field} is required for full update"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            # Handle password separately
+            password = request.data.get("password")
+            if password:
+                user.set_password(password)
+            user.save()
 
-        user.username = data["username"]
-        user.email = data["email"]
-        user.first_name = data["first_name"]
-        user.last_name = data["last_name"]
+            return Response(
+                {"message": "User updated", "user": UserSerializer(user).data},
+                status=status.HTTP_200_OK,
+            )
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
-        # Checks if password is changed as well
-        if data.get("password"):
-            user.set_password(data["password"])
-
-        user.save()
-
-        return Response(
-            {
-                "message": "User fully updated successfully",
-                "user": UserSerializer(user).data,
-            },
-            status=status.HTTP_200_OK,
-        )
-
-
-class DeleteUserView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def delete(self, request):
-        user = request.user
-        user.delete()
-
-        return Response(
-            {"message": "User deleted successfully"},
-            status=status.HTTP_200_OK,
-        )
+    def delete(self, __request__, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+            user.delete()
+            return Response({"message": "User deleted"}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
