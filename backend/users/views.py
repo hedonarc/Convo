@@ -1,12 +1,10 @@
 # Create your views here.
-from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
-from users.serializers import UserSerializer
+from users.serializers import UserSerializer, LoginSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
@@ -25,10 +23,7 @@ class RegisterView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         refresh = RefreshToken.for_user(user)
-        token = {
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-        }
+        token = {"access": str(refresh.access_token), "refresh": str(refresh)}
 
         return Response(
             data={
@@ -42,32 +37,10 @@ class RegisterView(APIView):
 
 class LoginView(APIView):
     def post(self, request):
-        username_email = request.data.get("username")
-        password = request.data.get("password")
 
-        if not username_email or not password:
-            return Response(
-                data={"message": "Username/Email & Password required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Email hai ya nai check kr rha hu
-        if "@" in username_email:
-            try:
-                username_email = User.objects.get(email=username_email).username
-
-            except User.DoesNotExist:
-                return Response(
-                    {"message": "Invalid credentials"},
-                    status=status.HTTP_401_UNAUTHORIZED,
-                )
-
-        user = authenticate(username=username_email, password=password)
-        if not user:
-            return Response(
-                {"message": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED
-            )
-
+        serializer = LoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data["user"]
         refresh = RefreshToken.for_user(user)
         token = {"access": str(refresh.access_token), "refresh": str(refresh)}
 
@@ -75,13 +48,60 @@ class LoginView(APIView):
             data={
                 "message": "You are logged in.",
                 "token": token,
-                "user": {
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email,
-                    "first_name": user.first_name,
-                    "last_name": user.last_name,
-                },
+                "user": UserSerializer(user).data,
             },
             status=status.HTTP_200_OK,
         )
+
+
+class UserDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, __request__, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+            serializer = UserSerializer(user)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response(
+                {"message": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    def patch(self, request, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+
+            # Update basic fields
+            # Username and Email update will be added in future, commenting for now
+
+            # user.username = request.data.get("username", user.username)
+            # user.email = request.data.get("email", user.email)
+            user.first_name = request.data.get("first_name", user.first_name)
+            user.last_name = request.data.get("last_name", user.last_name)
+
+            # Handle password separately
+            password = request.data.get("password")
+            if password:
+                user.set_password(password)
+            user.save()
+
+            return Response(
+                {"message": "User updated", "user": UserSerializer(user).data},
+                status=status.HTTP_200_OK,
+            )
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    def delete(self, __request__, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+            user.delete()
+            return Response({"message": "User deleted"}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
