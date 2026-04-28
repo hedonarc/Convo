@@ -74,16 +74,19 @@ class LoginView(APIView):
             return Response({"message": "Invalid Credentials"},status=status.HTTP_401_UNAUTHORIZED)
 
         refresh = RefreshToken.for_user(user)
-
-        return Response({ "user": {
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "first_name": user.first_name,
-            "last_name": user.last_name
-        },
-        "tokens":{
+        token = {
             "access":str(refresh.access_token), 
             "refresh":str(refresh)
             }
-        })
+
+        return Response(data = {
+            "message":'You are logged in.', 
+            "token":token,
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+            }
+        },status=status.HTTP_200_OK)
