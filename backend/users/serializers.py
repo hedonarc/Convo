@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from rest_framework import serializers
+from users.translations import t
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -14,10 +15,10 @@ class UserSerializer(serializers.ModelSerializer):
         username = attrs.get("username")
 
         if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError("Email already exists")
+            raise serializers.ValidationError(t("validation.email_exists"))
 
         if User.objects.filter(username=username).exists():
-            raise serializers.ValidationError("Username already exists")
+            raise serializers.ValidationError(t("validation.username_exists"))
 
         return attrs
 
@@ -44,11 +45,11 @@ class LoginSerializer(serializers.Serializer):
             try:
                 username_email = User.objects.get(email=username_email).username
             except User.DoesNotExist:
-                raise serializers.ValidationError("Invalid credentials")
+                raise serializers.ValidationError(t("login.invalid_credentials"))
 
         user = authenticate(username=username_email, password=password)
         if not user:
-            raise serializers.ValidationError("Invalid credentials")
+            raise serializers.ValidationError(t("login.invalid_credentials"))
 
         attrs["user"] = user
         return attrs

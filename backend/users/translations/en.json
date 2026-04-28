@@ -1,0 +1,18 @@
+{
+  "protected": {
+    "authenticated": "You are authenticated"
+  },
+  "register": {
+    "success": "You are registered"
+  },
+  "login": {
+    "username_email_password_required": "Username/Email & Password required.",
+    "invalid_credentials": "Invalid credentials",
+    "invalid_credentials_caps": "Invalid Credentials",
+    "success": "You are logged in."
+  },
+  "validation": {
+    "email_exists": "Email already exists",
+    "username_exists": "Username already exists"
+  }
+}
