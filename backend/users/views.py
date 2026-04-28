@@ -1,6 +1,7 @@
 # Create your views here.
 from django.contrib.auth.models import User
 from users.serializers import UserSerializer, LoginSerializer
+from users.translations import t
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -13,7 +14,7 @@ class ProtectedView(APIView):
 
     def get(self, request):
         return Response(
-            data={"message": "You are authenticated"}, status=status.HTTP_200_OK
+            data={"message": t("protected.authenticated")}, status=status.HTTP_200_OK
         )
 
 
@@ -27,7 +28,7 @@ class RegisterView(APIView):
 
         return Response(
             data={
-                "message": "You are registered",
+                "message": t("register.success"),
                 "token": token,
                 "user": serializer.data,
             },
@@ -46,7 +47,7 @@ class LoginView(APIView):
 
         return Response(
             data={
-                "message": "You are logged in.",
+                "message": t("login.success"),
                 "token": token,
                 "user": UserSerializer(user).data,
             },

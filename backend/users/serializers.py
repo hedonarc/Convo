@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from rest_framework import serializers
+from users.translations import t
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -14,10 +15,10 @@ class UserSerializer(serializers.ModelSerializer):
         username = attrs.get("username")
 
         if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError("Email already exists")
+            raise serializers.ValidationError(t("validation.email_exists"))
 
         if User.objects.filter(username=username).exists():
-            raise serializers.ValidationError("Username already exists")
+            raise serializers.ValidationError(t("validation.username_exists"))
 
         return attrs
 
