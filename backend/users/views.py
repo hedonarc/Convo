@@ -5,6 +5,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 class ProtectedView(APIView):
     permission_classes = [IsAuthenticated]
@@ -37,13 +39,30 @@ class RegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        User.objects.create_user(
+        user = User.objects.create_user(
             email=email,
             password=password,
             username=username,
             first_name=first_name,
             last_name=last_name,
         )
+
+        refresh = RefreshToken.for_user(user)
+        token = {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        }
+
         return Response(
-            data={"message": "You are registered"}, status=status.HTTP_201_CREATED
+            data={
+                "message": "You are registered",
+                "token": token,
+                "user": {
+                    "email": email,
+                    "username": username,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                },
+            },
+            status=status.HTTP_201_CREATED,
         )

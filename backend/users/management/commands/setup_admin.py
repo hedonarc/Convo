@@ -2,7 +2,11 @@ import os
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 
-
+# Usage: uv run manage.py setup_admin
+# This will create a superuser with the following credentials:
+# username: admin
+# email: admin@convo.com
+# password: admin
 class Command(BaseCommand):
     help = "Create a superuser if it doesn't exist"
 
