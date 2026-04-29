@@ -1,0 +1,28 @@
+repos:
+  # ----------------------------
+  # 🧹 Ruff (Lint + Auto Fix + Format)
+  # ----------------------------
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # ----------------------------
+  # 🧾 Conventional Commits
+  # ----------------------------
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.2.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: ["--strict"]
+
+  # ----------------------------
+  # 🛡️ Safety Hooks
+  # ----------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: debug-statements
