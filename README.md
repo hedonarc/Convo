@@ -1,7 +1,3 @@
-Here’s your **clean, properly structured, production-style single README file** with improved layout, spacing, hierarchy, and consistency:
-
----
-
 ````md
 # 💬 Chat Backend API
 
