@@ -1,25 +1,25 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
 
-from users.serializers import LoginSerializer, UserSerializer
+from auth.utils import get_tokens_for_user
+from auth.serializers import LoginSerializer, RegisterSerializer
+from users.serializers import UserSerializer
 from users.translations import t
 
 
 class RegisterView(APIView):
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        refresh = RefreshToken.for_user(user)
-        token = {"access": str(refresh.access_token), "refresh": str(refresh)}
+        token = get_tokens_for_user(user)
 
         return Response(
             data={
                 "message": t("register.success"),
                 "token": token,
-                "user": serializer.data,
+                "user": UserSerializer(user).data,
             },
             status=status.HTTP_201_CREATED,
         )
@@ -30,8 +30,7 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
-        refresh = RefreshToken.for_user(user)
-        token = {"access": str(refresh.access_token), "refresh": str(refresh)}
+        token = get_tokens_for_user(user)
 
         return Response(
             data={
