@@ -1,4 +1,3 @@
-````md
 # 💬 Chat Backend API
 
 A scalable backend for a real-time Chat Application built with **Django**, **Django REST Framework**, and modern tooling like **uv** and **Ruff**.
@@ -20,7 +19,7 @@ A scalable backend for a real-time Chat Application built with **Django**, **Dja
 ### 1. Clone & Install
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/hedonarc/Convo
 cd backend
 uv sync
 ````
@@ -179,5 +178,3 @@ This project is developed by a full-stack team:
 * PostgreSQL support
 * Docker setup
 * Chat architecture (rooms, groups, DMs)
-
-```
