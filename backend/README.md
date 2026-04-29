@@ -57,6 +57,17 @@ Ruff helps:
 - Enforce consistent style
 - Replace flake8, black, isort
 
+## Testing
+
+Run backend tests:
+uv run python manage.py test
+
+Current API tests:
+- auth/tests.py
+- users/tests.py
+
+Each test case includes a concise docstring to describe the expected behavior.
+
 ## API Documentation
 
 - Admin Interface: http://127.0.0.1:8000/admin/

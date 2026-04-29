@@ -17,6 +17,7 @@ class AuthApiTests(APITestCase):
         )
 
     def test_register_creates_user_and_returns_token(self):
+        """Create a new user and return JWT tokens on register."""
         payload = {
             "username": "new_user",
             "email": "new@example.com",
@@ -37,6 +38,7 @@ class AuthApiTests(APITestCase):
         self.assertTrue(User.objects.filter(username="new_user").exists())
 
     def test_register_rejects_duplicate_email(self):
+        """Reject registration when the email is already in use."""
         payload = {
             "username": "another_user",
             "email": "existing@example.com",
@@ -50,6 +52,7 @@ class AuthApiTests(APITestCase):
         self.assertIn("Email already exists", response.data["email"])
 
     def test_register_rejects_password_mismatch(self):
+        """Reject registration when password confirmation does not match."""
         payload = {
             "username": "another_user",
             "email": "another@example.com",
@@ -65,6 +68,7 @@ class AuthApiTests(APITestCase):
         )
 
     def test_login_with_username_returns_token(self):
+        """Authenticate with username and return JWT tokens."""
         payload = {"username": "existing_user", "password": self.password}
 
         response = self.client.post(self.login_url, payload, format="json")
@@ -76,6 +80,7 @@ class AuthApiTests(APITestCase):
         self.assertIn("access", response.data["token"])
 
     def test_login_with_email_returns_token(self):
+        """Authenticate with email and return JWT tokens."""
         payload = {"username": "existing@example.com", "password": self.password}
 
         response = self.client.post(self.login_url, payload, format="json")
@@ -85,6 +90,7 @@ class AuthApiTests(APITestCase):
         self.assertIn("token", response.data)
 
     def test_login_with_invalid_credentials_fails(self):
+        """Return 400 when credentials are invalid during login."""
         payload = {"username": "existing_user", "password": "WrongPass123!"}
 
         response = self.client.post(self.login_url, payload, format="json")

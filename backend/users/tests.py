@@ -28,11 +28,13 @@ class UsersApiTests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
 
     def test_users_list_requires_authentication(self):
+        """Return 401 when requesting the users list without a JWT."""
         response = self.client.get(self.users_list_url)
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_users_list_returns_users_for_authenticated_user(self):
+        """Return all users when an authenticated user requests the list."""
         self._authenticate(self.user)
 
         response = self.client.get(self.users_list_url)
@@ -43,6 +45,7 @@ class UsersApiTests(APITestCase):
         self.assertTrue(any(item["username"] == "johnny" for item in response.data))
 
     def test_users_list_supports_search(self):
+        """Filter users by search query across user fields."""
         self._authenticate(self.user)
 
         response = self.client.get(self.users_list_url, {"search": "john"})
@@ -52,6 +55,7 @@ class UsersApiTests(APITestCase):
         self.assertEqual(response.data[0]["username"], "johnny")
 
     def test_user_detail_returns_user_data(self):
+        """Return target user details for an authenticated request."""
         self._authenticate(self.user)
 
         response = self.client.get(self.user_detail_url)
@@ -61,6 +65,7 @@ class UsersApiTests(APITestCase):
         self.assertEqual(response.data["username"], "johnny")
 
     def test_user_detail_returns_not_found_for_unknown_user(self):
+        """Return 404 when requesting a user id that does not exist."""
         self._authenticate(self.user)
 
         response = self.client.get("/api/users/9999")
@@ -69,6 +74,7 @@ class UsersApiTests(APITestCase):
         self.assertEqual(response.data["message"], "User not found")
 
     def test_patch_user_updates_names_and_password(self):
+        """Update first name, last name, and password via PATCH."""
         self._authenticate(self.user)
         payload = {
             "first_name": "Jane",
@@ -86,6 +92,7 @@ class UsersApiTests(APITestCase):
         self.assertEqual(response.data["message"], "User updated")
 
     def test_delete_user_removes_user(self):
+        """Delete the target user and confirm it is removed."""
         self._authenticate(self.user)
 
         response = self.client.delete(self.user_detail_url)

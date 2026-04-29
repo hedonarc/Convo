@@ -83,6 +83,22 @@ uv run ruff format .
 
 ---
 
+## ✅ Testing
+
+```bash
+# Run backend test suite
+cd backend
+uv run python manage.py test
+```
+
+Current API tests live in:
+- `backend/auth/tests.py`
+- `backend/users/tests.py`
+
+Each test case includes a short docstring describing the behavior it validates.
+
+---
+
 ## 🧾 Commit Message Convention
 
 We follow **Conventional Commits** to keep git history clean, readable, and automation-friendly.
