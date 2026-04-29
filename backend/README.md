@@ -60,10 +60,14 @@ Ruff helps:
 ## API Documentation
 
 - Admin Interface: http://127.0.0.1:8000/admin/
+- Auth Endpoints:
+  - POST `/api/register/`
+  - POST `/api/login/`
 
 ## Project Structure
 
 - config/: Project settings and root URL routing
 - manage.py: Django command-line utility
 - pyproject.toml: Dependencies managed by uv
-- apps/: Application modules (e.g. users, chat)
+- auth/: Authentication app (`register` and `login` views)
+- users/: User profile and user listing endpoints

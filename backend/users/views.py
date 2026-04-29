@@ -1,58 +1,9 @@
-# Create your views here.
 from django.contrib.auth.models import User
-from users.serializers import UserSerializer, LoginSerializer
-from users.translations import t
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
-
-
-class ProtectedView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        return Response(
-            data={"message": t("protected.authenticated")}, status=status.HTTP_200_OK
-        )
-
-
-class RegisterView(APIView):
-    def post(self, request):
-        serializer = UserSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        refresh = RefreshToken.for_user(user)
-        token = {"access": str(refresh.access_token), "refresh": str(refresh)}
-
-        return Response(
-            data={
-                "message": t("register.success"),
-                "token": token,
-                "user": serializer.data,
-            },
-            status=status.HTTP_201_CREATED,
-        )
-
-
-class LoginView(APIView):
-    def post(self, request):
-
-        serializer = LoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data["user"]
-        refresh = RefreshToken.for_user(user)
-        token = {"access": str(refresh.access_token), "refresh": str(refresh)}
-
-        return Response(
-            data={
-                "message": t("login.success"),
-                "token": token,
-                "user": UserSerializer(user).data,
-            },
-            status=status.HTTP_200_OK,
-        )
+from users.serializers import UserSerializer
 
 
 class UserDetailView(APIView):
@@ -106,3 +57,23 @@ class UserDetailView(APIView):
             return Response(
                 {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
             )
+
+
+class UsersListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        search = request.query_params.get("search", "")
+        if search:
+            # TODO: Optimize this query
+            users = (
+                User.objects.filter(username__icontains=search)
+                | User.objects.filter(email__icontains=search)
+                | User.objects.filter(first_name__icontains=search)
+                | User.objects.filter(last_name__icontains=search)
+            )
+        else:
+            users = User.objects.all()
+
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

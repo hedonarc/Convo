@@ -141,7 +141,13 @@ final changes for production ready version of chat system
 
 ### ⚙️ Enforcement
 
-This rule is automatically enforced using **pre-commit hooks**, so invalid commit messages will be rejected before committing.
+This rule is automatically enforced by **pre-commit hooks**, so invalid commit messages will be rejected before committing.
+
+To install pre-commit hooks:
+```bash
+uv run pre-commit install --hook-type pre-commit
+uv run pre-commit install --hook-type commit-msg
+```
 
 ---
 

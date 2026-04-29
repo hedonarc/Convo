@@ -1,6 +1,8 @@
-import json
+import json, logging
 from functools import lru_cache
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=1)
@@ -13,8 +15,15 @@ def _load_translations():
 
 def t(key):
     value = _load_translations()
+
     for part in key.split("."):
         if not isinstance(value, dict) or part not in value:
+            logger.warning(f"Missing translation key: {key}")
             return key
         value = value[part]
-    return value if isinstance(value, str) else key
+
+    if isinstance(value, str):
+        return value
+
+    logger.warning(f"Invalid translation value for key: {key}")
+    return key

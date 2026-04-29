@@ -13,6 +13,7 @@
   },
   "validation": {
     "email_exists": "Email already exists",
-    "username_exists": "Username already exists"
+    "username_exists": "Username already exists",
+    "password_does_not_match": "Passwords do not match"
   }
 }
