@@ -65,6 +65,7 @@ class UsersListView(APIView):
     def get(self, request):
         search = request.query_params.get("search", "")
         if search:
+            # TODO: Optimize this query
             users = (
                 User.objects.filter(username__icontains=search)
                 | User.objects.filter(email__icontains=search)
