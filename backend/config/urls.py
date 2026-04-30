@@ -30,3 +30,5 @@ urlpatterns = [
     path("api/", include("users.urls")),
     path("api/", include("conversations.urls")),
 ]
+
+urlpatterns += [path("silk/", include("silk.urls", namespace="silk"))]

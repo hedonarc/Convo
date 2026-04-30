@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "django>=6.0.4",
+    "django-environ>=0.13.0",
+    "django-silk>=5.5.0",
     "djangorestframework>=3.17.1",
     "djangorestframework-simplejwt>=5.5.1",
 ]
@@ -15,3 +17,20 @@ dev = [
     "pre-commit>=4.6.0",
     "ruff>=0.15.12",
 ]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # import sorting
+    "B",   # bugbear (real bugs + bad patterns)
+    "UP",  # pyupgrade (modern Python syntax)
+    "DJ",  # django-specific rules
+    "S",   # security   
+]
+fixable = ["ALL"]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+force-sort-within-sections = true
+split-on-trailing-comma = true

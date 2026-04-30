@@ -1,37 +1,39 @@
-# 💬 Chat Backend API
+# 💬 Convo
 
-A scalable backend for a real-time Chat Application built with **Django**, **Django REST Framework**, and modern tooling like **uv** and **Ruff**.
-
----
-
-## 🚀 Tech Stack
-
-- Django 6.0+
-- Django REST Framework
-- uv (package manager)
-- Ruff (linting + formatting)
-- SQLite (default DB)
+Convo is a modern, real-time chat application designed for scalability and performance. It features a robust Django-based API and is built with modern development tooling.
 
 ---
 
-## 📦 Setup
+## 🏗️ Architecture
 
-### 1. Clone & Install
+The project is structured as a monorepo:
 
-```bash
-git clone https://github.com/hedonarc/Convo
-cd backend
-uv sync
-````
+- **`/backend`**: Django REST Framework API, handling authentication, messaging logic, and user management.
+- **`/frontend`**: *(Coming Soon)* Modern web interface built with React/Next.js.
 
 ---
 
-### 2. Database Setup
+## 🚀 Quick Start
 
-```bash
-uv run manage.py makemigrations && uv run manage.py migrate
-```
+To get the project running locally, follow the setup guides for each component:
 
+1.  **Backend Setup**: Follow the instructions in [backend/README.md](./backend/README.md).
+2.  **Frontend Setup**: *(Coming Soon)*
+
+### Global Prerequisites
+
+- **Git**: For version control.
+- **uv**: For Python dependency management. [Install uv](https://github.com/astral-sh/uv).
+
+---
+
+## 🛠️ Development & Contributing
+
+We maintain high standards for code quality and consistency.
+
+- **Global Standards**: Please review [CONTRIBUTING.md](./CONTRIBUTING.md) for commit conventions and pre-commit hook setup.
+- **Backend Development**: See [backend/DEVELOPMENT.md](./backend/DEVELOPMENT.md) for Python/Django specific workflows and tools (Ruff).
+- **Frontend Development**: *(Coming Soon)*
 ---
 
 ### 3. Create Admin User
@@ -80,6 +82,22 @@ uv run ruff check . --fix
 # Format code
 uv run ruff format .
 ```
+
+---
+
+## ✅ Testing
+
+```bash
+# Run backend test suite
+cd backend
+uv run python manage.py test
+```
+
+Current API tests live in:
+- `backend/auth/tests.py`
+- `backend/users/tests.py`
+
+Each test case includes a short docstring describing the behavior it validates.
 
 ---
 
@@ -161,26 +179,15 @@ http://127.0.0.1:8000/admin/
 
 ## 🤝 Contributors
 
-This project is developed by a full-stack team:
+This project is developed by:
 
-* Abubakar Khawaja — Full Stack Developer (React + Django)
-* Muhammad Suleman Butt — Full Stack Developer (React / React Native + Django)
-
----
-
-## 🧠 Notes
-
-* SQLite is used for development only
-* uv ensures fast and reproducible dependency management
-* Ruff replaces flake8, black, and isort
-* Easily extendable to PostgreSQL for production
+* **Abubakar Khawaja** — Full Stack Developer (React + Django)
+* **Muhammad Suleman Butt** — Full Stack Developer (React / React Native + Django)
 
 ---
 
-## 📌 Future Improvements
+## 🧠 Project Notes & Roadmap
 
-* WebSockets (real-time chat)
-* JWT authentication
-* PostgreSQL support
-* Docker setup
-* Chat architecture (rooms, groups, DMs)
+- **Database**: SQLite is used for development; easily extendable to PostgreSQL.
+- **Real-time**: Integration with WebSockets (Django Channels) is planned.
+- **Auth**: Fully integrated with JWT (JSON Web Tokens) using `djangorestframework-simplejwt`.

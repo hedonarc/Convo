@@ -1,6 +1,8 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework import serializers
+
+from auth.utils import is_email
 from users.translations import t
 
 from auth.utils import is_email
@@ -63,7 +65,9 @@ class LoginSerializer(serializers.Serializer):
             try:
                 username = User.objects.get(email=username_or_email).username
             except User.DoesNotExist:
-                raise serializers.ValidationError(t("login.invalid_credentials"))
+                raise serializers.ValidationError(
+                    t("login.invalid_credentials")
+                ) from None
 
         user = authenticate(username=username, password=password)
 

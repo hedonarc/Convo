@@ -21,3 +21,6 @@ db.sqlite3-shm
 # Scripts
 Makefile
 scripts.py
+
+# Django Static Files
+staticfiles/
