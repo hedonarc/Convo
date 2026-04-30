@@ -17,7 +17,6 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
-
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -30,3 +29,5 @@ urlpatterns = [
     path("api/", include("auth.urls")),
     path("api/", include("users.urls")),
 ]
+
+urlpatterns += [path("silk/", include("silk.urls", namespace="silk"))]
