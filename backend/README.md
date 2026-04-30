@@ -72,6 +72,18 @@ uv run manage.py showmigrations
 # Access Django Shell
 uv run manage.py shell
 ```
+## Testing
+
+Run backend tests:
+uv run python manage.py test
+
+Current API tests:
+- auth/tests.py
+- users/tests.py
+
+Each test case includes a concise docstring to describe the expected behavior.
+
+## API Documentation
 
 ---
 

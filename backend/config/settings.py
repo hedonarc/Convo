@@ -59,6 +59,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "auth.apps.AuthConfig",
     "users.apps.UsersConfig",
+    "conversations.apps.ConversationsConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -132,7 +133,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=60),
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
