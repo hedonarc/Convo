@@ -6,7 +6,7 @@ This guide outlines the backend-specific development standards and tools. For gl
 
 ## 🧹 Code Quality (Ruff)
 
-We use **Ruff** for linting and formatting the Python codebase.
+We use **Ruff** for linting, formatting, and import sorting the Python codebase.
 
 ### Commands
 
@@ -22,6 +22,16 @@ uv run ruff check . --fix
 # Format code
 uv run ruff format .
 ```
+
+---
+
+## 🚀 Performance & Profiling
+
+### Django Silk
+[Django Silk](https://github.com/jazzband/django-silk) is integrated for live profiling of API requests and database queries.
+
+- **Access Dashboard:** `http://127.0.0.1:8000/silk/`
+- **Configuration:** Profiling is enabled via `SILKY_PYTHON_PROFILER = True` in `settings.py`.
 
 ---
 

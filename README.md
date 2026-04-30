@@ -50,4 +50,4 @@ This project is developed by:
 
 - **Database**: SQLite is used for development; easily extendable to PostgreSQL.
 - **Real-time**: Integration with WebSockets (Django Channels) is planned.
-- **Auth**: Currently using Token-based authentication; JWT support is in the roadmap.
+- **Auth**: Fully integrated with JWT (JSON Web Tokens) using `djangorestframework-simplejwt`.
