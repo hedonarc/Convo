@@ -1,65 +1,44 @@
+from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, BasePermission
+from rest_framework.permissions import IsAuthenticated
 
-from conversations.models import Conversation, Message, Participant
+from conversations.models import Conversation, Message
+from conversations.permissions import IsConversationParticipant
 from conversations.services.message_service import create_message
-from conversations.api.serializers.message import MessageSerializer
+from conversations.api.serializers.message import (
+    MessageSerializer,
+    SendMessageSerializer,
+)
 
 
-class SendMessageView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, conversation_id):
-        content = request.data.get("content")
-
-        if not content:
-            return Response({"error": "content required"}, status=400)
-
-        try:
-            conversation = Conversation.objects.get(id=conversation_id)
-        except Conversation.DoesNotExist:
-            return Response({"error": "Conversation not found"}, status=404)
-
-        # 🔒 check user is participant
-        is_member = Participant.objects.filter(
-            conversation=conversation, user=request.user
-        ).exists()
-
-        if not is_member:
-            return Response({"error": "Not allowed"}, status=403)
-
-        message = create_message(
-            conversation=conversation, sender=request.user, content=content
-        )
-
-        return Response(MessageSerializer(message).data)
-
-
-class IsConversationParticipant(BasePermission):
-    def has_permission(self, request, view):
-        conversation_id = view.kwargs.get("conversation_id")
-
-        return Participant.objects.filter(
-            conversation_id=conversation_id, user=request.user
-        ).exists()
-
-
-class MessageListView(ListAPIView):
-    serializer_class = MessageSerializer
+class MessageView(APIView):
     permission_classes = [IsAuthenticated, IsConversationParticipant]
 
-    def get_queryset(self):
-        conversation_id = self.kwargs["conversation_id"]
+    def get_conversation(self, conversation_id):
+        return get_object_or_404(Conversation, id=conversation_id)
 
-        # # 🔒 access check
-        # if not Participant.objects.filter(
-        #     conversation_id=conversation_id,
-        #     user=self.request.user
-        # ).exists():
-        #     return Message.objects.none()
+    # Get list of messages of a single conversation
+    def get(self, __request__, conversation_id):
+        conversation = self.get_conversation(conversation_id)
+        messages = Message.objects.filter(conversation=conversation).order_by(
+            "created_at"
+        )
 
-        return Message.objects.filter(
-            conversation_id=conversation_id, is_deleted=False
-        ).order_by("-created_at")
+        return Response(
+            MessageSerializer(messages, many=True).data, status=status.HTTP_200_OK
+        )
+
+    def post(self, request, conversation_id):
+        conversation = self.get_conversation(conversation_id)
+        serializer = SendMessageSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        message = create_message(
+            conversation=conversation,
+            sender=request.user,
+            content=serializer.validated_data["content"],
+        )
+
+        return Response(MessageSerializer(message).data, status=status.HTTP_201_CREATED)
