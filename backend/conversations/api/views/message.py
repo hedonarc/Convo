@@ -1,16 +1,15 @@
-from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.generics import get_object_or_404
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-
-from conversations.models import Conversation, Message
-from conversations.permissions import IsConversationParticipant
-from conversations.services.message_service import create_message
 from conversations.api.serializers.message import (
     MessageSerializer,
     SendMessageSerializer,
 )
+from conversations.models import Conversation, Message
+from conversations.permissions import IsConversationParticipant
+from conversations.services.message_service import create_message
+from rest_framework import status
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 
 class MessageView(APIView):
@@ -20,6 +19,7 @@ class MessageView(APIView):
         return get_object_or_404(Conversation, id=conversation_id)
 
     # Get list of messages of a single conversation
+    # TODO: exclude soft deleted messages from this list (in future)
     def get(self, __request__, conversation_id):
         conversation = self.get_conversation(conversation_id)
         messages = Message.objects.filter(conversation=conversation).order_by(

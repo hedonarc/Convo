@@ -1,5 +1,5 @@
-from rest_framework import serializers
 from conversations.models import Conversation
+from rest_framework import serializers
 
 
 class ConversationSerializer(serializers.ModelSerializer):

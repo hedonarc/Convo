@@ -1,6 +1,6 @@
-from users.views import UsersListView
 from django.urls import path
-from users.views import UserDetailView
+
+from users.views import UserDetailView, UsersListView
 
 urlpatterns = [
     path("users/<int:user_id>", UserDetailView.as_view()),

@@ -1,4 +1,5 @@
 from django.urls import path
+
 from .api.views.conversation import DirectConversationView
 from .api.views.message import MessageView
 

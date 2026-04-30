@@ -1,8 +1,9 @@
-from auth.utils import is_email
-from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
 from rest_framework import serializers
 from users.translations import t
+
+from auth.utils import is_email
 
 
 class RegisterSerializer(serializers.ModelSerializer):

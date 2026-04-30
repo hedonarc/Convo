@@ -1,7 +1,8 @@
-from rest_framework.permissions import BasePermission
 from rest_framework.exceptions import NotFound
-from conversations.models import Participant, Conversation
+from rest_framework.permissions import BasePermission
 from users.translations import t
+
+from conversations.models import Conversation, Participant
 
 
 class IsConversationParticipant(BasePermission):

@@ -1,6 +1,6 @@
 from .conversation import Conversation
-from .participant import Participant
 from .message import Message
+from .participant import Participant
 
 __all__ = [
     "Conversation",
