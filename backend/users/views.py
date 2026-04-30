@@ -1,8 +1,10 @@
 from django.contrib.auth.models import User
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from django.db.models import Q
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from users.serializers import UserSerializer
 
 
@@ -64,16 +66,15 @@ class UsersListView(APIView):
 
     def get(self, request):
         search = request.query_params.get("search", "")
+
+        users = User.objects.all()
         if search:
-            # TODO: Optimize this query
-            users = (
-                User.objects.filter(username__icontains=search)
-                | User.objects.filter(email__icontains=search)
-                | User.objects.filter(first_name__icontains=search)
-                | User.objects.filter(last_name__icontains=search)
+            users = users.filter(
+                Q(username__icontains=search)
+                | Q(email__icontains=search)
+                | Q(first_name__icontains=search)
+                | Q(last_name__icontains=search)
             )
-        else:
-            users = User.objects.all()
 
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
