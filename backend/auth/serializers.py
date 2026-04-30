@@ -5,6 +5,8 @@ from rest_framework import serializers
 from auth.utils import is_email
 from users.translations import t
 
+from auth.utils import is_email
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
