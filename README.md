@@ -48,3 +48,10 @@ For local setup:
 
 - Backend workflows (Ruff, migrations, profiling): [`docs/backend/development.md`](./docs/backend/development.md)
 - Global contribution standards: [`CONTRIBUTING.md`](./CONTRIBUTING.md)
+
+## 🤝 Contributors
+
+This project is developed by:
+
+* **Abubakar Khawaja** — Full Stack Developer (React + Django)
+* **Muhammad Suleman Butt** — Full Stack Developer (React / React Native + Django)
