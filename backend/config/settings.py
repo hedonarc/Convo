@@ -57,9 +57,9 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    "auth.apps.AuthConfig",
-    "users.apps.UsersConfig",
-    "conversations.apps.ConversationsConfig",
+    "apps.authentication.apps.AuthenticationConfig",
+    "apps.users.apps.UsersConfig",
+    "apps.conversations.apps.ConversationsConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -159,7 +159,7 @@ LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
 
-USE_I18N = True
+USE_I18N = False
 
 USE_TZ = True
 
