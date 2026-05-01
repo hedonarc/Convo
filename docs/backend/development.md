@@ -1,34 +1,27 @@
-# 🛠️ Backend Development Guide
+# Backend Development
 
-This guide outlines the backend-specific development standards and tools. For global project standards like commit conventions, see [CONTRIBUTING.md](../CONTRIBUTING.md).
+This guide covers backend workflows and quality standards.
 
----
+## Code Quality (Ruff)
 
-## 🧹 Code Quality (Ruff)
-
-We use **Ruff** for linting, formatting, and import sorting the Python codebase.
-
-### Commands
-
-Run these from the `backend/` directory:
+Run from `backend/`:
 
 ```bash
-# Lint code
 uv run ruff check .
-
-# Check import sorting
-uv run ruff check --select I
-
-# Auto-fix issues
+uv run ruff check --select I .
 uv run ruff check --fix .
-
-# Format code
 uv run ruff format .
 ```
 
----
+## Django Migrations
 
-## 🚀 Performance & Profiling
+```bash
+uv run manage.py makemigrations
+uv run manage.py migrate
+uv run manage.py showmigrations
+```
+
+## Profiling
 
 ### Django Silk
 [Django Silk](https://github.com/jazzband/django-silk) is integrated for live profiling of API requests and database queries.
@@ -56,17 +49,4 @@ from silk.profiling.profiler import silk_profile
 with silk_profile(name="Custom Query Info"):
     result = User.objects.filter(is_active=True)
     # ...
-```
-
----
-
-## 🧱 Django Workflows
-
-### Migrations
-Always ensure migrations are created and applied when models change:
-
-```bash
-uv run manage.py makemigrations
-uv run manage.py migrate
-uv run manage.py showmigrations
 ```
