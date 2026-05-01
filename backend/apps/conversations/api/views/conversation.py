@@ -12,7 +12,7 @@ from apps.conversations.services.conversation_service import (
 )
 
 
-class DirectConversationView(APIView):
+class ConversationView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
