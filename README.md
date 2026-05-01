@@ -101,6 +101,39 @@ Each test case includes a short docstring describing the behavior it validates.
 
 ---
 
+## 🤖 GitHub CI
+
+Backend unit tests run automatically on GitHub Actions.
+
+- **Workflow file**: [`.github/workflows/backend-tests.yml`](./.github/workflows/backend-tests.yml)
+- **Triggers**:
+  - Pull requests targeting `main` that touch `backend/**` or the workflow file.
+  - Pushes to `main` that touch `backend/**` or the workflow file.
+- **Runtime**: `ubuntu-latest` with Python 3.13 installed via [`astral-sh/setup-uv`](https://github.com/astral-sh/setup-uv).
+- **Commands CI runs** (from the `backend/` directory):
+
+```bash
+uv sync --frozen
+uv run python manage.py test --noinput --verbosity=2
+```
+
+### Required Secret
+
+The Django settings require `SECRET_KEY`. The workflow uses the `SECRET_KEY` repository secret if present, otherwise it falls back to a CI-only placeholder so the workflow is green out-of-the-box.
+
+To configure the secret (recommended):
+
+1. Open the repository on GitHub.
+2. Go to **Settings → Secrets and variables → Actions → New repository secret**.
+3. Name it `SECRET_KEY` and paste any non-empty value (CI does not need your production key).
+
+### Why `--parallel` and `--keepdb` are not used
+
+- `--keepdb`: CI runners are ephemeral, so there is no test DB to keep between runs. Caching the SQLite file would risk stale schemas and false-green tests.
+- `--parallel`: the suite is small today and uses file-based SQLite, which has parallel limitations. We will revisit once the suite grows or when CI moves to PostgreSQL.
+
+---
+
 ## 🧾 Commit Message Convention
 
 We follow **Conventional Commits** to keep git history clean, readable, and automation-friendly.
