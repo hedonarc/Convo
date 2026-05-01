@@ -17,6 +17,7 @@ Convo is a monorepo for a real-time chat platform with backend, frontend, and mo
   - Architecture: [`docs/backend/architecture.md`](./docs/backend/architecture.md)
   - API: [`docs/backend/api.md`](./docs/backend/api.md)
   - Testing: [`docs/backend/testing.md`](./docs/backend/testing.md)
+  - Translations: [`docs/backend/translations.md`](./docs/backend/translations.md)
 
 - Frontend docs:
   - Setup: [`docs/frontend/setup.md`](./docs/frontend/setup.md)
