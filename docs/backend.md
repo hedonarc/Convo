@@ -75,7 +75,7 @@ uv run manage.py shell
 ## Testing
 
 Run backend tests:
-uv run python manage.py test
+uv run manage.py test
 
 Current API tests:
 - apps/authentication/tests.py
