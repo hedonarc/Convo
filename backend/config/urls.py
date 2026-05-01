@@ -26,9 +26,9 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/token/", TokenObtainPairView.as_view()),
     path("api/token/refresh/", TokenRefreshView.as_view()),
-    path("api/", include("auth.urls")),
-    path("api/", include("users.urls")),
-    path("api/", include("conversations.urls")),
+    path("api/", include("apps.authentication.urls")),
+    path("api/", include("apps.users.urls")),
+    path("api/", include("apps.conversations.urls")),
 ]
 
 urlpatterns += [path("silk/", include("silk.urls", namespace="silk"))]

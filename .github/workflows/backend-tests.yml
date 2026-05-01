@@ -1,0 +1,50 @@
+name: Backend Tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-tests.yml"
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-tests.yml"
+
+concurrency:
+  group: backend-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-tests:
+    name: Backend Tests (Django + uv)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      # Use the repo secret when configured; fall back to a CI-only value so
+      # the workflow is green out-of-the-box. This value is never used in
+      # production and only needs to be a non-empty string for Django to boot.
+      SECRET_KEY: ${{ secrets.SECRET_KEY || 'ci-only-not-for-production-key-do-not-use-anywhere-else' }}
+      DEBUG: "False"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv and Python 3.13
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.13"
+          enable-cache: true
+          cache-dependency-glob: "backend/uv.lock"
+
+      - name: Install backend dependencies
+        run: uv sync --frozen
+
+      - name: Run Django unit tests
+        run: uv run python manage.py test --noinput --verbosity=2
