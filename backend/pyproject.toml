@@ -34,3 +34,7 @@ fixable = ["ALL"]
 combine-as-imports = true
 force-sort-within-sections = true
 split-on-trailing-comma = true
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests.py" = ["S105", "S106", ]
+

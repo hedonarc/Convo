@@ -94,8 +94,8 @@ uv run python manage.py test
 ```
 
 Current API tests live in:
-- `backend/auth/tests.py`
-- `backend/users/tests.py`
+- `backend/apps/authentication/tests.py`
+- `backend/apps/users/tests.py`
 
 Each test case includes a short docstring describing the behavior it validates.
 
