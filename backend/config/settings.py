@@ -53,8 +53,10 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     "rest_framework",
-    "silk",
 ]
+
+if DEBUG:
+    THIRD_PARTY_APPS += ["silk"]
 
 LOCAL_APPS = [
     "apps.authentication.apps.AuthenticationConfig",
@@ -72,8 +74,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "silk.middleware.SilkyMiddleware",
 ]
+
+if DEBUG:
+    MIDDLEWARE.append("silk.middleware.SilkyMiddleware")
 
 ROOT_URLCONF = "config.urls"
 
