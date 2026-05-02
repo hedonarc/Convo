@@ -1,214 +1,63 @@
-# 💬 Convo
+# Convo
 
-Convo is a modern, real-time chat application designed for scalability and performance. It features a robust Django-based API and is built with modern development tooling.
+Convo is a monorepo for a real-time chat platform with backend, frontend, and mobile applications.
 
----
+## Monorepo Architecture
 
-## 🏗️ Architecture
+- `backend/`: Django REST Framework API for authentication, messaging, and user management.
+- `frontend/`: Web app (planned).
+- `mobile/`: Mobile app (planned).
 
-The project is structured as a monorepo:
+## Documentation Map
 
-- **`/backend`**: Django REST Framework API, handling authentication, messaging logic, and user management.
-- **`/frontend`**: *(Coming Soon)* Modern web interface built with React/Next.js.
+- Project docs index: [`docs/index.md`](./docs/index.md)
+- Backend docs:
+  - Setup: [`docs/backend/setup.md`](./docs/backend/setup.md)
+  - Development: [`docs/backend/development.md`](./docs/backend/development.md)
+  - Architecture: [`docs/backend/architecture.md`](./docs/backend/architecture.md)
+  - API: [`docs/backend/api.md`](./docs/backend/api.md)
+  - Testing: [`docs/backend/testing.md`](./docs/backend/testing.md)
+  - Translations: [`docs/backend/translations.md`](./docs/backend/translations.md)
 
----
+- Frontend docs:
+  - Setup: [`docs/frontend/setup.md`](./docs/frontend/setup.md)
+  - Architecture: [`docs/frontend/architecture.md`](./docs/frontend/architecture.md)
+  - State management: [`docs/frontend/state-management.md`](./docs/frontend/state-management.md)
+  - Testing: [`docs/frontend/testing.md`](./docs/frontend/testing.md)
 
-## 🚀 Quick Start
+- Mobile docs:
+  - Setup: [`docs/mobile/setup.md`](./docs/mobile/setup.md)
+  - Architecture: [`docs/mobile/architecture.md`](./docs/mobile/architecture.md)
+  - Navigation: [`docs/mobile/navigation.md`](./docs/mobile/navigation.md)
+  - Testing: [`docs/mobile/testing.md`](./docs/mobile/testing.md)
 
-To get the project running locally, follow the setup guides for each component:
+- Shared docs:
+  - Auth flow: [`docs/shared/auth-flow.md`](./docs/shared/auth-flow.md)
+  - API contracts: [`docs/shared/api-contracts.md`](./docs/shared/api-contracts.md)
+  - Environments: [`docs/shared/environments.md`](./docs/shared/environments.md)
+  - Release process: [`docs/shared/release-process.md`](./docs/shared/release-process.md)
 
-1.  **Backend Setup**: Follow the instructions in [backend/README.md](./backend/README.md).
-2.  **Frontend Setup**: *(Coming Soon)*
+  ## Release & Versioning
 
-### Global Prerequisites
+  This project follows [Semantic Versioning](https://semver.org/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
-- **Git**: For version control.
-- **uv**: For Python dependency management. [Install uv](https://github.com/astral-sh/uv).
+  - **Versioning Strategy:** Independent (each application maintains its own version).
+  - **Automation:** 
+    - **Backend:** Automated via `python-semantic-release`.
+    - **Frontend/Mobile:** Automated via `changesets` (planned).
+  - **Commit Format:** `type(scope): description` (e.g., `feat(backend): add jwt auth`). Enforcement is handled via `pre-commit`.
 
----
+  ## Quick Start
+For local setup:
 
-## 🛠️ Development & Contributing
+1. Backend: follow [`docs/backend/setup.md`](./docs/backend/setup.md).
+2. Frontend: follow [`docs/frontend/setup.md`](./docs/frontend/setup.md) once the app is added.
+3. Mobile: follow [`docs/mobile/setup.md`](./docs/mobile/setup.md) once the app is added.
 
-We maintain high standards for code quality and consistency.
+## Development and Contributing
 
-- **Global Standards**: Please review [CONTRIBUTING.md](./CONTRIBUTING.md) for commit conventions and pre-commit hook setup.
-- **Backend Development**: See [backend/DEVELOPMENT.md](./backend/DEVELOPMENT.md) for Python/Django specific workflows and tools (Ruff).
-- **Frontend Development**: *(Coming Soon)*
----
-
-### 3. Create Admin User
-
-```bash
-uv run manage.py setup_admin
-```
-
----
-
-### 4. Run Server
-
-```bash
-uv run manage.py runserver
-```
-
-Application will be available at:
-
-```
-http://127.0.0.1:8000/
-```
-
----
-
-## 🧱 Django Commands
-
-```bash
-# Create & apply migrations
-uv run manage.py makemigrations && uv run manage.py migrate
-
-# Check migration status
-uv run manage.py showmigrations
-```
-
----
-
-## 🧹 Code Quality (Ruff)
-
-```bash
-# Lint code
-uv run ruff check .
-
-# Auto-fix issues
-uv run ruff check . --fix
-
-# Format code
-uv run ruff format .
-```
-
----
-
-## ✅ Testing
-
-```bash
-# Run backend test suite
-cd backend
-uv run python manage.py test
-```
-
-Current API tests live in:
-- `backend/apps/authentication/tests.py`
-- `backend/apps/users/tests.py`
-
-Each test case includes a short docstring describing the behavior it validates.
-
----
-
-## 🤖 GitHub CI
-
-Backend unit tests run automatically on GitHub Actions.
-
-- **Workflow file**: [`.github/workflows/backend-tests.yml`](./.github/workflows/backend-tests.yml)
-- **Triggers**:
-  - Pull requests targeting `main` that touch `backend/**` or the workflow file.
-  - Pushes to `main` that touch `backend/**` or the workflow file.
-- **Runtime**: `ubuntu-latest` with Python 3.13 installed via [`astral-sh/setup-uv`](https://github.com/astral-sh/setup-uv).
-- **Commands CI runs** (from the `backend/` directory):
-
-```bash
-uv sync --frozen
-uv run python manage.py test --noinput --verbosity=2
-```
-
-### Required Secret
-
-The Django settings require `SECRET_KEY`. The workflow uses the `SECRET_KEY` repository secret if present, otherwise it falls back to a CI-only placeholder so the workflow is green out-of-the-box.
-
-To configure the secret (recommended):
-
-1. Open the repository on GitHub.
-2. Go to **Settings → Secrets and variables → Actions → New repository secret**.
-3. Name it `SECRET_KEY` and paste any non-empty value (CI does not need your production key).
-
-### Why `--parallel` and `--keepdb` are not used
-
-- `--keepdb`: CI runners are ephemeral, so there is no test DB to keep between runs. Caching the SQLite file would risk stale schemas and false-green tests.
-- `--parallel`: the suite is small today and uses file-based SQLite, which has parallel limitations. We will revisit once the suite grows or when CI moves to PostgreSQL.
-
----
-
-## 🧾 Commit Message Convention
-
-We follow **Conventional Commits** to keep git history clean, readable, and automation-friendly.
-
----
-
-### 📌 Format
-
-```txt
-type: short description
-```
-
----
-
-### 📏 Rules & Limitations
-
-* ✔ Use lowercase only
-* ✔ Maximum 72 characters total
-* ✔ Keep description short and meaningful (recommended ≤ 50 chars)
-* ✔ No full sentences (avoid "I fixed...", "I added...")
-* ✔ No vague messages like "update", "fix bug", "final changes"
-
----
-
-### 🧩 Allowed Types
-
-* `feat` → new feature
-* `fix` → bug fix
-* `chore` → maintenance tasks (deps, config, etc.)
-* `refactor` → code changes without behavior change
-* `docs` → documentation changes
-* `test` → adding or updating tests
-
----
-
-### 💡 Examples
-
-```bash
-feat: add real-time messaging API
-fix: resolve authentication token issue
-chore: update ruff configuration
-refactor: simplify chat serializer logic
-```
-
----
-
-### 🚫 Invalid Examples
-
-```bash
-updated code
-Fix Bug in API
-final changes for production ready version of chat system
-```
-
----
-
-### ⚙️ Enforcement
-
-This rule is automatically enforced by **pre-commit hooks**, so invalid commit messages will be rejected before committing.
-
-To install pre-commit hooks:
-```bash
-uv run pre-commit install --hook-type pre-commit
-uv run pre-commit install --hook-type commit-msg
-```
-
----
-
-## 🔐 Admin Panel
-
-```
-http://127.0.0.1:8000/admin/
-```
-
----
+- Backend workflows (Ruff, migrations, profiling): [`docs/backend/development.md`](./docs/backend/development.md)
+- Global contribution standards: [`CONTRIBUTING.md`](./CONTRIBUTING.md)
 
 ## 🤝 Contributors
 
@@ -216,11 +65,3 @@ This project is developed by:
 
 * **Abubakar Khawaja** — Full Stack Developer (React + Django)
 * **Muhammad Suleman Butt** — Full Stack Developer (React / React Native + Django)
-
----
-
-## 🧠 Project Notes & Roadmap
-
-- **Database**: SQLite is used for development; easily extendable to PostgreSQL.
-- **Real-time**: Integration with WebSockets (Django Channels) is planned.
-- **Auth**: Fully integrated with JWT (JSON Web Tokens) using `djangorestframework-simplejwt`.

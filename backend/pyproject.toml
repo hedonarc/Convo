@@ -15,6 +15,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pre-commit>=4.6.0",
+    "python-semantic-release>=10.5.3",
     "ruff>=0.15.12",
 ]
 
@@ -37,4 +38,22 @@ split-on-trailing-comma = true
 
 [tool.ruff.lint.per-file-ignores]
 "**/tests.py" = ["S105", "S106", ]
+
+[tool.semantic_release]
+version_toml = [
+    "pyproject.toml:project.version",
+]
+upload_to_vcs_release = true
+build_command = "uv build"
+commit_message = "chore(release): backend {version} [skip ci]"
+tag_format = "backend-v{version}"
+
+[tool.semantic_release.commit_parser_options]
+allowed_tags = ["feat", "fix", "perf", "build", "chore", "ci", "docs", "style", "refactor", "test"]
+minor_tags = ["feat"]
+patch_tags = ["fix", "perf"]
+
+[tool.semantic_release.branches.main]
+match = "main"
+prerelease = false
 

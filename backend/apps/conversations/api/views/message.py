@@ -19,9 +19,9 @@ class MessageView(APIView):
     def get_conversation(self, conversation_id):
         return get_object_or_404(Conversation, id=conversation_id)
 
-    # Get list of messages of a single conversation
-    # TODO: exclude soft deleted messages from this list (in future)
+    # TODO: @msulemanb exclude soft deleted messages from this list (in future)
     def get(self, __request__, conversation_id):
+        """Get list of messages of a single conversation"""
         conversation = self.get_conversation(conversation_id)
         messages = Message.objects.filter(conversation=conversation).order_by(
             "created_at"
