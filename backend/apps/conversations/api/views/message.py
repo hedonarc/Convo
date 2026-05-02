@@ -9,6 +9,7 @@ from apps.conversations.api.serializers.message import (
     SendMessageSerializer,
 )
 from apps.conversations.models import Conversation, Message
+from apps.conversations.pagination import MessageCursorPagination
 from apps.conversations.permissions import IsConversationParticipant
 from apps.conversations.services.message_service import create_message
 
@@ -20,16 +21,21 @@ class MessageView(APIView):
         return get_object_or_404(Conversation, id=conversation_id)
 
     # TODO: @msulemanb exclude soft deleted messages from this list (in future)
-    def get(self, __request__, conversation_id):
+    def get(self, request, conversation_id):
         """Get list of messages of a single conversation"""
         conversation = self.get_conversation(conversation_id)
+
         messages = Message.objects.filter(conversation=conversation).order_by(
-            "created_at"
+            "-created_at"
         )
 
-        return Response(
-            MessageSerializer(messages, many=True).data, status=status.HTTP_200_OK
-        )
+        paginator = MessageCursorPagination()
+
+        paginated_messages = paginator.paginate_queryset(messages, request, view=self)
+
+        serializer = MessageSerializer(paginated_messages, many=True)
+
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request, conversation_id):
         conversation = self.get_conversation(conversation_id)

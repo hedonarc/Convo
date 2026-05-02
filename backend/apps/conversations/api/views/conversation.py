@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 
 from apps.conversations.api.serializers.conversation import ConversationSerializer
 from apps.conversations.models import Conversation
+from apps.conversations.pagination import ConversationCursorPagination
 from apps.conversations.services.conversation_service import (
     get_or_create_direct_conversation,
 )
@@ -17,11 +18,19 @@ class ConversationView(APIView):
 
     def get(self, request):
         user = request.user
-        conversations = Conversation.objects.filter(participant__user=user)
-        return Response(
-            data=ConversationSerializer(conversations, many=True).data,
-            status=status.HTTP_200_OK,
+
+        conversations = Conversation.objects.filter(participant__user=user).order_by(
+            "-updated_at"
         )
+
+        paginator = ConversationCursorPagination()
+        paginated_conversations = paginator.paginate_queryset(
+            conversations, request, view=self
+        )
+
+        serializer = ConversationSerializer(paginated_conversations, many=True)
+
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
         sender = request.user
