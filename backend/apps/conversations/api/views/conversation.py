@@ -19,9 +19,9 @@ class ConversationView(APIView):
     def get(self, request):
         user = request.user
 
-        conversations = Conversation.objects.filter(participant__user=user).order_by(
-            "-updated_at"
-        )
+        conversations = Conversation.objects.filter(
+            participant__user=user
+        ).select_related("last_message")
 
         paginator = ConversationCursorPagination()
         paginated_conversations = paginator.paginate_queryset(

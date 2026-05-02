@@ -12,17 +12,19 @@ class Conversation(models.Model):
         max_length=255, unique=True, null=True, blank=True
     )
 
-    # TODO: @msulemanb Replace biginteger with foreign key to Message model
-    #       because `last_message_id` can point to:
-    #           - a soft deleted message
-    #           - a message that is not part of the conversation (logic bug)
-    #           - non-existent message (database corruption)
-    #       This will transfer responsibility of message existence check
-    #       to the database
-    last_message_id = models.BigIntegerField(null=True, blank=True)
+    last_message = models.ForeignKey(
+        "conversations.Message",  # string reference (avoids circular import)
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",  # no reverse relation needed
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
 
     def __str__(self):
         return f"{self.created_by} - {self.conversation_key or self.id}"
