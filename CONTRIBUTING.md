@@ -3,6 +3,14 @@
 Thank you for contributing to Convo! To maintain a high-quality codebase and clean history, we follow these standards.
 
 ---
+## Branches Structure
+```
+main → stable/production-ready code
+dev → development branch
+
+feature-* → feature branches
+fix-* → bug fix branches
+```
 
 ## 🧾 Commit Message Convention
 
