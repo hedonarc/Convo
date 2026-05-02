@@ -44,7 +44,7 @@ version_toml = [
     "pyproject.toml:project.version",
 ]
 upload_to_vcs_release = true
-build_command = "uv build"
+build_command = ""
 commit_message = "chore(release): backend {version} [skip ci]"
 tag_format = "backend-v{version}"
 
