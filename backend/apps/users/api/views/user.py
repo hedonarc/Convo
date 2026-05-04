@@ -69,7 +69,7 @@ class UsersListView(APIView):
     def get(self, request):
         search = request.query_params.get("search", "")
 
-        users = User.objects.all()
+        users = User.objects.all().order_by("id")
         if search:
             users = users.filter(
                 Q(username__icontains=search)
