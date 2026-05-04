@@ -25,7 +25,6 @@ sync:
 sync-dev:
 	$(CD) uv sync --all-extras
 
-setup: sync migrate
 
 # -------------------------
 # Django Commands
@@ -41,13 +40,16 @@ makemigrations:
 	$(CD) $(PYTHON) manage.py makemigrations
 
 migs:
-	$(CD) $(PYTHON) manage.py makemigrations && $(CD) $(PYTHON) manage.py migrate
+	$(CD) $(PYTHON) manage.py makemigrations && $(PYTHON) manage.py migrate
 
 showmigrations:
 	$(CD) $(PYTHON) manage.py showmigrations
 
 shell:
 	$(CD) $(PYTHON) manage.py shell
+
+setup: sync migs
+
 
 # -------------------------
 # Ruff (Linting / Formatting)
