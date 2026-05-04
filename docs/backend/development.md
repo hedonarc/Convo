@@ -29,6 +29,17 @@ uv run manage.py showmigrations
 - **Access Dashboard:** `http://127.0.0.1:8000/silk/`
 - **Configuration:** Profiling is enabled via `SILKY_PYTHON_PROFILER = True` in `settings.py`.
 
+## ASGI & WebSockets
+
+During development, `uv run manage.py runserver` will automatically use the ASGI application defined in `config/asgi.py` (powered by Daphne) to handle both HTTP and WebSocket connections.
+
+```base
+docker run --rm -p 6379:6379 redis:7
+```
+
+Ensure **Redis** is running, as the `CHANNEL_LAYERS` setting expects it for WebSocket group communication.
+
+
 #### Advanced Profiling
 
 ##### Profile Specific Code Blocks
