@@ -55,9 +55,6 @@ THIRD_PARTY_APPS = [
     "rest_framework",
 ]
 
-if DEBUG:
-    THIRD_PARTY_APPS += ["silk"]
-
 LOCAL_APPS = [
     "apps.authentication.apps.AuthenticationConfig",
     "apps.users.apps.UsersConfig",
@@ -75,9 +72,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-
-if DEBUG:
-    MIDDLEWARE.append("silk.middleware.SilkyMiddleware")
 
 ROOT_URLCONF = "config.urls"
 
@@ -175,3 +169,9 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Silkprofiler
+SILKY_PYTHON_PROFILER = env("SILKY_PYTHON_PROFILER", default=False)
+if SILKY_PYTHON_PROFILER:
+    MIDDLEWARE.insert(0, "silk.middleware.SilkyMiddleware")
+    INSTALLED_APPS += ["silk"]
