@@ -6,18 +6,39 @@ The Convo backend is built with Django and Django REST Framework, using `uv` for
 
 - Install Python 3.13
 - Install [`uv`](https://github.com/astral-sh/uv) 
+- Install **Redis** (v6.0 or higher) - Required for WebSockets.
 
 ## Installation
 
 Run from `backend/`:
 
-```bash
-uv sync
-cp .env.example .env
-uv run manage.py migrate
-uv run manage.py setup_admin
-uv run manage.py runserver
-```
+1. **Install dependencies:**
+   ```bash
+   uv sync
+   ```
+
+2. **Setup environment:**
+   ```bash
+   cp .env.example .env
+   ```
+
+3. **Start Redis:**
+   Ensure a Redis server is running. If you have Docker:
+   ```bash
+   docker run -p 6379:6379 -d redis
+   ```
+   Or start it locally via your OS service manager (e.g., `brew services start redis`).
+
+4. **Initialize database & admin:**
+   ```bash
+   uv run manage.py migrate
+   uv run manage.py setup_admin
+   ```
+
+5. **Run the server:**
+   ```bash
+   uv run manage.py runserver
+   ```
 
 ## Environment Variables
 

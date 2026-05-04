@@ -37,10 +37,15 @@ SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG", default=False)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env("ALLOWED_HOST", default=[])
 
 
 # Application definition
+
+THIRD_PARTY_APPS = [
+    "daphne",
+    "rest_framework",
+]
 
 DJANGO_APPS = [
     "django.contrib.admin",
@@ -51,17 +56,13 @@ DJANGO_APPS = [
     "django.contrib.staticfiles",
 ]
 
-THIRD_PARTY_APPS = [
-    "rest_framework",
-]
-
 LOCAL_APPS = [
     "apps.authentication.apps.AuthenticationConfig",
     "apps.users.apps.UsersConfig",
     "apps.conversations.apps.ConversationsConfig",
 ]
 
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+INSTALLED_APPS = THIRD_PARTY_APPS + DJANGO_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -175,3 +176,14 @@ SILKY_PYTHON_PROFILER = env("SILKY_PYTHON_PROFILER", default=False)
 if SILKY_PYTHON_PROFILER:
     MIDDLEWARE.insert(0, "silk.middleware.SilkyMiddleware")
     INSTALLED_APPS += ["silk"]
+
+# Channels
+ASGI_APPLICATION = "config.asgi.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
