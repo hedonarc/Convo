@@ -40,9 +40,10 @@ class UsersApiTests(APITestCase):
         response = self.client.get(self.users_list_url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
-        self.assertTrue(any(item["username"] == "owner" for item in response.data))
-        self.assertTrue(any(item["username"] == "johnny" for item in response.data))
+        results = response.data["results"]
+        self.assertEqual(len(results), 2)
+        self.assertTrue(any(item["username"] == "owner" for item in results))
+        self.assertTrue(any(item["username"] == "johnny" for item in results))
 
     def test_users_list_supports_search(self):
         """Filter users by search query across user fields."""
@@ -51,8 +52,9 @@ class UsersApiTests(APITestCase):
         response = self.client.get(self.users_list_url, {"search": "john"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["username"], "johnny")
+        results = response.data["results"]
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["username"], "johnny")
 
     def test_user_detail_returns_user_data(self):
         """Return target user details for an authenticated request."""

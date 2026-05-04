@@ -16,3 +16,13 @@ class IsConversationParticipant(BasePermission):
         return Participant.objects.filter(
             conversation_id=conversation_id, user=request.user
         ).exists()
+
+    def has_object_permission(self, request, __view__, obj):
+        # obj = Message instance (or whatever object you're protecting
+
+        # if user trying to delete/edit a deleted message
+        # returns false if user is trying to edit someone else's message
+        if request.method in ["PATCH", "DELETE"]:
+            return obj.sender == request.user and not obj.is_deleted
+
+        return True

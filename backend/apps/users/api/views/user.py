@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.users.api.serializers.user import UserSerializer
+from apps.users.pagination import StandardPagination
 
 
 class UserDetailView(APIView):
@@ -63,11 +64,12 @@ class UserDetailView(APIView):
 
 class UsersListView(APIView):
     permission_classes = [IsAuthenticated]
+    pagination_class = StandardPagination
 
     def get(self, request):
         search = request.query_params.get("search", "")
 
-        users = User.objects.all()
+        users = User.objects.all().order_by("id")
         if search:
             users = users.filter(
                 Q(username__icontains=search)
@@ -76,5 +78,8 @@ class UsersListView(APIView):
                 | Q(last_name__icontains=search)
             )
 
-        serializer = UserSerializer(users, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        paginator = StandardPagination()
+        paginated_users = paginator.paginate_queryset(users, request, view=self)
+
+        serializer = UserSerializer(paginated_users, many=True)
+        return paginator.get_paginated_response(serializer.data)

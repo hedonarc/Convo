@@ -9,13 +9,18 @@ class Message(models.Model):
 
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
-    content = models.TextField()
+    content = models.TextField(blank=True)
+    prev_content = models.TextField(blank=True)
+    edited_at = models.DateTimeField(null=True, blank=True)
 
     is_deleted = models.BooleanField(default=False)
-    edited_at = models.DateTimeField(null=True, blank=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.sender} - {self.content[:20]}..."

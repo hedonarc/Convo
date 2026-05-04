@@ -10,7 +10,7 @@ def create_message(conversation, sender, content):
     )
 
     # 🔥 update conversation last message pointer
-    conversation.last_message_id = message.id
-    conversation.save(update_fields=["last_message_id", "updated_at"])
+    conversation.last_message = message
+    conversation.save(update_fields=["last_message", "updated_at"])
 
     return message

@@ -18,9 +18,5 @@ db.sqlite3
 db.sqlite3-wal
 db.sqlite3-shm
 
-# Scripts
-Makefile
-scripts.py
-
 # Django Static Files
 staticfiles/

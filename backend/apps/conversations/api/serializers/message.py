@@ -11,12 +11,15 @@ class MessageSerializer(serializers.ModelSerializer):
             "conversation",
             "sender",
             "content",
+            "prev_content",
+            "is_deleted",
             "created_at",
             "updated_at",
             "edited_at",
+            "deleted_at",
         ]
         read_only_fields = ["id", "sender", "created_at", "updated_at"]
 
 
-class SendMessageSerializer(serializers.Serializer):
+class SendOrEditMessageSerializer(serializers.Serializer):
     content = serializers.CharField(required=True, allow_blank=False)
