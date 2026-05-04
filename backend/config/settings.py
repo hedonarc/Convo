@@ -37,13 +37,17 @@ SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG", default=False)
 
-ALLOWED_HOSTS = env("ALLOWED_HOST", default=[])
+ALLOWED_HOSTS = env("ALLOWED_HOSTS", default=["localhost", "127.0.0.1", "testserver"])
 
+CORS_ALLOWED_ORIGINS = env(
+    "CORS_ALLOWED_ORIGINS", default=["http://localhost:3000", "http://testserver"]
+)
 
 # Application definition
 
 THIRD_PARTY_APPS = [
     "daphne",
+    "corsheaders",
     "rest_framework",
 ]
 
@@ -65,6 +69,7 @@ LOCAL_APPS = [
 INSTALLED_APPS = THIRD_PARTY_APPS + DJANGO_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

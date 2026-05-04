@@ -6,6 +6,12 @@ from channels.generic.websocket import WebsocketConsumer
 
 class ConversationConsumer(WebsocketConsumer):
     def connect(self):
+        self.user = self.scope["user"]
+
+        if not self.user.is_authenticated:
+            self.close()
+            return
+
         self.room_name = self.scope["url_route"]["kwargs"]["conversation_id"]
         self.room_group_name = f"conversation_{self.room_name}"
 
@@ -18,9 +24,10 @@ class ConversationConsumer(WebsocketConsumer):
 
     def disconnect(self, close_code):
         # Leave room group
-        async_to_sync(self.channel_layer.group_discard)(
-            self.room_group_name, self.channel_name
-        )
+        if hasattr(self, "room_group_name"):
+            async_to_sync(self.channel_layer.group_discard)(
+                self.room_group_name, self.channel_name
+            )
 
     # Receive message from WebSocket
     def receive(self, text_data):
@@ -29,7 +36,11 @@ class ConversationConsumer(WebsocketConsumer):
 
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name, {"type": "chat.message", "message": message}
+            self.room_group_name,
+            {
+                "type": "chat.message",
+                "message": message,
+            },
         )
 
     # Receive message from room group
