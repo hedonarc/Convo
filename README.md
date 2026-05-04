@@ -37,8 +37,17 @@ Convo is a monorepo for a real-time chat platform with backend, frontend, and mo
   - Environments: [`docs/shared/environments.md`](./docs/shared/environments.md)
   - Release process: [`docs/shared/release-process.md`](./docs/shared/release-process.md)
 
-## Quick Start
+  ## Release & Versioning
 
+  This project follows [Semantic Versioning](https://semver.org/) and [Conventional Commits](https://www.conventionalcommits.org/).
+
+  - **Versioning Strategy:** Independent (each application maintains its own version).
+  - **Automation:** 
+    - **Backend:** Automated via `python-semantic-release`.
+    - **Frontend/Mobile:** Automated via `changesets` (planned).
+  - **Commit Format:** `type(scope): description` (e.g., `feat(backend): add jwt auth`). Enforcement is handled via `pre-commit`.
+
+  ## Quick Start
 For local setup:
 
 1. Backend: follow [`docs/backend/setup.md`](./docs/backend/setup.md).
