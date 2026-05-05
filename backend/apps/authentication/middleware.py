@@ -59,7 +59,8 @@ class JWTAuthMiddleware:
         # ✅ Authenticated
         scope["user"] = user
 
-        return await self.inner(scope, receive, send)
+        await self.inner(scope, receive, send)
+        return
 
 
 def JWTAuthMiddlewareStack(inner):
