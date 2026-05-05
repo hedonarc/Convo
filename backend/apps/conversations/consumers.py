@@ -1,19 +1,20 @@
 import json
+import logging
 
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
+
+logger = logging.getLogger(__name__)
 
 
 class ConversationConsumer(WebsocketConsumer):
     def connect(self):
         self.user = self.scope["user"]
 
-        if not self.user.is_authenticated:
-            self.close()
-            return
+        self.conversation_id = self.scope["url_route"]["kwargs"]["conversation_id"]
+        self.room_group_name = f"conversation_{self.conversation_id}"
 
-        self.room_name = self.scope["url_route"]["kwargs"]["conversation_id"]
-        self.room_group_name = f"conversation_{self.room_name}"
+        # TODO: Check if user can access the conversation
 
         # Join room group
         async_to_sync(self.channel_layer.group_add)(
@@ -31,8 +32,14 @@ class ConversationConsumer(WebsocketConsumer):
 
     # Receive message from WebSocket
     def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        message = text_data_json["message"]
+        try:
+            text_data_json = json.loads(text_data)
+            message = text_data_json.get("message")
+            if not message:
+                return
+        except json.JSONDecodeError:
+            logger.warning("Invalid JSON received from user %s", self.user.id)
+            return
 
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(

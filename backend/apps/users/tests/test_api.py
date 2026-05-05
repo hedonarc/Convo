@@ -1,7 +1,9 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
+
+User = get_user_model()
 
 
 class UsersApiTests(APITestCase):
@@ -73,11 +75,10 @@ class UsersApiTests(APITestCase):
         response = self.client.get("/api/users/9999")
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.data["message"], "User not found")
 
     def test_patch_user_updates_names_and_password(self):
-        """Update first name, last name, and password via PATCH."""
-        self._authenticate(self.user)
+        """Update first name, last name, and password via PATCH for OWN account."""
+        self._authenticate(self.other_user)  # Authenticate as the user being updated
         payload = {
             "first_name": "Jane",
             "last_name": "Smith",
@@ -91,14 +92,34 @@ class UsersApiTests(APITestCase):
         self.assertEqual(self.other_user.first_name, "Jane")
         self.assertEqual(self.other_user.last_name, "Smith")
         self.assertTrue(self.other_user.check_password("UpdatedPass123!"))
-        self.assertEqual(response.data["message"], "User updated")
+        # Generic views return the serialized data directly, not a custom message
+        self.assertEqual(response.data["username"], "johnny")
+
+    def test_patch_other_user_returns_forbidden(self):
+        """Return 403 when trying to update another user's profile."""
+        self._authenticate(self.user)  # Authenticate as 'owner'
+        payload = {"first_name": "Hacker"}
+
+        response = self.client.patch(self.user_detail_url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_user_removes_user(self):
-        """Delete the target user and confirm it is removed."""
-        self._authenticate(self.user)
+        """Delete OWN account and confirm it is removed."""
+        self._authenticate(self.other_user)  # Authenticate as the user being deleted
 
         response = self.client.delete(self.user_detail_url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        User = get_user_model()
         self.assertFalse(User.objects.filter(id=self.other_user.id).exists())
-        self.assertEqual(response.data["message"], "User deleted")
+
+    def test_delete_other_user_returns_forbidden(self):
+        """Return 403 when trying to delete another user's account."""
+        self._authenticate(self.user)  # Authenticate as 'owner'
+
+        response = self.client.delete(self.user_detail_url)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        User = get_user_model()
+        self.assertTrue(User.objects.filter(id=self.other_user.id).exists())

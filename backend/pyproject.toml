@@ -43,6 +43,7 @@ split-on-trailing-comma = true
 "**/tests.py" = ["S105", "S106"]
 "**/test*.py" = ["S105", "S106"]
 "**/settings/*.py" = ["F403", "E501"]
+"**/migrations/*.py" = ["E501"]
 
 [tool.semantic_release]
 version_toml = [
