@@ -1,11 +1,12 @@
-from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 from apps.authentication.utils import is_email
 from utils.translations import t
+
+User = get_user_model()
 
 
 class RegisterSerializer(serializers.ModelSerializer):
