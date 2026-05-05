@@ -63,9 +63,7 @@ class AuthApiTests(APITestCase):
         response = self.client.post(self.register_url, payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn(
-            "validation.password_does_not_match", response.data["non_field_errors"]
-        )
+        self.assertIn("Passwords do not match", response.data["non_field_errors"])
 
     def test_login_with_username_returns_token(self):
         """Authenticate with username and return JWT tokens."""

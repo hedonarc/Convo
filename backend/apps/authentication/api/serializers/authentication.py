@@ -1,5 +1,7 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 from apps.authentication.utils import is_email
@@ -7,8 +9,8 @@ from utils.translations import t
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
-    confirm_password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, required=True)
+    confirm_password = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = User
@@ -23,22 +25,28 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if attrs["password"] != attrs["confirm_password"]:
-            raise serializers.ValidationError("validation.password_does_not_match")
+            raise serializers.ValidationError(t("validation.password_does_not_match"))
+        try:
+            validate_password(attrs["password"])
+        except ValidationError as e:
+            raise serializers.ValidationError(e) from e
         return attrs
 
     def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
+        value = value.strip().lower()
+
+        if User.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError(t("validation.email_exists"))
         return value
 
     def validate_username(self, value):
-        if User.objects.filter(username=value).exists():
+        value = value.strip()
+
+        if User.objects.filter(username__iexact=value).exists():
             raise serializers.ValidationError(t("validation.username_exists"))
         return value
 
     def create(self, validated_data):
-        validated_data.pop("confirm_password")
-
         user = User.objects.create_user(
             username=validated_data["username"],
             email=validated_data.get("email"),

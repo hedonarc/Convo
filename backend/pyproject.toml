@@ -8,6 +8,7 @@ dependencies = [
     "channels-redis>=4.3.0",
     "channels[daphne]>=4.3.2",
     "django>=6.0.4",
+    "django-cors-headers>=4.9.0",
     "django-environ>=0.13.0",
     "djangorestframework>=3.17.1",
     "djangorestframework-simplejwt>=5.5.1",
@@ -39,7 +40,9 @@ force-sort-within-sections = true
 split-on-trailing-comma = true
 
 [tool.ruff.lint.per-file-ignores]
-"**/tests.py" = ["S105", "S106", ]
+"**/tests.py" = ["S105", "S106"]
+"**/test*.py" = ["S105", "S106"]
+"**/settings/*.py" = ["F403", "E501"]
 
 [tool.semantic_release]
 version_toml = [

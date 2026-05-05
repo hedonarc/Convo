@@ -68,3 +68,13 @@ format:
 	$(CD) uv run ruff format .
 
 lint: check checki fix format
+
+# -------------------------
+# Testing & Checks
+# -------------------------
+
+check-settings:
+	$(CD) $(PYTHON) manage.py check --settings=settings.local
+
+test:
+	$(CD) $(PYTHON) manage.py test --settings=settings.test
