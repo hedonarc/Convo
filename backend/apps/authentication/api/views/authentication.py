@@ -1,5 +1,7 @@
+from django.db import transaction
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
 from apps.authentication.api.serializers.authentication import (
@@ -12,6 +14,9 @@ from utils.translations import t
 
 
 class RegisterView(APIView):
+    throttle_classes = [AnonRateThrottle]
+
+    @transaction.atomic
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -29,6 +34,8 @@ class RegisterView(APIView):
 
 
 class LoginView(APIView):
+    throttle_classes = [AnonRateThrottle]
+
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

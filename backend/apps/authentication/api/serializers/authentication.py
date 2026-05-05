@@ -3,7 +3,6 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
-from apps.authentication.utils import is_email
 from utils.translations import t
 
 User = get_user_model()
@@ -59,24 +58,23 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
+    username = serializers.CharField(required=False, allow_blank=True)
+    email = serializers.EmailField(required=False, allow_blank=True)
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        username_or_email = attrs.get("username")
+        username = attrs.get("username")
+        email = attrs.get("email")
         password = attrs.get("password")
 
-        username = username_or_email
+        identifier = username or email
 
-        if is_email(username_or_email):
-            try:
-                username = User.objects.get(email=username_or_email).username
-            except User.DoesNotExist:
-                raise serializers.ValidationError(
-                    t("login.invalid_credentials")
-                ) from None
+        if not identifier:
+            raise serializers.ValidationError(
+                t("login.username_email_password_required")
+            )
 
-        user = authenticate(username=username, password=password)
+        user = authenticate(username=identifier, password=password)
 
         if not user:
             raise serializers.ValidationError(t("login.invalid_credentials"))

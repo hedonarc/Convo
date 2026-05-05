@@ -1,4 +1,5 @@
 from .base import *
+from .base import REST_FRAMEWORK
 
 DEBUG = False
 
@@ -26,3 +27,8 @@ CACHES = {
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+
+REST_FRAMEWORK = {
+    **REST_FRAMEWORK,
+    "DEFAULT_THROTTLE_CLASSES": [],
+}
