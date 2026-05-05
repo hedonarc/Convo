@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Q
-from rest_framework import generics
+from rest_framework import filters, generics
 from rest_framework.permissions import IsAuthenticated
 
 from apps.users.api.permissions import IsOwnerOrReadOnly
@@ -30,16 +29,12 @@ class UsersListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     pagination_class = StandardPagination
 
-    def get_queryset(self):
-        queryset = User.objects.all().order_by("id")
-        search = self.request.query_params.get("search", "")
+    queryset = User.objects.all().order_by("id")
 
-        if search:
-            queryset = queryset.filter(
-                Q(username__icontains=search)
-                | Q(email__icontains=search)
-                | Q(first_name__icontains=search)
-                | Q(last_name__icontains=search)
-            )
-
-        return queryset
+    filter_backends = [filters.SearchFilter]
+    search_fields = [
+        "username",
+        "email",
+        "first_name",
+        "last_name",
+    ]
