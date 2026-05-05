@@ -2,7 +2,10 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.authentication.api.serializers.auth import LoginSerializer, RegisterSerializer
+from apps.authentication.api.serializers.authentication import (
+    LoginSerializer,
+    RegisterSerializer,
+)
 from apps.authentication.utils import get_tokens_for_user
 from apps.users.api.serializers.user import UserSerializer
 from utils.translations import t
