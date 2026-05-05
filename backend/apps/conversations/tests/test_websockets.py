@@ -1,10 +1,12 @@
 from asgiref.sync import async_to_sync
 from channels.testing import WebsocketCommunicator
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.test import TransactionTestCase
 from rest_framework_simplejwt.tokens import AccessToken
 
 from config.asgi import application
+
+User = get_user_model()
 
 
 class WebSocketAuthTests(TransactionTestCase):
