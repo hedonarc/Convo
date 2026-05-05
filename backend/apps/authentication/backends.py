@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
-from django.db.models import Q
+
+from apps.authentication.utils import is_email
 
 User = get_user_model()
 
@@ -10,24 +11,24 @@ class EmailOrUsernameBackend(ModelBackend):
     Custom authentication backend to allow login with either username or email.
     """
 
-    def authenticate(self, request, username=None, password=None, **kwargs):
-        if username is None:
-            username = kwargs.get(User.USERNAME_FIELD)
+    def authenticate(self, request, username_or_email=None, password=None, **kwargs):
+        if username_or_email is None:
+            username_or_email = kwargs.get(User.USERNAME_FIELD)
 
         try:
-            # Case-insensitive lookup for both username and email
-            user = User.objects.get(
-                Q(username__iexact=username) | Q(email__iexact=username)
-            )
+            if is_email(username_or_email):
+                user = User.objects.get(email__iexact=username_or_email)
+            else:
+                user = User.objects.get(username__iexact=username_or_email)
         except User.DoesNotExist:
             # Run the default password hasher to prevent timing attacks
             User().set_password(password)
             return None
         except User.MultipleObjectsReturned:
-            # Should not happen if fields are unique, but handle just in case
-            return User.objects.filter(
-                Q(username__iexact=username) | Q(email__iexact=username)
-            ).first()
+            if is_email(username_or_email):
+                return User.objects.filter(email__iexact=username_or_email).first()
+            else:
+                return User.objects.filter(username__iexact=username_or_email).first()
 
         if user.check_password(password) and self.user_can_authenticate(user):
             return user

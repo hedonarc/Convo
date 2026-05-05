@@ -67,14 +67,14 @@ class LoginSerializer(serializers.Serializer):
         email = attrs.get("email")
         password = attrs.get("password")
 
-        identifier = username or email
+        username_or_email = username or email
 
-        if not identifier:
+        if not username_or_email:
             raise serializers.ValidationError(
                 t("login.username_email_password_required")
             )
 
-        user = authenticate(username=identifier, password=password)
+        user = authenticate(username_or_email=username_or_email, password=password)
 
         if not user:
             raise serializers.ValidationError(t("login.invalid_credentials"))
