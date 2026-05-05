@@ -27,7 +27,7 @@ uv run manage.py showmigrations
 [Django Silk](https://github.com/jazzband/django-silk) is integrated for live profiling of API requests and database queries.
 
 - **Access Dashboard:** `http://127.0.0.1:8000/silk/`
-- **Configuration:** Profiling is enabled via `SILKY_PYTHON_PROFILER = True` in `settings.py`.
+- **Configuration:** Profiling is enabled via `SILKY_PYTHON_PROFILER = True` in `settings/local.py`.
 
 ## ASGI & WebSockets
 

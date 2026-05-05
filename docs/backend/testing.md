@@ -21,7 +21,17 @@ backend/apps/conversations/
 From `backend/`:
 
 ```bash
-uv run manage.py test
+# Check local settings
+uv run manage.py check --settings=settings.local
+
+# Run tests
+uv run manage.py test --settings=settings.test
+
+# Check production deployment readiness
+uv run manage.py check --deploy --settings=settings.production
+
+# Confirm local server starts
+uv run manage.py runserver
 ```
 
 ## CI
@@ -31,5 +41,5 @@ GitHub Actions workflow: [`.github/workflows/backend-tests.yml`](../../.github/w
 Current CI test command:
 
 ```bash
-uv run python manage.py test --noinput --verbosity=2
+uv run python manage.py test --noinput --verbosity=2 --settings=settings.test
 ```

@@ -49,4 +49,4 @@ jobs:
         run: uv sync --frozen
 
       - name: Run Django unit tests
-        run: uv run python manage.py test --noinput --verbosity=2
+        run: uv run python manage.py test --noinput --verbosity=2 --settings=settings.test

@@ -17,7 +17,6 @@ class WebSocketAuthTests(TransactionTestCase):
             communicator = WebsocketCommunicator(
                 application,
                 f"/ws/conversations/1/?token={token}",
-                headers=[(b"origin", b"http://testserver")],
             )
             connected, _ = await communicator.connect()
 
@@ -35,7 +34,6 @@ class WebSocketAuthTests(TransactionTestCase):
             communicator = WebsocketCommunicator(
                 application,
                 "/ws/conversations/1/",
-                headers=[(b"origin", b"http://testserver")],
             )
             connected, _ = await communicator.connect()
 
@@ -50,7 +48,6 @@ class WebSocketAuthTests(TransactionTestCase):
             communicator = WebsocketCommunicator(
                 application,
                 "/ws/conversations/1/?token=invalid_token",
-                headers=[(b"origin", b"http://testserver")],
             )
             connected, _ = await communicator.connect()
 
