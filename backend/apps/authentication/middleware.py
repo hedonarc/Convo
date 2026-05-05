@@ -3,6 +3,7 @@ from urllib.parse import parse_qs
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import AccessToken
 
 User = get_user_model()
@@ -10,11 +11,17 @@ User = get_user_model()
 
 @database_sync_to_async
 def get_user(token_key):
+    """
+    Validates the token and returns the corresponding user.
+    """
     try:
         token = AccessToken(token_key)
         user_id = token["user_id"]
         return User.objects.get(id=user_id)
+    except (TokenError, User.DoesNotExist):
+        return AnonymousUser()
     except Exception:
+        # Fallback for unexpected errors
         return AnonymousUser()
 
 
@@ -28,6 +35,7 @@ class JWTAuthMiddleware:
         self.inner = inner
 
     async def __call__(self, scope, receive, send):
+        # Extract token from query string
         query_string = scope.get("query_string", b"").decode()
         query_params = parse_qs(query_string)
 
@@ -35,32 +43,20 @@ class JWTAuthMiddleware:
         token_key = token_list[0] if token_list else None
 
         if not token_key:
-            # ❌ Reject connection immediately
-            await send(
-                {
-                    "type": "websocket.close",
-                    "code": 4001,
-                }
-            )
+            # ❌ No token provided
+            await send({"type": "websocket.close", "code": 4001})
             return
 
         user = await get_user(token_key)
 
         if user.is_anonymous:
-            # ❌ Reject invalid token
-            await send(
-                {
-                    "type": "websocket.close",
-                    "code": 4002,
-                }
-            )
+            # ❌ Invalid or expired token
+            await send({"type": "websocket.close", "code": 4002})
             return
 
-        # ✅ Authenticated
+        # ✅ Successfully authenticated
         scope["user"] = user
-
-        await self.inner(scope, receive, send)
-        return
+        return await self.inner(scope, receive, send)
 
 
 def JWTAuthMiddlewareStack(inner):
