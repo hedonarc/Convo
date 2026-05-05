@@ -51,7 +51,7 @@ class AuthApiTests(APITestCase):
         response = self.client.post(self.register_url, payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("Email already exists", response.data["email"])
+        self.assertIn("User with this email already exists.", response.data["email"])
 
     def test_register_rejects_password_mismatch(self):
         """Reject registration when password confirmation does not match."""
