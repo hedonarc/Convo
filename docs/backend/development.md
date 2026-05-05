@@ -27,7 +27,18 @@ uv run manage.py showmigrations
 [Django Silk](https://github.com/jazzband/django-silk) is integrated for live profiling of API requests and database queries.
 
 - **Access Dashboard:** `http://127.0.0.1:8000/silk/`
-- **Configuration:** Profiling is enabled via `SILKY_PYTHON_PROFILER = True` in `settings.py`.
+- **Configuration:** Profiling is enabled via `SILKY_PYTHON_PROFILER = True` in `settings/local.py`.
+
+## ASGI & WebSockets
+
+During development, `uv run manage.py runserver` will automatically use the ASGI application defined in `config/asgi.py` (powered by Daphne) to handle both HTTP and WebSocket connections.
+
+```base
+docker run --rm -p 6379:6379 redis:7
+```
+
+Ensure **Redis** is running, as the `CHANNEL_LAYERS` setting expects it for WebSocket group communication.
+
 
 #### Advanced Profiling
 

@@ -25,7 +25,6 @@ sync:
 sync-dev:
 	$(CD) uv sync --all-extras
 
-setup: sync migrate
 
 # -------------------------
 # Django Commands
@@ -34,6 +33,16 @@ setup: sync migrate
 server:
 	$(CD) $(PYTHON) manage.py runserver
 
+redis:
+	docker run -d --rm --name redis-dev -p 6379:6379 redis:7
+
+dev:
+	docker run -d --rm --name redis-dev -p 6379:6379 redis:7 & \
+	$(CD) $(PYTHON) manage.py runserver
+
+stop-redis:
+	docker stop redis-dev
+
 migrate:
 	$(CD) $(PYTHON) manage.py migrate
 
@@ -41,13 +50,16 @@ makemigrations:
 	$(CD) $(PYTHON) manage.py makemigrations
 
 migs:
-	$(CD) $(PYTHON) manage.py makemigrations && $(CD) $(PYTHON) manage.py migrate
+	$(CD) $(PYTHON) manage.py makemigrations && $(PYTHON) manage.py migrate
 
 showmigrations:
 	$(CD) $(PYTHON) manage.py showmigrations
 
 shell:
 	$(CD) $(PYTHON) manage.py shell
+
+setup: sync migs
+
 
 # -------------------------
 # Ruff (Linting / Formatting)
@@ -66,3 +78,13 @@ format:
 	$(CD) uv run ruff format .
 
 lint: check checki fix format
+
+# -------------------------
+# Testing & Checks
+# -------------------------
+
+check-settings:
+	$(CD) $(PYTHON) manage.py check --settings=settings.local
+
+test:
+	$(CD) $(PYTHON) manage.py test --settings=settings.test

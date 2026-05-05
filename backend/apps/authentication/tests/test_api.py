@@ -1,6 +1,8 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
+
+User = get_user_model()
 
 
 class AuthApiTests(APITestCase):
@@ -49,7 +51,7 @@ class AuthApiTests(APITestCase):
         response = self.client.post(self.register_url, payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("Email already exists", response.data["email"])
+        self.assertIn("User with this email already exists.", response.data["email"])
 
     def test_register_rejects_password_mismatch(self):
         """Reject registration when password confirmation does not match."""
@@ -63,9 +65,7 @@ class AuthApiTests(APITestCase):
         response = self.client.post(self.register_url, payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn(
-            "validation.password_does_not_match", response.data["non_field_errors"]
-        )
+        self.assertIn("Passwords do not match", response.data["non_field_errors"])
 
     def test_login_with_username_returns_token(self):
         """Authenticate with username and return JWT tokens."""
