@@ -33,6 +33,16 @@ sync-dev:
 server:
 	$(CD) $(PYTHON) manage.py runserver
 
+redis:
+	docker run -d --rm --name redis-dev -p 6379:6379 redis:7
+
+dev:
+	docker run -d --rm --name redis-dev -p 6379:6379 redis:7 & \
+	$(CD) $(PYTHON) manage.py runserver
+
+stop-redis:
+	docker stop redis-dev
+
 migrate:
 	$(CD) $(PYTHON) manage.py migrate
 

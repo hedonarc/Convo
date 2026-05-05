@@ -1,3 +1,4 @@
+import logging
 from urllib.parse import parse_qs
 
 from channels.db import database_sync_to_async
@@ -5,6 +6,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import AccessToken
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -20,8 +23,8 @@ def get_user(token_key):
         return User.objects.get(id=user_id)
     except (TokenError, User.DoesNotExist):
         return AnonymousUser()
-    except Exception:
-        # Fallback for unexpected errors
+    except Exception as e:
+        logger.exception("Unexpected error during token validation: %s", e)
         return AnonymousUser()
 
 
@@ -42,8 +45,9 @@ class JWTAuthMiddleware:
         token_list = query_params.get("token")
         token_key = token_list[0] if token_list else None
 
-        if not token_key:
+        if not token_key or len(token_key) > 2048:
             # ❌ No token provided
+            logger.error("WebSocket Connection Rejected : No Token")
             await send({"type": "websocket.close", "code": 4001})
             return
 
@@ -51,6 +55,7 @@ class JWTAuthMiddleware:
 
         if user.is_anonymous:
             # ❌ Invalid or expired token
+            logger.error("WebSocket Connection Rejected : Invalid Token")
             await send({"type": "websocket.close", "code": 4002})
             return
 
