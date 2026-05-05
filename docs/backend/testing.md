@@ -1,5 +1,21 @@
 # Backend Testing
 
+## Structure
+
+We follow a modular test structure for each app. For example, in the `conversations` app:
+
+```text
+backend/apps/conversations/
+├── tests/
+│   ├── __init__.py
+│   ├── test_models.py
+│   ├── test_api.py
+│   ├── test_permissions.py
+│   ├── test_services.py
+│   ├── test_websockets.py
+│   └── factories.py   # optional (very useful)
+```
+
 ## Run Tests
 
 From `backend/`:
