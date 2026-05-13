@@ -4,21 +4,26 @@ from django.contrib.auth import get_user_model
 from django.test import TransactionTestCase
 from rest_framework_simplejwt.tokens import AccessToken
 
+from apps.conversations.models import Conversation, Participant
 from config.asgi import application
 
 User = get_user_model()
 
 
 class WebSocketAuthTests(TransactionTestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser", password="password")
+        self.token = str(AccessToken.for_user(self.user))
+        self.conversation = Conversation.objects.create(created_by=self.user)
+        Participant.objects.create(user=self.user, conversation=self.conversation)
+
     def test_connect_authenticated(self):
         """User should successfully connect with a valid JWT token."""
-        user = User.objects.create_user(username="testuser", password="password")
-        token = str(AccessToken.for_user(user))  # IMPORTANT: cast to string
 
         async def _test():
             communicator = WebsocketCommunicator(
                 application,
-                f"/ws/conversations/1/?token={token}",
+                f"/ws/conversations/{self.conversation.id}/?token={self.token}",
             )
             connected, _ = await communicator.connect()
 
@@ -35,7 +40,7 @@ class WebSocketAuthTests(TransactionTestCase):
         async def _test():
             communicator = WebsocketCommunicator(
                 application,
-                "/ws/conversations/1/",
+                f"/ws/conversations/{self.conversation.id}/",
             )
             connected, _ = await communicator.connect()
 
@@ -49,7 +54,7 @@ class WebSocketAuthTests(TransactionTestCase):
         async def _test():
             communicator = WebsocketCommunicator(
                 application,
-                "/ws/conversations/1/?token=invalid_token",
+                f"/ws/conversations/{self.conversation.id}/?token=invalid_token",
             )
             connected, _ = await communicator.connect()
 
