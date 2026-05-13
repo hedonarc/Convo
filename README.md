@@ -5,8 +5,8 @@ Convo is a monorepo for a real-time chat platform with backend, frontend, and mo
 ## Monorepo Architecture
 
 - `backend/`: Django REST Framework API for authentication, messaging, and user management. Includes real-time support via Django Channels and Redis.
-- `frontend/`: Web app (planned).
-- `mobile/`: Mobile app (planned).
+- `frontend/`: Web app (in-progress).
+- `mobile/`: Mobile app (in-progress).
 
 ## Documentation Map
 
