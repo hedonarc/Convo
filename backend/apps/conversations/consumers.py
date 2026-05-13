@@ -1,19 +1,29 @@
 import json
 import logging
 
-from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 from apps.conversations.api.serializers.message import MessageSerializer
-from apps.conversations.models import Message, Participant
-from apps.conversations.services.message_service import create_message
+from apps.conversations.constants import MAX_MESSAGE_LENGTH
+from apps.conversations.queries import (
+    db_create_message,
+    get_conversation_for_user,
+    message_belongs_to_conversation,
+    update_read_receipt,
+)
 
 logger = logging.getLogger(__name__)
 
-MAX_MESSAGE_LENGTH = 4096  # characters
-
 
 class ConversationConsumer(AsyncWebsocketConsumer):
+    # Mapping of client-sent action names → handler method names.
+    # Built once at class definition time instead of on every incoming frame.
+    ACTION_HANDLERS = {
+        "send_message": "handle_send_message",
+        "typing": "handle_typing",
+        "read": "handle_read_receipt",
+    }
+
     # -------------------------------------------------------------------------
     # Connection Lifecycle
     # -------------------------------------------------------------------------
@@ -29,7 +39,7 @@ class ConversationConsumer(AsyncWebsocketConsumer):
             return
 
         # Authorization — user must be a participant in the conversation.
-        self.conversation = await self._get_conversation_for_user(
+        self.conversation = await get_conversation_for_user(
             self.user, self.conversation_id
         )
         if self.conversation is None:
@@ -83,15 +93,9 @@ class ConversationConsumer(AsyncWebsocketConsumer):
             await self.send_error("Invalid JSON format")
             return
 
-        handlers = {
-            "send_message": self.handle_send_message,
-            "typing": self.handle_typing,
-            "read": self.handle_read_receipt,
-        }
-
-        handler = handlers.get(action)
-        if handler:
-            await handler(data)
+        handler_name = self.ACTION_HANDLERS.get(action)
+        if handler_name:
+            await getattr(self, handler_name)(data)
         else:
             await self.send_error(f"Unknown action: {action!r}")
 
@@ -114,7 +118,7 @@ class ConversationConsumer(AsyncWebsocketConsumer):
             )
             return
 
-        message = await self._create_message(content)
+        message = await db_create_message(self.conversation, self.user, content)
 
         # MessageSerializer gives us a consistent payload identical to the REST API.
         message_data = dict(MessageSerializer(message).data)
@@ -156,12 +160,14 @@ class ConversationConsumer(AsyncWebsocketConsumer):
             await self.send_error("A valid integer message_id is required")
             return
 
-        message_exists = await self._message_belongs_to_conversation(message_id)
+        message_exists = await message_belongs_to_conversation(
+            self.conversation, message_id
+        )
         if not message_exists:
             await self.send_error("Message not found in this conversation")
             return
 
-        await self._update_read_receipt(message_id)
+        await update_read_receipt(self.user, self.conversation, message_id)
 
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -218,55 +224,6 @@ class ConversationConsumer(AsyncWebsocketConsumer):
                 }
             )
         )
-
-    # -------------------------------------------------------------------------
-    # Database Helpers
-    # All ORM operations must be wrapped with @database_sync_to_async to avoid
-    # blocking the asyncio event loop.
-    # -------------------------------------------------------------------------
-
-    @database_sync_to_async
-    def _get_conversation_for_user(self, user, conversation_id):
-        """
-        Return the Conversation instance if the user is a participant,
-        otherwise return None.
-        """
-        try:
-            participant = Participant.objects.select_related("conversation").get(
-                user=user, conversation_id=conversation_id
-            )
-            return participant.conversation
-        except Participant.DoesNotExist:
-            return None
-
-    @database_sync_to_async
-    def _create_message(self, content: str):
-        """
-        Persist a new Message and update the conversation's last_message pointer.
-        Delegates to the shared message_service to keep business logic consistent
-        with the REST API.
-        """
-        return create_message(self.conversation, self.user, content)
-
-    @database_sync_to_async
-    def _message_belongs_to_conversation(self, message_id: int) -> bool:
-        """
-        Return True only if the message exists, belongs to this conversation,
-        and has not been deleted. Prevents users from marking arbitrary or
-        cross-conversation message IDs as read.
-        """
-        return Message.objects.filter(
-            id=message_id,
-            conversation=self.conversation,
-            is_deleted=False,
-        ).exists()
-
-    @database_sync_to_async
-    def _update_read_receipt(self, message_id: int):
-        """Update the participant's last_read_message_id."""
-        Participant.objects.filter(
-            user=self.user, conversation=self.conversation
-        ).update(last_read_message_id=message_id)
 
     # -------------------------------------------------------------------------
     # Utilities
