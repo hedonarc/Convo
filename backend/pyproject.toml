@@ -30,7 +30,7 @@ select = [
     "B",   # bugbear (real bugs + bad patterns)
     "UP",  # pyupgrade (modern Python syntax)
     "DJ",  # django-specific rules
-    "S",   # security   
+    "S",   # security
 ]
 fixable = ["ALL"]
 
@@ -62,4 +62,3 @@ patch_tags = ["fix", "perf"]
 [tool.semantic_release.branches.main]
 match = "main"
 prerelease = false
-
