@@ -9,14 +9,27 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --mode dev --port 5173",
+    "qa": "vite --mode qa --port 5174",
+    "prod": "vite --mode prod --port 5175",
+    "c1": "vite --mode client1 --port 6001",
+    "c2": "vite --mode client2 --port 6002",
+    "c3": "vite --mode client3 --port 6003",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:dev": "vite build --mode dev",
+    "build:qa": "vite build --mode qa",
+    "build:prod": "vite build --mode prod",
+    "build:client1": "vite build --mode client1",
+    "build:client2": "vite build --mode client2",
+    "build:client3": "vite build --mode client3"
   },
   "dependencies": {
+    "@fontsource/abel": "^5.2.7",
     "@fontsource/inter": "^5.2.8",
+    "@fontsource/roboto": "^5.2.10",
     "class-variance-authority": "^0.7.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"

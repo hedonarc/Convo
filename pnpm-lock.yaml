@@ -8,9 +8,15 @@ importers:
 
   apps/web:
     dependencies:
+      '@fontsource/abel':
+        specifier: ^5.2.7
+        version: 5.2.7
       '@fontsource/inter':
         specifier: ^5.2.8
         version: 5.2.8
+      '@fontsource/roboto':
+        specifier: ^5.2.10
+        version: 5.2.10
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -202,8 +208,14 @@ packages:
     resolution: {integrity: sha512-rZAP3aVgB9ds9KOeUSL+zZ21hPmo8dh6fnIFwRQj5EAZl9gzR7wxYbYXYysAM8CTqGmUGyp2S4kUdV17MnGuWQ==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
 
+  '@fontsource/abel@5.2.7':
+    resolution: {integrity: sha512-C4iyv0u8xPN9+PVyi/NWTqHZREh6L7Q7yewuD22W35gK8BHyn2qZ9oGweYbo71+ZuTogQA1SmAQdWAdcqQ/7lg==}
+
   '@fontsource/inter@5.2.8':
     resolution: {integrity: sha512-P6r5WnJoKiNVV+zvW2xM13gNdFhAEpQ9dQJHt3naLvfg+LkF2ldgSLiF4T41lf1SQCM9QmkqPTn4TH568IRagg==}
+
+  '@fontsource/roboto@5.2.10':
+    resolution: {integrity: sha512-8HlA5FtSfz//oFSr2eL7GFXAiE7eIkcGOtx7tjsLKq+as702x9+GU7K95iDeWFapHC4M2hv9RrpXKRTGGBI8Zg==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -1280,7 +1292,11 @@ snapshots:
       '@eslint/core': 1.2.1
       levn: 0.4.1
 
+  '@fontsource/abel@5.2.7': {}
+
   '@fontsource/inter@5.2.8': {}
+
+  '@fontsource/roboto@5.2.10': {}
 
   '@humanfs/core@0.19.2':
     dependencies:
