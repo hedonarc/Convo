@@ -1,10 +1,4 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { authApi } from "@convo/api";
-import axios from "axios";
 import { ROUTES } from "@convo/constants";
 import {
   Button,
@@ -17,6 +11,12 @@ import {
   Input,
   Label,
 } from "@convo/ui";
+import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router-dom";
+import * as z from "zod";
 
 const registerSchema = z
   .object({

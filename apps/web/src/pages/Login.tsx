@@ -1,9 +1,3 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
-import * as z from "zod";
 import { authApi } from "@convo/api";
 import { ROUTES } from "@convo/constants";
 import {
@@ -17,6 +11,12 @@ import {
   Input,
   Label,
 } from "@convo/ui";
+import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router-dom";
+import * as z from "zod";
 
 const loginSchema = z.object({
   identifier: z.string().min(1, { message: "Email or username is required." }),
