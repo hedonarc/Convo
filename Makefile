@@ -37,7 +37,10 @@ pc-install:
 	$(PRECOMMIT) install --hook-type pre-commit
 	$(PRECOMMIT) install --hook-type commit-msg
 
-setup: sync web-install migs pc-install
+be-setup: sync migs pc-install
+fe-setup: web-install pc-install
+
+setup: be-setup web-install
 
 # -------------------------
 # Django Commands
@@ -117,6 +120,12 @@ web-lint:
 
 web-format:
 	$(CD_FE) pnpm format
+
+web-fix:
+	web-lint && web-format
+
+web-dev:
+	$(CD_FE) pnpm dev
 
 web-preview:
 	$(CD_FE) pnpm preview
