@@ -36,4 +36,3 @@ The WebSocket connection uses a JSON-based action/event routing system.
 - `error`: Error messages.
 
 For full payload schemas, see [Shared API Contracts](../shared/api-contracts.md#websocket-message-format).
-

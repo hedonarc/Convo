@@ -1,0 +1,13 @@
+# Build artifacts
+dist
+dist-ssr
+node_modules
+*.local
+
+# Backend (Handled by Ruff)
+backend/
+
+# Config files that shouldn't be formatted
+pnpm-lock.yaml
+uv.lock
+.python-version
