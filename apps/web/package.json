@@ -16,10 +16,22 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@convo/api": "workspace:*",
+    "@convo/constants": "workspace:*",
+    "@convo/ui": "workspace:*",
+    "@convo/utils": "workspace:*",
     "@fontsource/inter": "^5.2.8",
+    "@hookform/resolvers": "5.2.2",
+    "axios": "1.16.1",
     "class-variance-authority": "^0.7.1",
+    "clsx": "2.1.1",
+    "lucide-react": "1.14.0",
     "react": "^19.2.6",
-    "react-dom": "^19.2.6"
+    "react-dom": "^19.2.6",
+    "react-hook-form": "7.75.0",
+    "react-router-dom": "7.15.0",
+    "tailwind-merge": "3.6.0",
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",

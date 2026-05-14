@@ -1,0 +1,14 @@
+{
+  "name": "@convo/ui",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "dependencies": {
+    "lucide-react": "^0.300.0",
+    "@convo/utils": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18 || ^19",
+    "react-dom": "^18 || ^19"
+  }
+}
