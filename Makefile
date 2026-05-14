@@ -3,17 +3,22 @@
 # -------------------------
 
 BACKEND := backend
+FRONTEND := apps/web
 PYTHON := uv run
+PRECOMMIT := uv run --project backend pre-commit
 
 # Detect current context (root vs backend)
 ifeq ($(notdir $(CURDIR)),backend)
 	BACKEND_DIR := .
+	FRONTEND_DIR := ../$(FRONTEND)
 else
-	BACKEND_DIR := backend
+	BACKEND_DIR := $(BACKEND)
+	FRONTEND_DIR := $(FRONTEND)
 endif
 
-# Smart cd wrapper (handles both cases cleanly)
+# Smart cd wrappers
 CD := cd $(BACKEND_DIR) &&
+CD_FE := cd $(FRONTEND_DIR) &&
 
 # -------------------------
 # Install / Setup
@@ -25,6 +30,17 @@ sync:
 sync-dev:
 	$(CD) uv sync --all-extras
 
+web-install:
+	$(CD_FE) pnpm install
+
+pc-install:
+	$(PRECOMMIT) install --hook-type pre-commit
+	$(PRECOMMIT) install --hook-type commit-msg
+
+be-setup: sync migs pc-install
+fe-setup: web-install pc-install
+
+setup: be-setup web-install
 
 # -------------------------
 # Django Commands
@@ -58,9 +74,6 @@ showmigrations:
 shell:
 	$(CD) $(PYTHON) manage.py shell
 
-setup: sync migs
-
-
 # -------------------------
 # Ruff (Linting / Formatting)
 # -------------------------
@@ -80,6 +93,19 @@ format:
 lint: check checki fix format
 
 # -------------------------
+# Pre-commit
+# -------------------------
+
+pc:
+	$(PRECOMMIT) run --all-files
+
+pc-eslint:
+	$(PRECOMMIT) run eslint --all-files
+
+pc-ruff:
+	$(PRECOMMIT) run ruff --all-files
+
+# -------------------------
 # Testing & Checks
 # -------------------------
 
@@ -88,3 +114,18 @@ check-settings:
 
 test:
 	$(CD) $(PYTHON) manage.py test --settings=settings.test
+
+web-lint:
+	$(CD_FE) pnpm lint
+
+web-format:
+	$(CD_FE) pnpm format
+
+web-fix:
+	web-lint && web-format
+
+web-dev:
+	$(CD_FE) pnpm dev
+
+web-preview:
+	$(CD_FE) pnpm preview
