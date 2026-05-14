@@ -114,7 +114,7 @@ export default function Login() {
                 to={ROUTES.REGISTER}
                 className="font-medium text-gray-900 underline underline-offset-4 hover:text-gray-900 dark:text-gray-50 dark:hover:text-gray-50"
               >
-                Sign up
+                Register
               </Link>
             </div>
           </CardFooter>
