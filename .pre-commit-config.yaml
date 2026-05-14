@@ -1,28 +1,58 @@
 repos:
   # ----------------------------
-  # 🧹 Ruff (Lint + Auto Fix + Format)
+  # 🧹 General Hygiene
+  # ----------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: debug-statements
+
+  # ----------------------------
+  # 💅 Prettier (Frontend + Configs)
+  # ----------------------------
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier
+        entry: apps/web/node_modules/.bin/prettier --write
+        language: system
+        files: ^(apps/web/.*\.(js|jsx|ts|tsx|css|scss|html)|.*\.(json|md|ya?ml))$
+        types_or:
+          [javascript, jsx, ts, tsx, css, scss, html, json, yaml, markdown]
+        exclude: ^backend/
+
+  # ----------------------------
+  # 🐍 Ruff (Backend)
   # ----------------------------
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.9
+    rev: v0.15.12
     hooks:
       - id: ruff
         args: [--fix]
       - id: ruff-format
 
   # ----------------------------
+  # ⚛️ ESLint (Frontend)
+  # ----------------------------
+  - repo: local
+    hooks:
+      - id: eslint
+        name: eslint
+        entry: pnpm --dir apps/web lint
+        language: system
+        files: ^apps/web/.*\.[jt]sx?$
+        pass_filenames: false
+
+  # ----------------------------
   # 🧾 Conventional Commits
   # ----------------------------
   - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v3.2.0
+    rev: v4.4.0
     hooks:
       - id: conventional-pre-commit
         stages: [commit-msg]
         args: ["--strict"]
-
-  # ----------------------------
-  # 🛡️ Safety Hooks
-  # ----------------------------
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
-    hooks:
-      - id: debug-statements

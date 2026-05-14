@@ -12,6 +12,7 @@ This directory contains platform-specific and shared project documentation.
 ## Start Here
 
 - Backend setup: [`backend/setup.md`](./backend/setup.md)
+- Frontend setup: [`frontend/setup.md`](./frontend/setup.md)
 - Global contribution guide: [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
 - Backend development workflows: [`backend/development.md`](./backend/development.md)
 - Backend translations: [`backend/translations.md`](./backend/translations.md)

@@ -13,9 +13,11 @@ Include:
 Messages sent and received over WebSockets use a structured JSON format.
 
 ### Client-to-Server Actions
+
 The client sends messages using an `action` and `data` envelope.
 
 #### 1. Send Message
+
 ```json
 {
   "action": "send_message",
@@ -26,6 +28,7 @@ The client sends messages using an `action` and `data` envelope.
 ```
 
 #### 2. Typing Indicator
+
 ```json
 {
   "action": "typing",
@@ -36,6 +39,7 @@ The client sends messages using an `action` and `data` envelope.
 ```
 
 #### 3. Read Receipt
+
 ```json
 {
   "action": "read",
@@ -46,10 +50,13 @@ The client sends messages using an `action` and `data` envelope.
 ```
 
 ### Server-to-Client Events
+
 The server broadcasts events using a `type` and `data` envelope.
 
 #### 1. New Message (`new_message`)
+
 Sent to all participants when a new message is created.
+
 ```json
 {
   "type": "new_message",
@@ -63,7 +70,9 @@ Sent to all participants when a new message is created.
 ```
 
 #### 2. Typing Indicator (`typing`)
+
 Broadcast to other participants when a user starts/stops typing.
+
 ```json
 {
   "type": "typing",
@@ -75,7 +84,9 @@ Broadcast to other participants when a user starts/stops typing.
 ```
 
 #### 3. Read Receipt (`read_receipt`)
+
 Broadcast when a participant marks a message as read.
+
 ```json
 {
   "type": "read_receipt",
@@ -87,11 +98,12 @@ Broadcast when a participant marks a message as read.
 ```
 
 #### 4. Error (`error`)
+
 Sent directly to the client when an action fails.
+
 ```json
 {
   "type": "error",
   "message": "Invalid JSON format"
 }
 ```
-

@@ -12,7 +12,7 @@ High-level backend architecture notes.
 
 ## Real-time Messaging
 
-Convo uses **Django Channels** to handle WebSocket connections. 
+Convo uses **Django Channels** to handle WebSocket connections.
 
 - **ASGI Server:** Daphne is used as the ASGI application server.
 - **Consumer Logic:** We use asynchronous consumers (`AsyncWebsocketConsumer`) to manage long-lived connections efficiently.

@@ -5,7 +5,7 @@ Convo is a monorepo for a real-time chat platform with backend, frontend, and mo
 ## Monorepo Architecture
 
 - `backend/`: Django REST Framework API for authentication, messaging, and user management. Includes real-time support via Django Channels and Redis.
-- `frontend/`: Web app (planned).
+- `apps/web/`: React frontend using Vite and Tailwind CSS.
 - `mobile/`: Mobile app (planned).
 
 ## Documentation Map
@@ -40,18 +40,18 @@ Convo is a monorepo for a real-time chat platform with backend, frontend, and mo
   ## Release & Versioning
 
   This project follows [Semantic Versioning](https://semver.org/) and [Conventional Commits](https://www.conventionalcommits.org/).
-
   - **Versioning Strategy:** Independent (each application maintains its own version).
-  - **Automation:** 
+  - **Automation:**
     - **Backend:** Automated via `python-semantic-release`.
     - **Frontend/Mobile:** Automated via `changesets` (planned).
   - **Commit Format:** `type(scope): description` (e.g., `feat(backend): add jwt auth`). Enforcement is handled via `pre-commit`.
 
   ## Quick Start
-For local setup:
+
+  For local setup:
 
 1. Backend: follow [`docs/backend/setup.md`](./docs/backend/setup.md).
-2. Frontend: follow [`docs/frontend/setup.md`](./docs/frontend/setup.md) once the app is added.
+2. Frontend: follow [`docs/frontend/setup.md`](./docs/frontend/setup.md).
 3. Mobile: follow [`docs/mobile/setup.md`](./docs/mobile/setup.md) once the app is added.
 
 ## Development and Contributing
@@ -63,5 +63,5 @@ For local setup:
 
 This project is developed by:
 
-* **Abubakar Khawaja** — Full Stack Developer (React + Django)
-* **Muhammad Suleman Butt** — Full Stack Developer (React / React Native + Django)
+- **Abubakar Khawaja** — Full Stack Developer (React + Django)
+- **Muhammad Suleman Butt** — Full Stack Developer (React / React Native + Django)

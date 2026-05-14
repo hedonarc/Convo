@@ -5,7 +5,7 @@ The Convo backend is built with Django and Django REST Framework, using `uv` for
 ## Prerequisites
 
 - Install Python 3.13
-- Install [`uv`](https://github.com/astral-sh/uv) 
+- Install [`uv`](https://github.com/astral-sh/uv)
 - Install **Redis** (v6.0 or higher) - Required for WebSockets.
 
 ## Installation
