@@ -1,4 +1,3 @@
-// apps/web/vite.config.ts
 import { reactRouter } from "@react-router/dev/vite";
 import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
