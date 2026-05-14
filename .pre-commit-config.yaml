@@ -18,13 +18,11 @@ repos:
     hooks:
       - id: prettier
         name: prettier
-        entry: apps/web/node_modules/.bin/prettier --write
+        entry: bash -c 'pnpm --dir apps/web exec prettier --write "${@#apps/web/}"' --
         language: system
-        files: ^(apps/web/.*\.(js|jsx|ts|tsx|css|scss|html)|.*\.(json|md|ya?ml))$
-        types_or:
-          [javascript, jsx, ts, tsx, css, scss, html, json, yaml, markdown]
+        pass_filenames: true
+        files: ^apps/web/.*\.(js|jsx|ts|tsx|css|scss|html|json|md|ya?ml)$
         exclude: ^backend/
-
   # ----------------------------
   # 🐍 Ruff (Backend)
   # ----------------------------
