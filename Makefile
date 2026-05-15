@@ -1,11 +1,12 @@
+# TODO: Remove this file as now Turbo and pnpm are used
 # -------------------------
 # Project Config
 # -------------------------
 
-BACKEND := backend
+BACKEND := apps/backend
 FRONTEND := apps/web
 PYTHON := uv run
-PRECOMMIT := uv run --project backend pre-commit
+PRECOMMIT := uv run --project apps/backend pre-commit
 
 # Detect current context (root vs backend)
 ifeq ($(notdir $(CURDIR)),backend)
