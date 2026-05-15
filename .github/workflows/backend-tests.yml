@@ -4,12 +4,12 @@ on:
   pull_request:
     branches: [main, dev]
     paths:
-      - "backend/**"
+      - "apps/backend/**"
       - ".github/workflows/backend-tests.yml"
   push:
     branches: [main, dev]
     paths:
-      - "backend/**"
+      - "apps/backend/**"
       - ".github/workflows/backend-tests.yml"
 
 concurrency:
@@ -34,7 +34,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: backend
+        working-directory: apps/backend
 
     env:
       # Use the repo secret when configured; fall back to a CI-only value so

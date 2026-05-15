@@ -1,0 +1,14 @@
+{
+  "name": "@convo/backend",
+  "private": true,
+  "scripts": {
+    "dev": "uv run manage.py runserver",
+    "lint": "uv run ruff check .",
+    "format": "uv run ruff format .",
+    "test": "uv run manage.py test --settings=settings.test",
+    "migrate": "uv run manage.py migrate",
+    "setup": "uv sync --all-extras",
+    "redis:start": "docker run -d --rm --name redis-dev -p 6379:6379 redis:7",
+    "redis:stop": "docker stop redis-dev"
+  }
+}

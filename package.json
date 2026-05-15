@@ -1,7 +1,18 @@
 {
   "name": "convo",
   "private": true,
+  "packageManager": "pnpm@11.1.1",
   "scripts": {
-    "dev": "pnpm --filter @convo/web dev"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "format": "turbo run format",
+    "test": "turbo run test",
+    "setup": "turbo run setup",
+    "redis:start": "pnpm --filter @convo/backend run redis:start",
+    "redis:stop": "pnpm --filter @convo/backend run redis:stop"
+  },
+  "devDependencies": {
+    "turbo": "^2.9.12"
   }
 }
