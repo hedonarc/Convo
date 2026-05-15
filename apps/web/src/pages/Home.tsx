@@ -1,6 +1,6 @@
+import { ROUTES } from "@shared/constants";
 import { Link } from "react-router";
 
-import { ROUTES } from "../../../shared/constants";
 import convoIcon from "../assets/convo.svg";
 
 export default function Home() {

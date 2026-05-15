@@ -1,12 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router";
-import * as z from "zod";
-
-import { authApi } from "../../../shared/api";
-import { ROUTES } from "../../../shared/constants";
+import { authApi } from "@shared/api";
+import { ROUTES } from "@shared/constants";
 import {
   Button,
   Card,
@@ -17,7 +11,12 @@ import {
   CardTitle,
   Input,
   Label,
-} from "../../../shared/ui";
+} from "@shared/ui";
+import axios from "axios";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router";
+import * as z from "zod";
 
 const loginSchema = z.object({
   identifier: z.string().min(1, { message: "Email or username is required." }),

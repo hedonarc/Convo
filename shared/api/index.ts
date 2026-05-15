@@ -1,3 +1,4 @@
+/// <reference path="../../apps/web/node_modules/vite/client.d.ts" />
 import axios from "axios";
 import { API_ENDPOINTS } from "@shared/constants";
 

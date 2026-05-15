@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@source "../../../packages";
+@source "../../../shared";
 
 /* Global base styles for the app */
 @layer base {
