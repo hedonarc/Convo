@@ -40,7 +40,7 @@ repos:
     hooks:
       - id: eslint
         name: eslint
-        entry: pnpm --dir apps/web lint
+        entry: pnpm --dir apps/web lint:fix
         language: system
         files: ^apps/web/.*\.[jt]sx?$
         pass_filenames: false
