@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_ENDPOINTS } from "@convo/constants";
+import { API_ENDPOINTS } from "@shared/constants";
 
 // Configure base URL based on your Django backend.
 // For local development, it's typically http://localhost:8000 or similar.

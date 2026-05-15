@@ -1,8 +1,8 @@
 import * as React from "react";
-import { cn } from "@convo/utils";
+import { cn } from "@shared/utils";
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  extends React.ComponentPropsWithRef<"button"> {
   asChild?: boolean;
 }
 

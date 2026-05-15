@@ -18,10 +18,6 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@convo/api": "workspace:*",
-    "@convo/constants": "workspace:*",
-    "@convo/ui": "workspace:*",
-    "@convo/utils": "workspace:*",
     "@fontsource/inter": "^5.2.8",
     "@hookform/resolvers": "5.2.2",
     "@react-router/node": "^7.15.0",

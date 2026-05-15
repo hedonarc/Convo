@@ -21,3 +21,5 @@ db.sqlite3-shm
 # Django Static Files
 staticfiles/
 node_modules
+dist/
+build/

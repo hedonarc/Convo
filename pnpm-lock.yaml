@@ -14,18 +14,6 @@ importers:
 
   apps/web:
     dependencies:
-      '@convo/api':
-        specifier: workspace:*
-        version: link:../../packages/api
-      '@convo/constants':
-        specifier: workspace:*
-        version: link:../../packages/constants
-      '@convo/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
-      '@convo/utils':
-        specifier: workspace:*
-        version: link:../../packages/utils
       '@fontsource/inter':
         specifier: ^5.2.8
         version: 5.2.8
@@ -135,51 +123,6 @@ importers:
       vite:
         specifier: ^8.0.12
         version: 8.0.12(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0)
-
-  packages/api:
-    dependencies:
-      '@convo/constants':
-        specifier: workspace:*
-        version: link:../constants
-      axios:
-        specifier: ^1.6.0
-        version: 1.16.1
-
-  packages/constants: {}
-
-  packages/ui:
-    dependencies:
-      '@convo/utils':
-        specifier: workspace:*
-        version: link:../utils
-      lucide-react:
-        specifier: ^0.300.0
-        version: 0.300.0(react@19.2.6)
-    devDependencies:
-      '@types/react':
-        specifier: ^19.2.14
-        version: 19.2.14
-      '@types/react-dom':
-        specifier: ^19.2.3
-        version: 19.2.3(@types/react@19.2.14)
-      react:
-        specifier: ^19.2.6
-        version: 19.2.6
-      react-dom:
-        specifier: ^19.2.6
-        version: 19.2.6(react@19.2.6)
-      typescript:
-        specifier: ~6.0.2
-        version: 6.0.3
-
-  packages/utils:
-    dependencies:
-      clsx:
-        specifier: ^2.1.1
-        version: 2.1.1
-      tailwind-merge:
-        specifier: ^2.0.0
-        version: 2.6.1
 
 packages:
 
@@ -1577,11 +1520,6 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  lucide-react@0.300.0:
-    resolution: {integrity: sha512-rQxUUCmWAvNLoAsMZ5j04b2+OJv6UuNLYMY7VK0eVlm4aTwUEjEEHc09/DipkNIlhXUSDn2xoyIzVT0uh7dRsg==}
-    peerDependencies:
-      react: ^16.5.1 || ^17.0.0 || ^18.0.0
-
   lucide-react@1.14.0:
     resolution: {integrity: sha512-+1mdWcfSJVUsaTIjN9zoezmUhfXo5l0vP7ekBMPo3jcS/aIkxHnXqAPsByszMZx/Y8oQBRJxJx5xg+RH3urzxA==}
     peerDependencies:
@@ -1750,9 +1688,6 @@ packages:
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
-
-  tailwind-merge@2.6.1:
-    resolution: {integrity: sha512-Oo6tHdpZsGpkKG88HJ8RR1rg/RdnEkQEfMoEk2x1XRI3F1AxeU+ijRXpiVUF4UbLfcxxRGw6TbUINKYdWVsQTQ==}
 
   tailwind-merge@3.6.0:
     resolution: {integrity: sha512-uxL7qAVQriqRQPAyK3pj66VqskWqoZ37PW94jwOTwNfq/z9oyu1V+eqrZqtR2+fCiXdYOZe/Modt8GtvqNzu+w==}
@@ -3166,10 +3101,6 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-react@0.300.0(react@19.2.6):
-    dependencies:
-      react: 19.2.6
-
   lucide-react@1.14.0(react@19.2.6):
     dependencies:
       react: 19.2.6
@@ -3339,8 +3270,6 @@ snapshots:
   shebang-regex@3.0.0: {}
 
   source-map-js@1.2.1: {}
-
-  tailwind-merge@2.6.1: {}
 
   tailwind-merge@3.6.0: {}
 

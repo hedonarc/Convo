@@ -1,4 +1,4 @@
-import { ROUTES } from "@convo/constants";
+import { ROUTES } from "@shared/constants";
 import { Link } from "react-router";
 
 import convoIcon from "../assets/convo.svg";

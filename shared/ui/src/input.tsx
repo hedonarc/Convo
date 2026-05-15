@@ -1,8 +1,8 @@
 import * as React from "react";
-import { cn } from "@convo/utils";
+import { cn } from "@shared/utils";
 
 export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {}
+  extends React.ComponentPropsWithRef<"input"> {}
 
 const Input = ({ className, type, ...props }: InputProps) => {
   return (

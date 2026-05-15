@@ -1,5 +1,6 @@
-import { authApi } from "@convo/api";
-import { ROUTES } from "@convo/constants";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { authApi } from "@shared/api";
+import { ROUTES } from "@shared/constants";
 import {
   Button,
   Card,
@@ -10,8 +11,7 @@ import {
   CardTitle,
   Input,
   Label,
-} from "@convo/ui";
-import { zodResolver } from "@hookform/resolvers/zod";
+} from "@shared/ui";
 import axios from "axios";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
