@@ -2,7 +2,7 @@
 # Project Config
 # -------------------------
 
-BACKEND := backend
+BACKEND := apps/backend
 FRONTEND := apps/web
 PYTHON := uv run
 PRECOMMIT := uv run --project backend pre-commit
