@@ -6,6 +6,8 @@ settings:
 
 importers:
 
+  .: {}
+
   apps/web:
     dependencies:
       '@convo/api':
@@ -149,12 +151,22 @@ importers:
       lucide-react:
         specifier: ^0.300.0
         version: 0.300.0(react@19.2.6)
+    devDependencies:
+      '@types/react':
+        specifier: ^19.2.14
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.14)
       react:
-        specifier: ^18 || ^19
+        specifier: ^19.2.6
         version: 19.2.6
       react-dom:
-        specifier: ^18 || ^19
+        specifier: ^19.2.6
         version: 19.2.6(react@19.2.6)
+      typescript:
+        specifier: ~6.0.2
+        version: 6.0.3
 
   packages/utils:
     dependencies:
