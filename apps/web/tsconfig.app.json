@@ -20,8 +20,6 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@shared/*": ["../../shared/*"],
       "react": ["./node_modules/@types/react", "./node_modules/react"],
       "react/*": ["./node_modules/@types/react/*", "./node_modules/react/*"],
       "react-dom": [

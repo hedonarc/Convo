@@ -1,5 +1,6 @@
 import { index, route, type RouteConfig } from "@react-router/dev/routes";
-import { ROUTES } from "@shared/constants";
+
+import { ROUTES } from "../../../shared/constants";
 
 export default [
   index("pages/Home.tsx"),
