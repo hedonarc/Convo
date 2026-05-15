@@ -4,7 +4,7 @@ Convo is a monorepo for a real-time chat platform with backend, frontend, and mo
 
 ## Monorepo Architecture
 
-- `backend/`: Django REST Framework API for authentication, messaging, and user management. Includes real-time support via Django Channels and Redis.
+- `apps/backend/`: Django REST Framework API for authentication, messaging, and user management. Includes real-time support via Django Channels and Redis.
 - `apps/web/`: React frontend using Vite and Tailwind CSS.
 - `mobile/`: Mobile app (planned).
 
@@ -48,11 +48,18 @@ Convo is a monorepo for a real-time chat platform with backend, frontend, and mo
 
   ## Quick Start
 
-  For local setup:
+  For local setup, you can now use Turborepo to run everything concurrently:
 
-1. Backend: follow [`docs/backend/setup.md`](./docs/backend/setup.md).
-2. Frontend: follow [`docs/frontend/setup.md`](./docs/frontend/setup.md).
-3. Mobile: follow [`docs/mobile/setup.md`](./docs/mobile/setup.md) once the app is added.
+1. Install all dependencies: `pnpm install` and `pnpm run setup`
+2. Run development servers: `pnpm run dev`
+3. Backend docs: [`docs/backend/setup.md`](./docs/backend/setup.md)
+4. Frontend docs: [`docs/frontend/setup.md`](./docs/frontend/setup.md)
+5. Mobile docs: [`docs/mobile/setup.md`](./docs/mobile/setup.md) once the app is added.
+
+### Running Backend Commands
+To run individual backend commands (like migrations, shell, etc.), you can either:
+- Navigate to the backend directory: `cd apps/backend && uv run manage.py <command>`
+- Run via pnpm filter: `pnpm --filter @convo/backend run <script>` (e.g., `pnpm --filter @convo/backend run migrate`)
 
 ## Development and Contributing
 

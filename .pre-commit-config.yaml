@@ -22,7 +22,7 @@ repos:
         language: system
         pass_filenames: true
         files: ^apps/web/.*\.(js|jsx|ts|tsx|css|scss|html|json|md|ya?ml)$
-        exclude: ^backend/
+        exclude: ^apps/backend/
   # ----------------------------
   # 🐍 Ruff (Backend)
   # ----------------------------
