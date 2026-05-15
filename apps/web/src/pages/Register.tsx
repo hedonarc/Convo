@@ -1,12 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router";
-import * as z from "zod";
-
-import { authApi } from "../../../../shared/api";
-import { ROUTES } from "../../../../shared/constants";
+import { authApi } from "@shared/api";
+import { ROUTES } from "@shared/constants";
 import {
   Button,
   Card,
@@ -17,27 +11,12 @@ import {
   CardTitle,
   Input,
   Label,
-} from "../../../../shared/ui";
-
-const registerSchema = z
-  .object({
-    firstName: z.string().min(1, { message: "First name is required." }),
-    lastName: z.string().min(1, { message: "Last name is required." }),
-    email: z.string().email({ message: "Please enter a valid email address." }),
-    username: z
-      .string()
-      .min(3, { message: "Username must be at least 3 characters." }),
-    password: z
-      .string()
-      .min(8, { message: "Password must be at least 8 characters." }),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
-
-type RegisterFormValues = z.infer<typeof registerSchema>;
+} from "@shared/ui";
+import { extractApiError } from "@shared/utils";
+import { type RegisterFormValues, registerSchema } from "@shared/validation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -62,24 +41,9 @@ export default function Register() {
         password: data.password,
         confirm_password: data.confirmPassword,
       });
-      // On successful registration, redirect to home page as they are already logged in
-      navigate(ROUTES.HOME);
+      navigate(ROUTES.CHAT);
     } catch (err: unknown) {
-      let errorMessage = "Registration failed. Please try again.";
-
-      if (axios.isAxiosError(err)) {
-        errorMessage =
-          err.response?.data?.detail ||
-          err.response?.data?.non_field_errors?.[0] ||
-          (err.response?.data && Object.values(err.response.data)[0]?.[0]) ||
-          errorMessage;
-      }
-
-      setError(
-        typeof errorMessage === "string"
-          ? errorMessage
-          : "Registration failed.",
-      );
+      setError(extractApiError(err, "Registration failed. Please try again."));
     }
   };
 

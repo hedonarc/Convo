@@ -12,18 +12,11 @@ import {
   Input,
   Label,
 } from "@shared/ui";
-import axios from "axios";
+import { extractApiError } from "@shared/utils";
+import { type LoginFormValues, loginSchema } from "@shared/validation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
-import * as z from "zod";
-
-const loginSchema = z.object({
-  identifier: z.string().min(1, { message: "Email or username is required." }),
-  password: z.string().min(1, { message: "Password is required." }),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const navigate = useNavigate();
@@ -44,19 +37,11 @@ export default function Login() {
         username: data.identifier,
         password: data.password,
       });
-      // On success, redirect to dashboard or home
-      navigate(ROUTES.HOME);
+      navigate(ROUTES.CHAT);
     } catch (err: unknown) {
-      let errorMessage = "Failed to login. Please check your credentials.";
-
-      if (axios.isAxiosError(err)) {
-        errorMessage =
-          err.response?.data?.detail ||
-          err.response?.data?.non_field_errors?.[0] ||
-          errorMessage;
-      }
-
-      setError(errorMessage);
+      setError(
+        extractApiError(err, "Failed to login. Please check your credentials."),
+      );
     }
   };
 

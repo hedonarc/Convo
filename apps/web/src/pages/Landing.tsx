@@ -3,7 +3,7 @@ import { Link } from "react-router";
 
 import convoIcon from "../assets/convo.svg";
 
-export default function Home() {
+export default function Landing() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950">
       <div className="text-center">
