@@ -50,7 +50,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
+    <div className="bg-background flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold tracking-tight">
@@ -103,11 +103,9 @@ export default function Login() {
             <Button className="w-full" type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Signing in..." : "Sign in"}
             </Button>
-            <div className="text-center text-sm text-text-secondary">
+            <div className="text-text-secondary text-center text-sm">
               Don&apos;t have an account?{" "}
-              <Link to={ROUTES.REGISTER}>
-                Register
-              </Link>
+              <Link to={ROUTES.REGISTER}>Register</Link>
             </div>
           </CardFooter>
         </form>
