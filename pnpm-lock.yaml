@@ -12,8 +12,6 @@ importers:
         specifier: ^2.9.12
         version: 2.9.12
 
-  apps/backend: {}
-
   apps/web:
     dependencies:
       '@convo/api':
