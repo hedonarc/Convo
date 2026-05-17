@@ -16,6 +16,109 @@ Convo follows the **shadcn/ui philosophy**:
 
 ---
 
+## ⚠️ Brand Color & Theming — Read This First
+
+The brand color is **`#F56565`** (red). It is **never written as a raw hex or a Tailwind color name** in component code. It lives in one place only — the CSS variables in `apps/web/src/index.css` — and is referenced everywhere else through semantic Tailwind tokens.
+
+### The CSS Variables (source of truth)
+
+```css
+/* apps/web/src/index.css */
+:root {
+  --color-brand: #f56565;
+  --color-brand-foreground: #ffffff;
+  --color-background: var(--color-gray-50);
+  --color-surface: var(--color-white);
+  --color-text-primary: var(--color-gray-950);
+  --color-text-secondary: var(--color-gray-500);
+  --color-border: var(--color-gray-200);
+  --color-input: transparent;
+  --color-ring: #f56565;
+}
+
+.dark {
+  --color-brand: #f56565;
+  --color-brand-foreground: #ffffff;
+  --color-background: var(--color-gray-950);
+  --color-surface: var(--color-gray-950);
+  --color-text-primary: var(--color-gray-50);
+  --color-text-secondary: var(--color-gray-400);
+  --color-border: var(--color-gray-800);
+  --color-input: transparent;
+  --color-ring: #f56565;
+}
+```
+
+### Semantic Tokens → Tailwind Classes
+
+These tokens are wired into `tailwind.config.ts` and must be used in all components:
+
+| Purpose                      | Tailwind class                           | ❌ Never use                         |
+| ---------------------------- | ---------------------------------------- | ------------------------------------ |
+| Brand / primary action color | `bg-brand`, `text-brand`, `border-brand` | `bg-red-500`, `#F56565`              |
+| Text on brand background     | `text-brand-foreground`                  | `text-white`, `text-gray-50`         |
+| Focus ring                   | `ring-ring`                              | `ring-gray-950`, `ring-gray-300`     |
+| Page background              | `bg-background`                          | `bg-gray-50`, `bg-gray-950`          |
+| Card / surface background    | `bg-surface`                             | `bg-white`, `bg-gray-900`            |
+| Primary text                 | `text-text-primary`                      | `text-gray-900`, `text-gray-50`      |
+| Secondary / muted text       | `text-text-secondary`                    | `text-gray-500`, `text-gray-400`     |
+| Borders                      | `border-border`                          | `border-gray-200`, `border-gray-800` |
+| Input background             | `bg-input`                               | `bg-white`, `bg-transparent`         |
+
+### The Rule in Plain English
+
+> **If a class contains a raw gray number (`gray-50`, `gray-200`, `gray-900`, etc.) or a hex value, it is wrong — unless it is a semantic exception listed below.**
+
+Dark mode is already handled by the CSS variables. You never need `dark:` variants for semantic tokens:
+
+```tsx
+// ❌ Wrong — hardcoded, breaks if theme changes
+<div className="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 border-gray-200 dark:border-gray-800" />
+
+// ✅ Correct — semantic, theme-aware, no dark: needed
+<div className="bg-surface text-text-primary border-border" />
+
+// ❌ Wrong — hardcoded brand
+<button className="bg-gray-900 text-gray-50 dark:bg-gray-50 dark:text-gray-900" />
+
+// ✅ Correct — brand token
+<button className="bg-brand text-brand-foreground" />
+
+// ❌ Wrong — hardcoded ring
+className="focus-visible:ring-gray-950 dark:focus-visible:ring-gray-300"
+
+// ✅ Correct — ring token
+className="focus-visible:ring-ring"
+
+// ❌ Wrong — hardcoded link
+<a className="text-gray-900 dark:text-gray-50" />
+
+// ✅ Correct
+<a className="text-brand hover:text-brand/80" />
+
+// ❌ Wrong — hardcoded muted text
+<p className="text-gray-500 dark:text-gray-400" />
+
+// ✅ Correct
+<p className="text-text-secondary" />
+```
+
+### Permitted Exceptions (hardcoded colors that are intentional)
+
+Some colors are semantic and should **not** use brand tokens:
+
+| Use case                   | Allowed classes                                                                          | Reason                          |
+| -------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------- |
+| Error states, validation   | `text-red-500`, `border-red-500`, `bg-red-50`, `dark:text-red-400`, `dark:bg-red-900/10` | Semantic error color, not brand |
+| Required field marker `*`  | `text-red-500 dark:text-red-400`                                                         | Semantic indicator              |
+| Success states             | `text-green-500 dark:text-green-400`                                                     | Semantic success color          |
+| Warning states             | `text-yellow-500 dark:text-yellow-400`                                                   | Semantic warning color          |
+| Destructive button variant | `bg-red-500 text-gray-50 hover:bg-red-500/90`                                            | Intentional danger color        |
+
+For **everything else** — backgrounds, text, borders, rings, interactive states — use semantic tokens.
+
+---
+
 ## How We Use shadcn/ui
 
 We do **not** install shadcn as a dependency. Instead, we copy component source from shadcn into `shared/ui/src/` and own it from there. This means:
@@ -33,7 +136,8 @@ When you need a new component that shadcn provides:
 3. Copy the source code into `shared/ui/src/ComponentName/ComponentName.web.tsx`
 4. Copy any required dependencies it lists (e.g. Radix UI primitive)
 5. Replace the shadcn `cn` import with your local one (see below)
-6. Export it from `shared/ui/index.ts`
+6. **Replace all hardcoded gray classes with semantic tokens** (see table above) — shadcn ships with hardcoded grays; always update them
+7. Export it from `shared/ui/index.ts`
 
 ### The `cn` Utility
 
@@ -41,33 +145,34 @@ shadcn components use a `cn()` helper that merges Tailwind classes correctly. Ou
 
 ```ts
 // shared/utils/index.ts
-import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 ```
 
 When copying a shadcn component, replace:
+
 ```ts
 // ❌ shadcn's import — doesn't exist in our project
-import { cn } from '@/lib/utils'
+import { cn } from "@/lib/utils";
 
 // ✅ Ours
-import { cn } from '@shared/utils'
+import { cn } from "@shared/utils";
 ```
 
 ### Dependencies shadcn Components Need
 
 Install these as you copy components that require them:
 
-| What | Package |
-|------|---------|
-| Class merging | `clsx` + `tailwind-merge` |
-| CVA variants | `class-variance-authority` |
+| What             | Package                             |
+| ---------------- | ----------------------------------- |
+| Class merging    | `clsx` + `tailwind-merge`           |
+| CVA variants     | `class-variance-authority`          |
 | Radix primitives | `@radix-ui/react-*` (per component) |
-| Icons | `lucide-react` |
+| Icons            | `lucide-react`                      |
 
 ---
 
@@ -75,12 +180,12 @@ Install these as you copy components that require them:
 
 Components already in `shared/ui/src/`:
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| `Button` | ✅ In use | Used in Login, Register |
-| `Card` | ✅ In use | Used in Login, Register |
-| `Input` | ✅ In use | Used in Login, Register |
-| `Label` | ✅ In use | Used in Login, Register |
+| Component | Status    | Notes                                                          |
+| --------- | --------- | -------------------------------------------------------------- |
+| `Button`  | ✅ In use | `default` variant uses `bg-brand text-brand-foreground`        |
+| `Card`    | ✅ In use | Uses `border-border bg-surface`                                |
+| `Input`   | ✅ In use | Default state uses `border-border`                             |
+| `Label`   | ✅ In use | Inherits `text-text-primary`; required `*` uses `text-red-500` |
 
 Add new components here as they're copied in.
 
@@ -88,49 +193,37 @@ Add new components here as they're copied in.
 
 ## Styling Approach (Current Phase)
 
-We are currently in **Phase 1** of the design system. This means:
+We are in **Phase 1** of the design system. Semantic CSS variables are already live in `index.css` and wired into `tailwind.config.ts`. All components use semantic tokens — never raw Tailwind grays or hex values (see the theming section above).
 
-- Plain Tailwind classes are used directly
-- `dark:` prefix variants are used for dark mode
-- No semantic token layer yet (coming in Phase 3 — see `DESIGN_SYSTEM_PLAN.md`)
+### Color Palette Reference
 
-### What This Looks Like in Practice
+Use these semantic tokens everywhere. Raw Tailwind grays are only permitted in the `index.css` variable definitions and semantic exception cases (error/success/warning).
 
-```tsx
-// ✅ Correct for current phase — plain Tailwind + dark: variants
-<div className="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50" />
+| Use              | Token                     | Light value | Dark value  |
+| ---------------- | ------------------------- | ----------- | ----------- |
+| Page background  | `bg-background`           | gray-50     | gray-950    |
+| Card / surface   | `bg-surface`              | white       | gray-950    |
+| Primary text     | `text-text-primary`       | gray-950    | gray-50     |
+| Secondary text   | `text-text-secondary`     | gray-500    | gray-400    |
+| Border           | `border-border`           | gray-200    | gray-800    |
+| Input background | `bg-input`                | transparent | transparent |
+| Brand color      | `bg-brand` / `text-brand` | #F56565     | #F56565     |
+| On-brand text    | `text-brand-foreground`   | white       | white       |
+| Focus ring       | `ring-ring`               | #F56565     | #F56565     |
 
-// ✅ Also correct — shadcn-style neutral palette usage
-<p className="text-sm text-muted-foreground" />  // once tokens are wired up
-```
-
-### Color Palette
-
-Use Tailwind's `gray` scale as the neutral palette (matches what Login/Register pages already use):
-
-| Use | Light | Dark |
-|-----|-------|------|
-| Page background | `bg-gray-50` | `dark:bg-gray-950` |
-| Card/surface | `bg-white` | `dark:bg-gray-900` |
-| Primary text | `text-gray-900` | `dark:text-gray-50` |
-| Secondary text | `text-gray-500` | `dark:text-gray-400` |
-| Border | `border-gray-200` | `dark:border-gray-800` |
-| Input background | `bg-white` | `dark:bg-gray-950` |
-
-For brand/accent color — use `gray-900` (light) / `gray-50` (dark) for primary actions. This matches the current Login and Register buttons.
-
-### Feedback Colors
+### Feedback Colors (hardcoded — semantic exceptions)
 
 ```tsx
 // Error
-'text-red-500 dark:text-red-400'
-'bg-red-50 dark:bg-red-900/10'
+"text-red-500 dark:text-red-400";
+"bg-red-50 dark:bg-red-900/10";
+"border-red-500 dark:border-red-400";
 
 // Success (when needed)
-'text-green-500 dark:text-green-400'
+"text-green-500 dark:text-green-400";
 
 // Warning (when needed)
-'text-yellow-500 dark:text-yellow-400'
+"text-yellow-500 dark:text-yellow-400";
 ```
 
 ---
@@ -150,39 +243,45 @@ Every component file follows this structure:
 
 ```tsx
 // 1. Imports
-import * as React from 'react'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@shared/utils'
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@shared/utils";
 
-// 2. CVA variant definition
+// 2. CVA variant definition — use semantic tokens, never hardcoded grays
 const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:focus-visible:ring-gray-300',
+  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default:     'bg-gray-900 text-gray-50 hover:bg-gray-900/90 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90',
-        destructive: 'bg-red-500 text-gray-50 hover:bg-red-500/90 dark:bg-red-900 dark:text-gray-50',
-        outline:     'border border-gray-200 bg-white hover:bg-gray-100 hover:text-gray-900 dark:border-gray-800 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50',
-        ghost:       'hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-50',
-        link:        'text-gray-900 underline-offset-4 hover:underline dark:text-gray-50',
+        default: "bg-brand text-brand-foreground shadow hover:bg-brand/90",
+        destructive:
+          "bg-red-500 text-gray-50 shadow-sm hover:bg-red-500/90 dark:bg-red-900 dark:text-gray-50",
+        outline:
+          "border border-border bg-surface shadow-sm hover:bg-gray-100 hover:text-text-primary dark:hover:bg-gray-800",
+        secondary:
+          "bg-gray-100 text-gray-900 shadow-sm hover:bg-gray-100/80 dark:bg-gray-800 dark:text-gray-50 dark:hover:bg-gray-800/80",
+        ghost:
+          "hover:bg-gray-100 hover:text-text-primary dark:hover:bg-gray-800 dark:hover:text-gray-50",
+        link: "text-brand underline-offset-4 hover:underline",
       },
       size: {
-        default: 'h-10 px-4 py-2',
-        sm:      'h-9 rounded-md px-3',
-        lg:      'h-11 rounded-md px-8',
-        icon:    'h-10 w-10',
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-md px-3 text-sm",
+        lg: "h-11 rounded-md px-8 text-base",
+        icon: "h-10 w-10",
       },
     },
     defaultVariants: {
-      variant: 'default',
-      size: 'default',
+      variant: "default",
+      size: "default",
     },
-  }
-)
+  },
+);
 
 // 3. Props interface
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {}
 
 // 4. Component — pass ref as a prop (React 19)
@@ -192,11 +291,11 @@ const Button = ({ className, variant, size, ref, ...props }: ButtonProps) => (
     className={cn(buttonVariants({ variant, size, className }))}
     {...props}
   />
-)
-Button.displayName = 'Button'
+);
+Button.displayName = "Button";
 
 // 5. Named exports only
-export { Button, buttonVariants }
+export { Button, buttonVariants };
 ```
 
 ### Rules
@@ -235,10 +334,10 @@ These are conventions shadcn uses that we follow exactly — consistency matters
 
 ```tsx
 // ❌ Our old instinct
-variant: 'primary'
+variant: "primary";
 
 // ✅ shadcn convention — use this
-variant: 'default'
+variant: "default";
 ```
 
 ### `size: 'default'` not `size: 'md'`
@@ -249,10 +348,10 @@ Same reasoning — shadcn uses `default` for the base size.
 
 ```tsx
 // ❌
-variant: 'danger'
+variant: "danger";
 
 // ✅ shadcn convention
-variant: 'destructive'
+variant: "destructive";
 ```
 
 ### Compound components for Card, Dialog, etc.
@@ -277,13 +376,13 @@ Each sub-component (`CardHeader`, `CardTitle`, etc.) accepts `ref` as a prop and
 
 ## Focus Styles
 
-Every interactive element must have a visible focus ring. Use this exact pattern (matches shadcn):
+Every interactive element must have a visible focus ring. Use this exact pattern — `ring-ring` automatically uses the brand color:
 
 ```tsx
-'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 dark:focus-visible:ring-gray-300'
+"focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50";
 ```
 
-Never rely on the browser's default focus outline.
+Never rely on the browser's default focus outline. Never hardcode `ring-gray-950` or `ring-gray-300`.
 
 ---
 
@@ -292,7 +391,7 @@ Never rely on the browser's default focus outline.
 Always handle disabled both visually and functionally:
 
 ```tsx
-'disabled:pointer-events-none disabled:opacity-50'
+"disabled:pointer-events-none disabled:opacity-50";
 ```
 
 ---
@@ -308,14 +407,19 @@ Always handle disabled both visually and functionally:
 
 ## Dark Mode
 
-Dark mode is toggled by adding the `dark` class to `<html>` (via `ThemeProvider`). Tailwind's `dark:` prefix handles the rest.
+Dark mode is toggled by adding the `dark` class to `<html>` (via `ThemeProvider`). When using semantic tokens (`bg-surface`, `text-text-primary`, `border-border`, etc.), dark mode is handled automatically — no `dark:` prefix needed for those classes.
 
 ```tsx
-// Every component must have dark: variants
-<div className="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50" />
+// ❌ Wrong — semantic tokens don't need dark: variants
+<div className="bg-surface dark:bg-gray-950 text-text-primary dark:text-gray-50" />
+
+// ✅ Correct — semantic token handles both modes
+<div className="bg-surface text-text-primary" />
 ```
 
-When copying a shadcn component, its `dark:` variants are already included — don't strip them.
+Only use `dark:` prefixes for the permitted exception colors (error/success/warning feedback) and for the `secondary` / `ghost` / `outline` button hover states where raw grays are used for subtle UI chrome.
+
+When copying a shadcn component, its `dark:` variants are included for hardcoded grays — replace those grays with semantic tokens and drop the `dark:` pair entirely.
 
 ---
 
@@ -324,42 +428,50 @@ When copying a shadcn component, its `dark:` variants are already included — d
 1. **Check shadcn first** — [ui.shadcn.com/docs/components](https://ui.shadcn.com/docs/components). If it exists, copy the manual install source.
 2. **Place it** in `shared/ui/src/ComponentName/ComponentName.web.tsx`
 3. **Fix the `cn` import** — change `@/lib/utils` to `@shared/utils`
-4. **Install any new Radix deps** it requires
-5. **Pass `ref` as a prop** if the copied source uses `forwardRef`, remove it and pass `ref` directly (React 19)
-6. **Test light and dark mode**
-7. **Export** from `shared/ui/src/ComponentName/index.ts` and `shared/ui/index.ts`
-8. **Update the component inventory table** in this file
+4. **Replace hardcoded grays with semantic tokens** — shadcn ships with raw gray values; always update them using the token table above. This is mandatory, not optional.
+5. **Install any new Radix deps** it requires
+6. **Pass `ref` as a prop** if the copied source uses `forwardRef`, remove it and pass `ref` directly (React 19)
+7. **Test light and dark mode**
+8. **Export** from `shared/ui/src/ComponentName/index.ts` and `shared/ui/index.ts`
+9. **Update the component inventory table** in this file
 
 ---
 
 ## What NOT to Do
 
-| ❌ Don't | ✅ Do instead |
-|----------|--------------|
-| Install shadcn as a dependency | Copy source into `shared/ui/src/` |
-| Import `cn` from anywhere except `@shared/utils` | `import { cn } from '@shared/utils'` |
-| Use `export default` | Use named exports |
-| Use `forwardRef` | Remove `forwardRef` and pass `ref` as prop (React 19) |
-| Concatenate class strings manually | Use `cn()` |
-| Use raw hex codes in components | Use Tailwind classes |
-| Name variants `primary`/`danger`/`md` | Use shadcn names: `default`/`destructive`/`default` |
-| Build ARIA patterns from scratch | Use Radix UI primitives |
-| Strip `dark:` variants when copying | Keep all dark variants from shadcn source |
-| Put business logic in `shared/ui` | UI is purely presentational |
+| ❌ Don't                                               | ✅ Do instead                                         |
+| ------------------------------------------------------ | ----------------------------------------------------- |
+| Install shadcn as a dependency                         | Copy source into `shared/ui/src/`                     |
+| Import `cn` from anywhere except `@shared/utils`       | `import { cn } from '@shared/utils'`                  |
+| Use `export default`                                   | Use named exports                                     |
+| Use `forwardRef`                                       | Remove `forwardRef` and pass `ref` as prop (React 19) |
+| Concatenate class strings manually                     | Use `cn()`                                            |
+| Use raw hex codes in components                        | Use Tailwind semantic token classes                   |
+| Use `bg-gray-900 dark:bg-gray-50` for primary actions  | Use `bg-brand text-brand-foreground`                  |
+| Use `text-gray-900 dark:text-gray-50` for body text    | Use `text-text-primary`                               |
+| Use `text-gray-500 dark:text-gray-400` for muted text  | Use `text-text-secondary`                             |
+| Use `border-gray-200 dark:border-gray-800` for borders | Use `border-border`                                   |
+| Use `ring-gray-950 dark:ring-gray-300` for focus       | Use `ring-ring`                                       |
+| Use `text-gray-900 dark:text-gray-50` for links        | Use `text-brand hover:text-brand/80`                  |
+| Keep shadcn's hardcoded grays when copying             | Replace with semantic tokens (step 4 above)           |
+| Name variants `primary`/`danger`/`md`                  | Use shadcn names: `default`/`destructive`/`default`   |
+| Build ARIA patterns from scratch                       | Use Radix UI primitives                               |
+| Strip `dark:` variants when copying                    | Replace them with semantic tokens instead             |
+| Put business logic in `shared/ui`                      | UI is purely presentational                           |
 
 ---
 
 ## File Locations
 
-| What | Where |
-|------|-------|
-| UI components | `shared/ui/src/ComponentName/` |
-| `cn` utility | `shared/utils/index.ts` |
-| Theme provider | `apps/web/src/providers/theme.provider.tsx` |
-| CSS variables (Phase 3) | `apps/web/src/index.css` |
-| Design tokens (Phase 3) | `shared/tokens/src/` |
-| Tailwind config | `apps/web/tailwind.config.ts` |
-| Phased rollout plan | `DESIGN_SYSTEM_PLAN.md` |
+| What                                       | Where                                       |
+| ------------------------------------------ | ------------------------------------------- |
+| UI components                              | `shared/ui/src/ComponentName/`              |
+| `cn` utility                               | `shared/utils/index.ts`                     |
+| CSS variables (source of truth for colors) | `apps/web/src/index.css`                    |
+| Tailwind token wiring                      | `apps/web/tailwind.config.ts`               |
+| Theme provider                             | `apps/web/src/providers/theme.provider.tsx` |
+| Design tokens (Phase 3)                    | `shared/tokens/src/`                        |
+| Phased rollout plan                        | `DESIGN_SYSTEM_PLAN.md`                     |
 
 ---
 

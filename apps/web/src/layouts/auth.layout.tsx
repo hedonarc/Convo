@@ -7,3 +7,4 @@ export default function AuthLayout() {
   if (!isAuthenticated) return <Navigate to={ROUTES.LOGIN} replace />;
   return <Outlet />;
 }
+
