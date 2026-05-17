@@ -1,4 +1,5 @@
 import { ROUTES } from "@shared/constants";
+import { buttonVariants } from "@shared/ui";
 import { Link } from "react-router";
 
 import convoIcon from "../assets/convo.svg";
@@ -17,13 +18,13 @@ export default function Landing() {
         <div className="space-x-4">
           <Link
             to={ROUTES.LOGIN}
-            className="inline-flex h-9 items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-gray-50 shadow transition-colors hover:bg-gray-900/90 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90"
+            className={buttonVariants({ variant: "default" })}
           >
             Login
           </Link>
           <Link
             to={ROUTES.REGISTER}
-            className="inline-flex h-9 items-center justify-center rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-900 shadow-sm transition-colors hover:bg-gray-100 hover:text-gray-900 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-50"
+            className={buttonVariants({ variant: "outline" })}
           >
             Register
           </Link>

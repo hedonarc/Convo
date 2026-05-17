@@ -22,6 +22,11 @@ export default defineConfig({
       ),
       "lucide-react": path.resolve(__dirname, "./node_modules/lucide-react"),
       axios: path.resolve(__dirname, "./node_modules/axios"),
+      "class-variance-authority": path.resolve(
+        __dirname,
+        "./node_modules/class-variance-authority",
+      ),
+      zod: path.resolve(__dirname, "./node_modules/zod"),
     },
   },
   publicDir: "public",

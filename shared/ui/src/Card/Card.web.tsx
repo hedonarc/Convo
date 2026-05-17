@@ -1,12 +1,18 @@
 import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@shared/utils";
 
-const Card = ({ className, ...props }: React.ComponentPropsWithRef<"div">) => (
+const cardVariants = cva(
+  "rounded-xl border border-gray-200 bg-surface text-text-primary shadow dark:border-gray-800"
+);
+
+export interface CardProps
+  extends React.ComponentPropsWithRef<"div">,
+    VariantProps<typeof cardVariants> {}
+
+const Card = ({ className, ...props }: CardProps) => (
   <div
-    className={cn(
-      "rounded-xl border border-gray-200 bg-surface text-text-primary shadow dark:border-gray-800",
-      className
-    )}
+    className={cn(cardVariants(), className)}
     {...props}
   />
 );

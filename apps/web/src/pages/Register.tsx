@@ -71,6 +71,7 @@ export default function Register() {
                 <Input
                   id="firstName"
                   placeholder="John"
+                  error={!!errors.firstName}
                   {...register("firstName")}
                 />
                 {errors.firstName && (
@@ -84,6 +85,7 @@ export default function Register() {
                 <Input
                   id="lastName"
                   placeholder="Doe"
+                  error={!!errors.lastName}
                   {...register("lastName")}
                 />
                 {errors.lastName && (
@@ -99,6 +101,7 @@ export default function Register() {
                 id="email"
                 type="email"
                 placeholder="m@example.com"
+                error={!!errors.email}
                 {...register("email")}
               />
               {errors.email && (
@@ -113,6 +116,7 @@ export default function Register() {
                 id="username"
                 type="text"
                 placeholder="johndoe"
+                error={!!errors.username}
                 {...register("username")}
               />
               {errors.username && (
@@ -123,7 +127,12 @@ export default function Register() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" {...register("password")} />
+              <Input
+                id="password"
+                type="password"
+                error={!!errors.password}
+                {...register("password")}
+              />
               {errors.password && (
                 <p className="text-sm font-medium text-red-500">
                   {errors.password.message}
@@ -135,6 +144,7 @@ export default function Register() {
               <Input
                 id="confirmPassword"
                 type="password"
+                error={!!errors.confirmPassword}
                 {...register("confirmPassword")}
               />
               {errors.confirmPassword && (

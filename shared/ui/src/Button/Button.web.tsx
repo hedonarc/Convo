@@ -1,29 +1,55 @@
 import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@shared/utils";
 
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:focus-visible:ring-gray-300",
+  {
+    variants: {
+      variant: {
+        default:
+          "bg-gray-900 text-gray-50 shadow hover:bg-gray-900/90 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90",
+        destructive:
+          "bg-red-500 text-gray-50 shadow-sm hover:bg-red-500/90 dark:bg-red-900 dark:text-gray-50",
+        outline:
+          "border border-gray-200 bg-white shadow-sm hover:bg-gray-100 hover:text-gray-900 dark:border-gray-800 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50",
+        secondary:
+          "bg-gray-100 text-gray-900 shadow-sm hover:bg-gray-100/80 dark:bg-gray-800 dark:text-gray-50 dark:hover:bg-gray-800/80",
+        ghost: "hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-50",
+        link: "text-gray-900 underline-offset-4 hover:underline dark:text-gray-50",
+      },
+      size: {
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-md px-3 text-sm",
+        lg: "h-11 rounded-md px-8 text-base",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+);
+
 export interface ButtonProps
-  extends React.ComponentPropsWithRef<"button"> {
+  extends React.ComponentPropsWithRef<"button">,
+    VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   loading?: boolean;
-  size?: "sm" | "md" | "lg" | "icon";
 }
 
-const sizes = {
-  sm: "h-8 px-3 text-sm",
-  md: "h-9 px-4 py-2",
-  lg: "h-11 rounded-md px-8 text-base",
-  icon: "h-10 w-10",
-};
-
-const Button = ({ className, loading, size = "md", children, ...props }: ButtonProps) => {
+const Button = ({
+  className,
+  variant,
+  size,
+  loading,
+  children,
+  ...props
+}: ButtonProps) => {
   return (
     <button
-      className={cn(
-        "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:focus-visible:ring-gray-300",
-        "bg-gray-900 text-gray-50 shadow hover:bg-gray-900/90 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90",
-        sizes[size],
-        className
-      )}
+      className={cn(buttonVariants({ variant, size, className }))}
       disabled={loading || props.disabled}
       {...props}
     >
@@ -33,4 +59,4 @@ const Button = ({ className, loading, size = "md", children, ...props }: ButtonP
 };
 Button.displayName = "Button";
 
-export { Button };
+export { Button, buttonVariants };

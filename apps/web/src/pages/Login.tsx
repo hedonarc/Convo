@@ -69,6 +69,7 @@ export default function Login() {
                 id="identifier"
                 type="text"
                 placeholder="johndoe or m@example.com"
+                error={!!errors.identifier}
                 {...register("identifier")}
               />
               {errors.identifier && (
@@ -81,7 +82,12 @@ export default function Login() {
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
               </div>
-              <Input id="password" type="password" {...register("password")} />
+              <Input
+                id="password"
+                type="password"
+                error={!!errors.password}
+                {...register("password")}
+              />
               {errors.password && (
                 <p className="text-sm font-medium text-red-500">
                   {errors.password.message}

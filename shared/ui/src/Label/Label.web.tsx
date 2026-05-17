@@ -1,7 +1,15 @@
 import * as React from "react";
 import { cn } from "@shared/utils";
 
-export interface LabelProps extends React.ComponentPropsWithRef<"label"> {
+import { cva, type VariantProps } from "class-variance-authority";
+
+const labelVariants = cva(
+  "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+);
+
+export interface LabelProps
+  extends React.ComponentPropsWithRef<"label">,
+    VariantProps<typeof labelVariants> {
   required?: boolean;
 }
 
@@ -12,10 +20,7 @@ const Label = ({
   ...props
 }: LabelProps) => (
   <label
-    className={cn(
-      "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-      className
-    )}
+    className={cn(labelVariants(), className)}
     {...props}
   >
     {children}
@@ -24,4 +29,4 @@ const Label = ({
 );
 Label.displayName = "Label";
 
-export { Label };
+export { Label, labelVariants };
