@@ -3,10 +3,34 @@
 
 /* Global base styles for the app */
 @layer base {
+  :root {
+    --color-background: var(--color-gray-50);
+    --color-surface: var(--color-white);
+    --color-text-primary: var(--color-gray-950);
+    --color-text-secondary: var(--color-gray-500);
+    --color-border: var(--color-gray-200);
+    --color-input: transparent;
+    --color-brand: var(--color-gray-900);
+    --color-brand-foreground: var(--color-gray-50);
+    --color-ring: var(--color-gray-950);
+  }
+
+  .dark {
+    --color-background: var(--color-gray-950);
+    --color-surface: var(--color-gray-950);
+    --color-text-primary: var(--color-gray-50);
+    --color-text-secondary: var(--color-gray-400);
+    --color-border: var(--color-gray-800);
+    --color-input: transparent;
+    --color-brand: var(--color-gray-50);
+    --color-brand-foreground: var(--color-gray-900);
+    --color-ring: var(--color-gray-300);
+  }
+
   html,
   body,
   #root {
-    @apply m-0 min-h-dvh bg-gray-950 text-gray-50 font-sans;
+    @apply m-0 min-h-dvh bg-background text-text-primary font-sans;
   }
 
   /* Optional: improve text rendering */

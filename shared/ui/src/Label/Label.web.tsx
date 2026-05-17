@@ -1,17 +1,26 @@
 import * as React from "react";
 import { cn } from "@shared/utils";
 
+export interface LabelProps extends React.ComponentPropsWithRef<"label"> {
+  required?: boolean;
+}
+
 const Label = ({
   className,
+  children,
+  required,
   ...props
-}: React.ComponentPropsWithRef<"label">) => (
+}: LabelProps) => (
   <label
     className={cn(
       "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
       className
     )}
     {...props}
-  />
+  >
+    {children}
+    {required && <span className="ml-1 text-red-500 dark:text-red-400">*</span>}
+  </label>
 );
 Label.displayName = "Label";
 

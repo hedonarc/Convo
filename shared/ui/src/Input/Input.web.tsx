@@ -2,14 +2,19 @@ import * as React from "react";
 import { cn } from "@shared/utils";
 
 export interface InputProps
-  extends React.ComponentPropsWithRef<"input"> {}
+  extends React.ComponentPropsWithRef<"input"> {
+  error?: boolean;
+}
 
-const Input = ({ className, type, ...props }: InputProps) => {
+const Input = ({ className, type, error, ...props }: InputProps) => {
   return (
     <input
       type={type}
       className={cn(
-        "flex h-9 w-full rounded-md border border-gray-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-800 dark:placeholder:text-gray-400 dark:focus-visible:ring-gray-300",
+        "flex h-9 w-full rounded-md border bg-input px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-text-secondary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+        error
+          ? "border-red-500 focus-visible:ring-red-500 dark:border-red-400 dark:focus-visible:ring-red-400"
+          : "border-gray-200 dark:border-gray-800",
         className
       )}
       {...props}

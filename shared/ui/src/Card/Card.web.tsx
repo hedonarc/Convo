@@ -4,7 +4,7 @@ import { cn } from "@shared/utils";
 const Card = ({ className, ...props }: React.ComponentPropsWithRef<"div">) => (
   <div
     className={cn(
-      "rounded-xl border border-gray-200 bg-white text-gray-950 shadow dark:border-gray-800 dark:bg-gray-950 dark:text-gray-50",
+      "rounded-xl border border-gray-200 bg-surface text-text-primary shadow dark:border-gray-800",
       className
     )}
     {...props}
@@ -39,7 +39,7 @@ const CardDescription = ({
   ...props
 }: React.ComponentPropsWithRef<"p">) => (
   <p
-    className={cn("text-sm text-gray-500 dark:text-gray-400", className)}
+    className={cn("text-sm text-text-secondary", className)}
     {...props}
   />
 );
