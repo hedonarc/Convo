@@ -185,15 +185,13 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {}
 
-// 4. Component — always forwardRef
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => (
-    <button
-      ref={ref}
-      className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
-    />
-  )
+// 4. Component — pass ref as a prop (React 19)
+const Button = ({ className, variant, size, ref, ...props }: ButtonProps) => (
+  <button
+    ref={ref}
+    className={cn(buttonVariants({ variant, size, className }))}
+    {...props}
+  />
 )
 Button.displayName = 'Button'
 
@@ -203,7 +201,7 @@ export { Button, buttonVariants }
 
 ### Rules
 
-**Always `forwardRef`** — every component wrapping a DOM element. No exceptions.
+**Pass `ref` as a prop** — every component wrapping a DOM element. No `forwardRef` needed in React 19.
 
 **Named exports only** — never `export default`. It breaks barrel file re-exports.
 
@@ -273,7 +271,7 @@ shadcn breaks complex components into named sub-components. Follow the same patt
 </Card>
 ```
 
-Each sub-component (`CardHeader`, `CardTitle`, etc.) is its own `forwardRef` component exported from the same file.
+Each sub-component (`CardHeader`, `CardTitle`, etc.) accepts `ref` as a prop and is exported from the same file.
 
 ---
 
@@ -327,7 +325,7 @@ When copying a shadcn component, its `dark:` variants are already included — d
 2. **Place it** in `shared/ui/src/ComponentName/ComponentName.web.tsx`
 3. **Fix the `cn` import** — change `@/lib/utils` to `@shared/utils`
 4. **Install any new Radix deps** it requires
-5. **Add `forwardRef`** if the copied source doesn't have it (it usually does)
+5. **Pass `ref` as a prop** if the copied source uses `forwardRef`, remove it and pass `ref` directly (React 19)
 6. **Test light and dark mode**
 7. **Export** from `shared/ui/src/ComponentName/index.ts` and `shared/ui/index.ts`
 8. **Update the component inventory table** in this file
@@ -341,7 +339,7 @@ When copying a shadcn component, its `dark:` variants are already included — d
 | Install shadcn as a dependency | Copy source into `shared/ui/src/` |
 | Import `cn` from anywhere except `@shared/utils` | `import { cn } from '@shared/utils'` |
 | Use `export default` | Use named exports |
-| Skip `forwardRef` | Always use `forwardRef` |
+| Use `forwardRef` | Remove `forwardRef` and pass `ref` as prop (React 19) |
 | Concatenate class strings manually | Use `cn()` |
 | Use raw hex codes in components | Use Tailwind classes |
 | Name variants `primary`/`danger`/`md` | Use shadcn names: `default`/`destructive`/`default` |
