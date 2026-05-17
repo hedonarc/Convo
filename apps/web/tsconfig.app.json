@@ -20,8 +20,23 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@shared/*": ["../../shared/*"],
+      "react": ["./node_modules/@types/react", "./node_modules/react"],
+      "react/*": ["./node_modules/@types/react/*", "./node_modules/react/*"],
+      "react-dom": [
+        "./node_modules/@types/react-dom",
+        "./node_modules/react-dom"
+      ],
+      "react-dom/*": [
+        "./node_modules/@types/react-dom/*",
+        "./node_modules/react-dom/*"
+      ],
+      "axios": ["./node_modules/axios"],
+      "clsx": ["./node_modules/clsx"],
+      "tailwind-merge": ["./node_modules/tailwind-merge"],
+      "lucide-react": ["./node_modules/lucide-react"]
     }
   },
-  "include": ["src", ".react-router/types/**/*"]
+  "include": ["src", "../../shared/**/*", ".react-router/types/**/*"]
 }

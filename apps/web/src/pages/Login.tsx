@@ -1,5 +1,6 @@
-import { authApi } from "@convo/api";
-import { ROUTES } from "@convo/constants";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { authApi } from "@shared/api";
+import { ROUTES } from "@shared/constants";
 import {
   Button,
   Card,
@@ -10,20 +11,12 @@ import {
   CardTitle,
   Input,
   Label,
-} from "@convo/ui";
-import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
+} from "@shared/ui";
+import { extractApiError } from "@shared/utils";
+import { type LoginFormValues, loginSchema } from "@shared/validation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
-import * as z from "zod";
-
-const loginSchema = z.object({
-  identifier: z.string().min(1, { message: "Email or username is required." }),
-  password: z.string().min(1, { message: "Password is required." }),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const navigate = useNavigate();
@@ -44,24 +37,16 @@ export default function Login() {
         username: data.identifier,
         password: data.password,
       });
-      // On success, redirect to dashboard or home
-      navigate(ROUTES.HOME);
+      navigate(ROUTES.CHAT);
     } catch (err: unknown) {
-      let errorMessage = "Failed to login. Please check your credentials.";
-
-      if (axios.isAxiosError(err)) {
-        errorMessage =
-          err.response?.data?.detail ||
-          err.response?.data?.non_field_errors?.[0] ||
-          errorMessage;
-      }
-
-      setError(errorMessage);
+      setError(
+        extractApiError(err, "Failed to login. Please check your credentials."),
+      );
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-950 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold tracking-tight">
@@ -84,6 +69,7 @@ export default function Login() {
                 id="identifier"
                 type="text"
                 placeholder="johndoe or m@example.com"
+                error={!!errors.identifier}
                 {...register("identifier")}
               />
               {errors.identifier && (
@@ -96,7 +82,12 @@ export default function Login() {
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
               </div>
-              <Input id="password" type="password" {...register("password")} />
+              <Input
+                id="password"
+                type="password"
+                error={!!errors.password}
+                {...register("password")}
+              />
               {errors.password && (
                 <p className="text-sm font-medium text-red-500">
                   {errors.password.message}

@@ -1,0 +1,30 @@
+import { ROUTES } from "@shared/constants";
+import { BrowserRouter as Router, Route, Routes } from "react-router";
+
+import AuthLayout from "../layouts/auth.layout";
+import GuestLayout from "../layouts/guest.layout";
+import RootLayout from "../layouts/root.layout";
+import Chat from "../pages/Chat";
+import Landing from "../pages/Landing";
+import Login from "../pages/Login";
+import Register from "../pages/Register";
+
+export function AppRouter() {
+  return (
+    <Router>
+      <Routes>
+        <Route element={<RootLayout />}>
+          <Route element={<GuestLayout />}>
+            <Route path={ROUTES.LANDING} element={<Landing />} />
+            <Route path={ROUTES.LOGIN} element={<Login />} />
+            <Route path={ROUTES.REGISTER} element={<Register />} />
+          </Route>
+
+          <Route element={<AuthLayout />}>
+            <Route path={ROUTES.CHAT} element={<Chat />} />
+          </Route>
+        </Route>
+      </Routes>
+    </Router>
+  );
+}

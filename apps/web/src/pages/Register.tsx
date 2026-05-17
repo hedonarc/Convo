@@ -1,5 +1,6 @@
-import { authApi } from "@convo/api";
-import { ROUTES } from "@convo/constants";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { authApi } from "@shared/api";
+import { ROUTES } from "@shared/constants";
 import {
   Button,
   Card,
@@ -10,33 +11,12 @@ import {
   CardTitle,
   Input,
   Label,
-} from "@convo/ui";
-import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
+} from "@shared/ui";
+import { extractApiError } from "@shared/utils";
+import { type RegisterFormValues, registerSchema } from "@shared/validation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
-import * as z from "zod";
-
-const registerSchema = z
-  .object({
-    firstName: z.string().min(1, { message: "First name is required." }),
-    lastName: z.string().min(1, { message: "Last name is required." }),
-    email: z.string().email({ message: "Please enter a valid email address." }),
-    username: z
-      .string()
-      .min(3, { message: "Username must be at least 3 characters." }),
-    password: z
-      .string()
-      .min(8, { message: "Password must be at least 8 characters." }),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
-
-type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function Register() {
   const navigate = useNavigate();
@@ -61,29 +41,14 @@ export default function Register() {
         password: data.password,
         confirm_password: data.confirmPassword,
       });
-      // On successful registration, redirect to home page as they are already logged in
-      navigate(ROUTES.HOME);
+      navigate(ROUTES.CHAT);
     } catch (err: unknown) {
-      let errorMessage = "Registration failed. Please try again.";
-
-      if (axios.isAxiosError(err)) {
-        errorMessage =
-          err.response?.data?.detail ||
-          err.response?.data?.non_field_errors?.[0] ||
-          (err.response?.data && Object.values(err.response.data)[0]?.[0]) ||
-          errorMessage;
-      }
-
-      setError(
-        typeof errorMessage === "string"
-          ? errorMessage
-          : "Registration failed.",
-      );
+      setError(extractApiError(err, "Registration failed. Please try again."));
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-950 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold tracking-tight">
@@ -106,6 +71,7 @@ export default function Register() {
                 <Input
                   id="firstName"
                   placeholder="John"
+                  error={!!errors.firstName}
                   {...register("firstName")}
                 />
                 {errors.firstName && (
@@ -119,6 +85,7 @@ export default function Register() {
                 <Input
                   id="lastName"
                   placeholder="Doe"
+                  error={!!errors.lastName}
                   {...register("lastName")}
                 />
                 {errors.lastName && (
@@ -134,6 +101,7 @@ export default function Register() {
                 id="email"
                 type="email"
                 placeholder="m@example.com"
+                error={!!errors.email}
                 {...register("email")}
               />
               {errors.email && (
@@ -148,6 +116,7 @@ export default function Register() {
                 id="username"
                 type="text"
                 placeholder="johndoe"
+                error={!!errors.username}
                 {...register("username")}
               />
               {errors.username && (
@@ -158,7 +127,12 @@ export default function Register() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" {...register("password")} />
+              <Input
+                id="password"
+                type="password"
+                error={!!errors.password}
+                {...register("password")}
+              />
               {errors.password && (
                 <p className="text-sm font-medium text-red-500">
                   {errors.password.message}
@@ -170,6 +144,7 @@ export default function Register() {
               <Input
                 id="confirmPassword"
                 type="password"
+                error={!!errors.confirmPassword}
                 {...register("confirmPassword")}
               />
               {errors.confirmPassword && (
