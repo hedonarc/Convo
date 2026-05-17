@@ -18,6 +18,8 @@
       "tailwind-merge": ["../apps/web/node_modules/tailwind-merge"],
       "lucide-react": ["../apps/web/node_modules/lucide-react"],
       "zod": ["../apps/web/node_modules/zod"],
+      "react-router": ["../apps/web/node_modules/react-router"],
+      "react-router/*": ["../apps/web/node_modules/react-router/*"]
     }
   },
   "include": ["**/*"]

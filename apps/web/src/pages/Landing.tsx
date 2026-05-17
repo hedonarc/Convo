@@ -1,6 +1,5 @@
 import { ROUTES } from "@shared/constants";
-import { buttonVariants } from "@shared/ui";
-import { Link } from "react-router";
+import { buttonVariants, Link } from "@shared/ui";
 
 import convoIcon from "../assets/convo.svg";
 
@@ -18,12 +17,14 @@ export default function Landing() {
         <div className="space-x-4">
           <Link
             to={ROUTES.LOGIN}
+            variant="button"
             className={buttonVariants({ variant: "default" })}
           >
             Login
           </Link>
           <Link
             to={ROUTES.REGISTER}
+            variant="button"
             className={buttonVariants({ variant: "outline" })}
           >
             Register
