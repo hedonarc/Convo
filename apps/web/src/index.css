@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@source "../../../packages";
+
+/* Global base styles for the app */
+@layer base {
+  html,
+  body,
+  #root {
+    @apply m-0 min-h-dvh bg-gray-950 text-gray-50 font-sans;
+  }
+
+  /* Optional: improve text rendering */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Optional: prevent horizontal scroll glitches */
+  html,
+  body {
+    overflow-x: hidden;
+  }
+}
