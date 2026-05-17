@@ -1,5 +1,10 @@
+import { AuthProvider } from "../providers/auth.provider";
 import { AppRouter } from "./router";
 
 export function App() {
-  return <AppRouter />;
+  return (
+    <AuthProvider>
+      <AppRouter />
+    </AuthProvider>
+  );
 }

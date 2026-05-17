@@ -1,3 +1,4 @@
+import { useAuth } from "@/providers";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authApi } from "@shared/api";
 import { ROUTES } from "@shared/constants";
@@ -21,6 +22,7 @@ import { Link, useNavigate } from "react-router";
 export default function Register() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const {setUser} = useAuth()
 
   const {
     register,
@@ -33,7 +35,7 @@ export default function Register() {
   const onSubmit = async (data: RegisterFormValues) => {
     setError(null);
     try {
-      await authApi.register({
+      const response = await authApi.register({
         first_name: data.firstName,
         last_name: data.lastName,
         email: data.email,
@@ -41,6 +43,7 @@ export default function Register() {
         password: data.password,
         confirm_password: data.confirmPassword,
       });
+      setUser(response.user)
       navigate(ROUTES.CHAT);
     } catch (err: unknown) {
       setError(extractApiError(err, "Registration failed. Please try again."));

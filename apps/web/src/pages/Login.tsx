@@ -1,3 +1,4 @@
+import { useAuth } from "@/providers";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authApi } from "@shared/api";
 import { ROUTES } from "@shared/constants";
@@ -21,6 +22,7 @@ import { Link, useNavigate } from "react-router";
 export default function Login() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const { setUser } = useAuth()
 
   const {
     register,
@@ -33,10 +35,11 @@ export default function Login() {
   const onSubmit = async (data: LoginFormValues) => {
     setError(null);
     try {
-      await authApi.login({
+      const response = await authApi.login({
         username: data.identifier,
         password: data.password,
       });
+      setUser(response.user)
       navigate(ROUTES.CHAT);
     } catch (err: unknown) {
       setError(
