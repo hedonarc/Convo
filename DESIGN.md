@@ -191,9 +191,9 @@ Add new components here as they're copied in.
 
 ---
 
-## Styling Approach (Current Phase)
+## Styling Approach
 
-We are in **Phase 1** of the design system. Semantic CSS variables are already live in `index.css` and wired into `tailwind.config.ts`. All components use semantic tokens — never raw Tailwind grays or hex values (see the theming section above).
+Semantic CSS variables are live in `index.css` and wired into `tailwind.config.ts`. All components use semantic tokens — never raw Tailwind grays or hex values (see the theming section above).
 
 ### Color Palette Reference
 
@@ -470,12 +470,9 @@ When copying a shadcn component, its `dark:` variants are included for hardcoded
 | CSS variables (source of truth for colors) | `apps/web/src/index.css`                    |
 | Tailwind token wiring                      | `apps/web/tailwind.config.ts`               |
 | Theme provider                             | `apps/web/src/providers/theme.provider.tsx` |
-| Design tokens (Phase 3)                    | `shared/tokens/src/`                        |
-| Phased rollout plan                        | `DESIGN_SYSTEM_PLAN.md`                     |
 
 ---
 
 ## Related Documents
 
-- [`DESIGN_SYSTEM_PLAN.md`](./DESIGN_SYSTEM_PLAN.md) — what to build and when
 - [`docs/frontend/architecture.md`](./docs/frontend/architecture.md) — frontend architecture overview

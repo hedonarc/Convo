@@ -10,4 +10,6 @@ export const API_ENDPOINTS = {
   REGISTER: "/api/register/",
   LOGOUT: "/api/logout/",
   TOKEN_REFRESH: "/api/token/refresh/",
+  CONVERSATIONS: "/api/conversations/",
+  USERS: "/api/users/",
 } as const;
