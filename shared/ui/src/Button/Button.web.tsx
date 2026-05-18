@@ -65,6 +65,6 @@ const Button = ({
   );
 };
 
-Button.displayName = sharedText.button;
+Button.displayName = "Button";
 
 export { Button, buttonVariants };

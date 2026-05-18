@@ -34,6 +34,6 @@ const Input = ({ className, type, error, state, ...props }: InputProps) => {
     />
   );
 };
-Input.displayName = sharedText.input;
+Input.displayName = "Input";
 
 export { Input, inputVariants };

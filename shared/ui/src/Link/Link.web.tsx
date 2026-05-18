@@ -39,7 +39,7 @@ const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(
   }
 );
 
-Link.displayName = sharedText.link;
+Link.displayName = "Link";
 
 export { Link, linkVariants };
 

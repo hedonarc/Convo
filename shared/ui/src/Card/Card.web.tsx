@@ -17,7 +17,7 @@ const Card = ({ className, ...props }: CardProps) => (
     {...props}
   />
 );
-Card.displayName = sharedText.card;
+Card.displayName = "Card";
 
 const CardHeader = ({
   className,

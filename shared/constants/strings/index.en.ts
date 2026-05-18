@@ -33,10 +33,5 @@ export const dashboardText = {
 }
 
 export const sharedText = {
-    "button":"Button",
-    "card":"Card",
-    "input":"Input",
-    "label":"Label",
-    "link":"Link",
     "requiredSymbol":"*",
 }

@@ -28,6 +28,6 @@ const Label = ({
     {required && <span className="ml-1 text-red-500 dark:text-red-400">{sharedText.requiredSymbol}</span>}
   </label>
 );
-Label.displayName = sharedText.label;
+Label.displayName = "Label";
 
 export { Label, labelVariants };
