@@ -12,12 +12,13 @@ import {
   CardTitle,
   Input,
   Label,
+  Link,
 } from "@shared/ui";
 import { extractApiError } from "@shared/utils";
 import { type LoginFormValues, loginSchema } from "@shared/validation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold tracking-tight">
@@ -102,14 +103,9 @@ export default function Login() {
             <Button className="w-full" type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Signing in..." : "Sign in"}
             </Button>
-            <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-text-secondary text-center text-sm">
               Don&apos;t have an account?{" "}
-              <Link
-                to={ROUTES.REGISTER}
-                className="font-medium text-gray-900 underline underline-offset-4 hover:text-gray-900 dark:text-gray-50 dark:hover:text-gray-50"
-              >
-                Register
-              </Link>
+              <Link to={ROUTES.REGISTER}>Register</Link>
             </div>
           </CardFooter>
         </form>

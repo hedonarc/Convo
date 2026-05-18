@@ -3,20 +3,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@shared/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:focus-visible:ring-gray-300",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
         default:
-          "bg-gray-900 text-gray-50 shadow hover:bg-gray-900/90 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90",
+          "bg-brand text-brand-foreground shadow hover:bg-brand/90",
         destructive:
           "bg-red-500 text-gray-50 shadow-sm hover:bg-red-500/90 dark:bg-red-900 dark:text-gray-50",
         outline:
-          "border border-gray-200 bg-white shadow-sm hover:bg-gray-100 hover:text-gray-900 dark:border-gray-800 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50",
+          "border border-border bg-surface shadow-sm hover:bg-gray-100 hover:text-text-primary dark:hover:bg-gray-800 dark:hover:text-gray-50",
         secondary:
           "bg-gray-100 text-gray-900 shadow-sm hover:bg-gray-100/80 dark:bg-gray-800 dark:text-gray-50 dark:hover:bg-gray-800/80",
-        ghost: "hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-50",
-        link: "text-gray-900 underline-offset-4 hover:underline dark:text-gray-50",
+        ghost: "hover:bg-gray-100 hover:text-text-primary dark:hover:bg-gray-800 dark:hover:text-gray-50",
+        link: "text-text-primary underline-offset-4 hover:underline",
       },
       size: {
         default: "h-9 px-4 py-2",
@@ -45,11 +45,17 @@ const Button = ({
   size,
   loading,
   children,
+  type,
   ...props
 }: ButtonProps) => {
   return (
     <button
-      className={cn(buttonVariants({ variant, size, className }))}
+      type={type}
+      className={cn(
+        buttonVariants({ variant, size }),
+        type === "submit" && "cursor-pointer hover:cursor-pointer",
+        className
+      )}
       disabled={loading || props.disabled}
       {...props}
     >
@@ -57,6 +63,7 @@ const Button = ({
     </button>
   );
 };
+
 Button.displayName = "Button";
 
 export { Button, buttonVariants };
