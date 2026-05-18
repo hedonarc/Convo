@@ -1,0 +1,51 @@
+import { API_ENDPOINTS } from "@shared/constants";
+import { apiClient } from "./client";
+
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value: unknown) => void;
+  reject: (error: unknown) => void;
+}> = [];
+
+const processQueue = (error: unknown) => {
+  failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve(null)));
+  failedQueue = [];
+};
+
+export function setupInterceptors() {
+  apiClient.interceptors.response.use(
+    (res) => res,
+    async (error) => {
+      const originalRequest = error.config;
+
+      if (error.response?.status === 401 && !originalRequest._retry) {
+        if (isRefreshing) {
+          return new Promise((resolve, reject) =>
+            failedQueue.push({ resolve, reject }),
+          )
+            .then(() => apiClient(originalRequest))
+            .catch((e) => Promise.reject(e));
+        }
+
+        originalRequest._retry = true;
+        isRefreshing = true;
+
+        try {
+          // Refresh cookie is sent automatically via withCredentials
+          await apiClient.post(API_ENDPOINTS.TOKEN_REFRESH);
+          processQueue(null);
+          return apiClient(originalRequest);
+        } catch (err) {
+          processQueue(err);
+          // Session expired — redirect to login
+          window.location.href = "/login";
+          return Promise.reject(err);
+        } finally {
+          isRefreshing = false;
+        }
+      }
+
+      return Promise.reject(error);
+    },
+  );
+}

@@ -1,15 +1,23 @@
+import { Button } from "@shared/ui";
 import { useTheme } from "@/providers";
+import { Moon, Sun } from "lucide-react";
 
 export function ThemeToggle() {
   const { theme, toggle } = useTheme();
 
   return (
-    <button
+    <Button
+      id="theme-toggle-button"
+      variant="ghost"
+      size="icon"
       onClick={toggle}
-      className="inline-flex items-center justify-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
-      aria-label="Toggle theme"
+      aria-label="Theme Toggle"
     >
-      {theme === "light" ? <span>🌙</span> : <span>☀️</span>}
-    </button>
+      {theme === "light" ? (
+        <Moon size={16} strokeWidth={2} className="text-text-primary" />
+      ) : (
+        <Sun size={16} strokeWidth={2} className="text-amber-500 dark:text-amber-400" />
+      )}
+    </Button>
   );
 }
