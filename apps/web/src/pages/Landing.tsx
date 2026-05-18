@@ -5,7 +5,7 @@ import convoIcon from "../assets/convo.svg";
 
 export default function Landing() {
   return (
-    <div className="bg-background flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
         <div className="mb-2 flex items-center justify-center gap-2">
           <img src={convoIcon} alt="Convo" className="h-14 w-14" />
