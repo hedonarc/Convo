@@ -19,11 +19,12 @@ import { type LoginFormValues, loginSchema } from "@shared/validation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
+import { authText } from "@shared/constants/strings/index.en";
 
 export default function Login() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
-  const { setUser } = useAuth()
+  const { setUser } = useAuth();
 
   const {
     register,
@@ -40,25 +41,21 @@ export default function Login() {
         username: data.identifier,
         password: data.password,
       });
-      setUser(response.user)
+      setUser(response.user);
       navigate(ROUTES.CHAT);
     } catch (err: unknown) {
-      setError(
-        extractApiError(err, "Failed to login. Please check your credentials."),
-      );
+      setError(extractApiError(err, authText.credentialsError));
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+    <div className="full-center auth-padding">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold tracking-tight">
-            Welcome back
+            {authText.welcomeBack}
           </CardTitle>
-          <CardDescription>
-            Enter your email and password to sign in to your account
-          </CardDescription>
+          <CardDescription>{authText.enterEmailPassword}</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
@@ -68,11 +65,11 @@ export default function Login() {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="identifier">Email or Username</Label>
+              <Label htmlFor="identifier">{authText.emailOrUsername}</Label>
               <Input
                 id="identifier"
                 type="text"
-                placeholder="johndoe or m@example.com"
+                placeholder={authText.usernamePlaceholder}
                 error={!!errors.identifier}
                 {...register("identifier")}
               />
@@ -84,7 +81,7 @@ export default function Login() {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{authText.password}</Label>
               </div>
               <Input
                 id="password"
@@ -101,11 +98,11 @@ export default function Login() {
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button className="w-full" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Signing in..." : "Sign in"}
+              {isSubmitting ? authText.loggingIn : authText.login}
             </Button>
             <div className="text-text-secondary text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <Link to={ROUTES.REGISTER}>Register</Link>
+              {authText.dontHaveAccount}
+              <Link to={ROUTES.REGISTER}>{authText.register}</Link>
             </div>
           </CardFooter>
         </form>

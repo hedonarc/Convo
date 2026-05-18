@@ -1,6 +1,7 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@shared/utils";
+import { sharedText } from "@shared/constants/strings/index.en";
 
 const cardVariants = cva(
   "rounded-xl border border-border bg-surface text-text-primary shadow"
@@ -16,7 +17,7 @@ const Card = ({ className, ...props }: CardProps) => (
     {...props}
   />
 );
-Card.displayName = "Card";
+Card.displayName = sharedText.card;
 
 const CardHeader = ({
   className,

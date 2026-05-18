@@ -29,8 +29,13 @@ export function LogoutButton() {
       onClick={handleLogout}
       loading={isLoading}
       aria-label="Log out"
+      title="Logout"
     >
-      <LogOut size={16} strokeWidth={2} className="text-red-500 dark:text-red-400" />
+      <LogOut
+        size={16}
+        strokeWidth={2}
+        className="text-red-500 dark:text-red-400"
+      />
     </Button>
   );
 }

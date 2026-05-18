@@ -46,3 +46,12 @@
     overflow-x: hidden;
   }
 }
+
+@layer utilities {
+  .full-center {
+    @apply flex min-h-screen items-center justify-center;
+  }
+  .auth-padding{
+    @apply px-4 py-12 sm:px-6 lg:px-8;
+  }
+}

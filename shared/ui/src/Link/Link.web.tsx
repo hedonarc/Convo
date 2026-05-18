@@ -2,6 +2,7 @@ import * as React from "react";
 import { Link as RouterLink } from "react-router";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@shared/utils";
+import { sharedText } from "@shared/constants/strings/index.en";
 
 const linkVariants = cva(
   "transition-colors",
@@ -38,7 +39,7 @@ const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(
   }
 );
 
-Link.displayName = "Link";
+Link.displayName = sharedText.link;
 
 export { Link, linkVariants };
 
