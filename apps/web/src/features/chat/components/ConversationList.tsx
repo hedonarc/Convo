@@ -1,7 +1,8 @@
+import { apiClient } from "@shared/api/client";
 import type { Conversation } from "@shared/types/conversation";
 import { Avatar, Button } from "@shared/ui";
-import { LogOut, MessageSquarePlus } from "lucide-react";
-import { useState } from "react";
+import { LogOut, MessageSquarePlus, Pencil } from "lucide-react";
+import { useRef, useState } from "react";
 import { useAuth } from "../../../providers/auth.provider";
 import { ConversationItem } from "./ConversationItem";
 import { NewChatDialog } from "./NewChatDialog";
@@ -19,12 +20,48 @@ export function ConversationList({
   onSelect,
   onConversationCreated,
 }: ConversationListProps) {
-  const { user, logout } = useAuth();
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const { user, setUser, logout } = useAuth();
 
-  const handleCreated = () => {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const fullName =
+    `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim() ||
+    user?.username;
+
+  const handleConversationCreated = () => {
     onConversationCreated();
     setDialogOpen(false);
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+
+    if (!file || !user) return;
+
+    try {
+      setIsUploadingAvatar(true);
+
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      const response = await apiClient.patch("/api/me/", formData);
+
+      setUser(response.data);
+    } catch (error) {
+      console.error("Failed to upload avatar:", error);
+    } finally {
+      setIsUploadingAvatar(false);
+
+      // reset input so same image can be selected again
+      e.target.value = "";
+    }
   };
 
   return (
@@ -32,17 +69,31 @@ export function ConversationList({
       <aside className="border-border bg-surface flex h-full w-72 shrink-0 flex-col border-r">
         {/* Header */}
         <div className="border-border flex items-center justify-between border-b px-4 py-4">
-          {/* LEFT SIDE */}
           <div className="flex items-center gap-3">
-            <Avatar
-              name={user?.username}
-              url={
-                user?.avatar ??
-                "https://media.istockphoto.com/id/2230699086/photo/planning-trip-with-ai-chatbot-on-smartphone.jpg?s=1024x1024&w=is&k=20&c=kXj7f23jFT0z6CNIp7gAAglrRFSwad9_21MGEqa7_y4="
-              }
-              size="lg"
-            />
+            {/* Avatar */}
+            <div className="group relative">
+              <Avatar name={fullName} url={user?.avatar} size="default" />
 
+              <button
+                type="button"
+                aria-label="Edit avatar"
+                disabled={isUploadingAvatar}
+                onClick={handleAvatarClick}
+                className="absolute right-0 bottom-0 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-100"
+              >
+                <Pencil className="h-3 w-3" />
+              </button>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
+            </div>
+
+            {/* User Info */}
             <div>
               <h2 className="text-text-primary text-base font-semibold">
                 Messages
@@ -56,40 +107,40 @@ export function ConversationList({
             </div>
           </div>
 
-          {/* RIGHT SIDE */}
+          {/* New Chat */}
           <button
             type="button"
             id="new-chat-button"
-            onClick={() => setDialogOpen(true)}
             aria-label="New conversation"
+            onClick={() => setDialogOpen(true)}
             className="text-text-secondary hover:text-brand hover:bg-brand/10 focus-visible:ring-ring flex h-8 w-8 items-center justify-center rounded-lg transition-colors focus-visible:ring-1 focus-visible:outline-none"
           >
             <MessageSquarePlus className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Conversation list */}
+        {/* Conversations */}
         <nav aria-label="Conversations" className="flex-1 overflow-y-auto">
           <ul role="list">
-            {conversations.map((conv) => (
-              <li key={conv.id}>
+            {conversations.map((conversation) => (
+              <li key={conversation.id}>
                 <ConversationItem
-                  conversation={conv}
-                  isActive={conv.id === activeId}
-                  onClick={() => onSelect(conv)}
+                  conversation={conversation}
+                  isActive={conversation.id === activeId}
+                  onClick={() => onSelect(conversation)}
                 />
               </li>
             ))}
           </ul>
         </nav>
 
-        {/* Footer — logout */}
+        {/* Footer */}
         <div className="border-border border-t p-3">
           <Button
+            id="sidebar-logout-button"
             variant="ghost"
             size="sm"
             onClick={logout}
-            id="sidebar-logout-button"
             className="text-text-secondary hover:text-text-primary w-full justify-start gap-2"
           >
             <LogOut className="h-4 w-4" />
@@ -101,7 +152,7 @@ export function ConversationList({
       <NewChatDialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        onConversationCreated={handleCreated}
+        onConversationCreated={handleConversationCreated}
       />
     </>
   );

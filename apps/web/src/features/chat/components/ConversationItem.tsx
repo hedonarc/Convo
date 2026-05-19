@@ -33,7 +33,7 @@ export function ConversationItem({
 
   const displayUser =
     conversation.participants?.length === 1
-      ? conversation.participants[0]
+      ? user
       : conversation.participants?.find((p: any) => p.id !== user?.id);
 
   const displayName = displayUser?.first_name + " " + displayUser?.last_name;
@@ -59,14 +59,7 @@ export function ConversationItem({
           : "hover:bg-brand/5 border-r-2 border-transparent",
       )}
     >
-      <Avatar
-        name={displayName}
-        url={
-          displayUser?.avatar ??
-          "https://media.istockphoto.com/id/2230699086/photo/planning-trip-with-ai-chatbot-on-smartphone.jpg?s=1024x1024&w=is&k=20&c=kXj7f23jFT0z6CNIp7gAAglrRFSwad9_21MGEqa7_y4="
-        }
-        size="default"
-      />
+      <Avatar name={displayName} url={displayUser?.avatar} size="default" />
 
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
