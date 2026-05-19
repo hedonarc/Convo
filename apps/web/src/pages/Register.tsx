@@ -1,7 +1,7 @@
-import { useAuth } from "@/providers";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authApi } from "@shared/api";
 import { ROUTES } from "@shared/constants";
+import { authText } from "@shared/constants/strings/index.en";
 import {
   Button,
   Card,
@@ -20,10 +20,12 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 
+import { useAuth } from "@/providers";
+
 export default function Register() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
-  const {setUser} = useAuth()
+  const { setUser } = useAuth();
 
   const {
     register,
@@ -44,23 +46,21 @@ export default function Register() {
         password: data.password,
         confirm_password: data.confirmPassword,
       });
-      setUser(response.user)
+      setUser(response.user);
       navigate(ROUTES.CHAT);
     } catch (err: unknown) {
-      setError(extractApiError(err, "Registration failed. Please try again."));
+      setError(extractApiError(err, authText.registrationFailed));
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+    <div className="full-center px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold tracking-tight">
             Create an account
           </CardTitle>
-          <CardDescription>
-            Enter your details below to create your account
-          </CardDescription>
+          <CardDescription>{authText.enterDetails}</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
@@ -71,7 +71,7 @@ export default function Register() {
             )}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName">First name</Label>
+                <Label htmlFor="firstName">{authText.firstName}</Label>
                 <Input
                   id="firstName"
                   placeholder="John"
@@ -85,7 +85,7 @@ export default function Register() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName">Last name</Label>
+                <Label htmlFor="lastName">{authText.lastName}</Label>
                 <Input
                   id="lastName"
                   placeholder="Doe"
@@ -100,7 +100,7 @@ export default function Register() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{authText.email}</Label>
               <Input
                 id="email"
                 type="email"
@@ -115,7 +115,7 @@ export default function Register() {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">{authText.username}</Label>
               <Input
                 id="username"
                 type="text"
@@ -130,7 +130,7 @@ export default function Register() {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{authText.password}</Label>
               <Input
                 id="password"
                 type="password"
@@ -144,7 +144,9 @@ export default function Register() {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword">
+                {authText.confirmPassword}
+              </Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -160,10 +162,11 @@ export default function Register() {
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button className="w-full" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Creating account..." : "Create account"}
+              {isSubmitting ? authText.creatingAccount : authText.createAccount}
             </Button>
             <div className="text-text-secondary text-center text-sm">
-              Already have an account? <Link to={ROUTES.LOGIN}>Sign in</Link>
+              {authText.alreadyHaveAccount}
+              <Link to={ROUTES.LOGIN}>{authText.login}</Link>
             </div>
           </CardFooter>
         </form>

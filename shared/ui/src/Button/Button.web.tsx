@@ -59,7 +59,7 @@ const Button = ({
       disabled={loading || props.disabled}
       {...props}
     >
-      {loading ? "Loading..." : children}
+      {children}
     </button>
   );
 };

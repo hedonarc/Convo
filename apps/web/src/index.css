@@ -46,3 +46,9 @@
     overflow-x: hidden;
   }
 }
+
+@layer utilities {
+  .full-center {
+    @apply flex min-h-screen items-center justify-center;
+  }
+}

@@ -1,10 +1,11 @@
-import { useAuth } from "@/providers";
+import { ROUTES } from "@shared/constants";
 import { Button } from "@shared/ui";
 import { LogOut } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
-import { ROUTES } from "@shared/constants";
+import { useAuth } from "@/providers";
+import { sharedText } from "@shared/constants/strings/index.en";
 
 export function LogoutButton() {
   const { logout } = useAuth();
@@ -29,8 +30,13 @@ export function LogoutButton() {
       onClick={handleLogout}
       loading={isLoading}
       aria-label="Log out"
+      title={sharedText.logout}
     >
-      <LogOut size={16} strokeWidth={2} className="text-red-500 dark:text-red-400" />
+      <LogOut
+        size={16}
+        strokeWidth={2}
+        className="text-red-500 dark:text-red-400"
+      />
     </Button>
   );
 }

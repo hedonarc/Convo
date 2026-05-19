@@ -1,2 +1,2 @@
-export * from "./theme";
 export * from "./auth.provider";
+export * from "./theme";
