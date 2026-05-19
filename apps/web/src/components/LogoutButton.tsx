@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 
 import { useAuth } from "@/providers";
+import { sharedText } from "@shared/constants/strings/index.en";
 
 export function LogoutButton() {
   const { logout } = useAuth();
@@ -29,7 +30,7 @@ export function LogoutButton() {
       onClick={handleLogout}
       loading={isLoading}
       aria-label="Log out"
-      title="Logout"
+      title={sharedText.logout}
     >
       <LogOut
         size={16}

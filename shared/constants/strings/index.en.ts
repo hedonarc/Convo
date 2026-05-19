@@ -34,4 +34,6 @@ export const dashboardText = {
 
 export const sharedText = {
     "requiredSymbol":"*",
+    "logout":"Logout",
+    "themeToggle":"Toggle theme",
 }
