@@ -1,10 +1,13 @@
 export interface Conversation {
+  action: "created" | "reminder_sent";
   id: number;
   created_by: number;
   conversation_key: string | null;
   last_message: ConversationLastMessage | null;
+  participants?: Participant[];
   created_at: string;
   updated_at: string;
+  invitation: Invitation | null;
 }
 
 export interface ConversationLastMessage {
@@ -33,4 +36,10 @@ export interface PaginatedResponse<T> {
 export interface StartConversationResponse {
   conversation: Conversation;
   is_created: boolean;
+}
+
+export interface Invitation {
+  email: string;
+  is_accepted: boolean;
+  updated_at: string;
 }

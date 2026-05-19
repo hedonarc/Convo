@@ -1,8 +1,9 @@
+import type { Conversation } from "@shared/types/conversation";
 import { MessageSquarePlus } from "lucide-react";
 import { UserSearchPanel } from "./UserSearchPanel";
 
 interface EmptyStateProps {
-  onConversationCreated: () => void;
+  onConversationCreated: (conversation: Conversation) => void;
 }
 
 export function EmptyState({ onConversationCreated }: EmptyStateProps) {

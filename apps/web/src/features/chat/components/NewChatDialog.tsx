@@ -1,3 +1,4 @@
+import type { Conversation } from "@shared/types/conversation";
 import { X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { UserSearchPanel } from "./UserSearchPanel";
@@ -5,7 +6,7 @@ import { UserSearchPanel } from "./UserSearchPanel";
 interface NewChatDialogProps {
   open: boolean;
   onClose: () => void;
-  onConversationCreated: () => void;
+  onConversationCreated: (conversation: Conversation) => void;
 }
 
 export function NewChatDialog({
@@ -32,8 +33,8 @@ export function NewChatDialog({
 
   if (!open) return null;
 
-  const handleCreated = () => {
-    onConversationCreated();
+  const handleCreated = (conversation: Conversation) => {
+    onConversationCreated(conversation);
     onClose();
   };
 

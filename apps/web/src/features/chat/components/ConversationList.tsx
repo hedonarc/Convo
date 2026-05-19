@@ -10,7 +10,7 @@ interface ConversationListProps {
   conversations: Conversation[];
   activeId: number | null;
   onSelect: (conversation: Conversation) => void;
-  onConversationCreated: () => void;
+  onConversationCreated: (conversation: Conversation) => void;
 }
 
 export function ConversationList({
@@ -22,8 +22,8 @@ export function ConversationList({
   const { user, logout } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const handleCreated = () => {
-    onConversationCreated();
+  const handleCreated = (conversation: Conversation) => {
+    onConversationCreated(conversation);
     setDialogOpen(false);
   };
 

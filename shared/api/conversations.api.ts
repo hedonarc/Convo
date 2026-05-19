@@ -24,4 +24,19 @@ export const conversationsApi = {
     );
     return response.data;
   },
+
+  createInvite: async (email: string): Promise<Conversation> => {
+    const response = await apiClient.post<Conversation>(
+      API_ENDPOINTS.INVITES,
+      { email },
+    );
+    return response.data;
+  },
+
+  acceptInvite: async (token: string): Promise<Conversation> => {
+    const response = await apiClient.post<Conversation>(
+      `${API_ENDPOINTS.INVITES}${token}/accept/`,
+    );
+    return response.data;
+  },
 };

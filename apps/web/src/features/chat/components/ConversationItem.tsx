@@ -34,7 +34,9 @@ export function ConversationItem({
     ? conversation.conversation_key.replace(/_/g, " ").trim()
     : `Conversation #${conversation.id}`;
 
-  const lastMessageText = conversation.last_message
+  const lastMessageText = conversation.invitation && !conversation.invitation.is_accepted && conversation.invitation?.email
+    ? `Waiting for ${conversation.invitation.email}`
+    : conversation.last_message
     ? conversation.last_message.is_deleted
       ? "Message deleted"
       : conversation.last_message.content
@@ -60,12 +62,20 @@ export function ConversationItem({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline justify-between gap-2">
-          <p className="text-sm font-semibold text-text-primary truncate">
-            {displayName}
-          </p>
-          <span className="text-xs text-text-secondary shrink-0">
-            {formatRelativeTime(conversation.updated_at)}
-          </span>
+          <div className="flex items-center gap-2 min-w-0">
+            <p className="text-sm font-semibold text-text-primary truncate">
+              {displayName}
+            </p>
+            {conversation.invitation && !conversation.invitation?.is_accepted && (
+              <span className="inline-flex items-center rounded-full bg-brand/10 px-1.5 py-0.5 text-[10px] font-medium text-brand ring-1 ring-inset ring-brand/20">
+                Pending
+              </span>
+            )}
+          </div>
+          {conversation.last_message && (
+            <span className="text-xs text-text-secondary shrink-0">
+              {formatRelativeTime(conversation.updated_at)}
+            </span>)}
         </div>
         <p className="text-xs text-text-secondary truncate mt-0.5">
           {isMine ? `You: ${lastMessageText}` : lastMessageText}

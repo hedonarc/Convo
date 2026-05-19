@@ -18,12 +18,16 @@ import { extractApiError } from "@shared/utils";
 import { type RegisterFormValues, registerSchema } from "@shared/validation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
+import { conversationsApi } from "@shared/api/conversations.api";
 
 import { useAuth } from "@/providers";
 
 export default function Register() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const inviteToken = searchParams.get("invite");
+  const emailFromUrl = searchParams.get("email");
   const [error, setError] = useState<string | null>(null);
   const { setUser } = useAuth();
 
@@ -33,6 +37,9 @@ export default function Register() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      email: emailFromUrl || "",
+    },
   });
 
   const onSubmit = async (data: RegisterFormValues) => {
@@ -47,6 +54,15 @@ export default function Register() {
         confirm_password: data.confirmPassword,
       });
       setUser(response.user);
+      
+      if (inviteToken) {
+        try {
+          await conversationsApi.acceptInvite(inviteToken);
+        } catch (err) {
+          console.error("Failed to accept invite:", err);
+        }
+      }
+      
       navigate(ROUTES.CHAT);
     } catch (err: unknown) {
       setError(extractApiError(err, authText.registrationFailed));
@@ -105,6 +121,8 @@ export default function Register() {
                 id="email"
                 type="email"
                 placeholder="m@example.com"
+                readOnly={!!inviteToken}
+                className={inviteToken ? "bg-brand/5 cursor-not-allowed text-text-secondary" : ""}
                 error={!!errors.email}
                 {...register("email")}
               />
