@@ -1,6 +1,8 @@
 import { usersApi } from "@shared/api";
 import type { User } from "@shared/types/user";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+
+import { useDebouncedValue } from "./useDebouncedValue";
 
 interface UseUserSearchResult {
   users: User[];
@@ -19,43 +21,44 @@ export function useUserSearch(): UseUserSearchResult {
   const [users, setUsers] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const debouncedQuery = useDebouncedValue(query.trim(), DEBOUNCE_MS);
 
   useEffect(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
+    if (debouncedQuery.length < MIN_QUERY_LENGTH) return;
 
-    if (query.trim().length < MIN_QUERY_LENGTH) {
-      setUsers([]);
+    let cancelled = false;
+    const run = async () => {
+      setIsSearching(true);
       setSearchError(null);
-      setIsSearching(false);
-      return;
-    }
-
-    setIsSearching(true);
-    setSearchError(null);
-
-    timerRef.current = setTimeout(async () => {
       try {
-        const data = await usersApi.searchUsers(query.trim());
-        setUsers(data.results);
+        const data = await usersApi.searchUsers(debouncedQuery);
+        if (!cancelled) setUsers(data.results);
       } catch {
-        setSearchError("Search failed. Please try again.");
-        setUsers([]);
+        if (!cancelled) {
+          setSearchError("Search failed. Please try again.");
+          setUsers([]);
+        }
       } finally {
-        setIsSearching(false);
+        if (!cancelled) setIsSearching(false);
       }
-    }, DEBOUNCE_MS);
+    };
+    run();
 
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      cancelled = true;
     };
-  }, [query]);
+  }, [debouncedQuery]);
 
-  const clearSearch = () => {
-    setQuery("");
-    setUsers([]);
-    setSearchError(null);
+  const shortQuery = query.trim().length < MIN_QUERY_LENGTH;
+  const clearSearch = () => setQuery("");
+
+  return {
+    users: shortQuery ? [] : users,
+    isSearching: shortQuery ? false : isSearching,
+    searchError: shortQuery ? null : searchError,
+    query,
+    setQuery,
+    clearSearch,
   };
-
-  return { users, isSearching, searchError, query, setQuery, clearSearch };
 }

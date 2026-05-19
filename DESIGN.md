@@ -186,6 +186,9 @@ Components already in `shared/ui/src/`:
 | `Card`    | ✅ In use | Uses `border-border bg-surface`                                |
 | `Input`   | ✅ In use | Default state uses `border-border`                             |
 | `Label`   | ✅ In use | Inherits `text-text-primary`; required `*` uses `text-red-500` |
+| `FormField` | ✅ In use | Composes `Label` + `Input` + error text; `error` message drives the input error state |
+| `ErrorBanner` | ✅ In use | Form-level error notice; `role="alert"`, semantic-exception red; renders null when no message |
+| `AuthCard` | ✅ In use | Auth page shell — centered `Card` with title/description, `form`, and `footer` slot |
 
 Add new components here as they're copied in.
 
