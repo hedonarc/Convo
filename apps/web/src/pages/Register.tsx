@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { authApi } from "@shared/api";
+import { authApi, conversationsApi } from "@shared/api";
 import { ROUTES } from "@shared/constants";
 import { authText } from "@shared/constants/strings/index.en";
 import {
@@ -19,7 +19,8 @@ import { type RegisterFormValues, registerSchema } from "@shared/validation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router";
-import { conversationsApi } from "@shared/api/conversations.api";
+
+import { useAuth } from "@/providers";
 
 import { useAuth } from "@/providers";
 
@@ -54,15 +55,15 @@ export default function Register() {
         confirm_password: data.confirmPassword,
       });
       setUser(response.user);
-      
+
       if (inviteToken) {
         try {
           await conversationsApi.acceptInvite(inviteToken);
-        } catch (err) {
-          console.error("Failed to accept invite:", err);
+        } catch {
+          // Invite acceptance is best-effort; registration still succeeds.
         }
       }
-      
+
       navigate(ROUTES.CHAT);
     } catch (err: unknown) {
       setError(extractApiError(err, authText.registrationFailed));

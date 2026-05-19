@@ -1,5 +1,6 @@
 export interface Conversation {
-  action: "created" | "reminder_sent";
+  // Present only on invite create/reminder responses, not on listed conversations.
+  action?: "created" | "reminder_sent";
   id: number;
   created_by: number;
   conversation_key: string | null;

@@ -1,33 +1,14 @@
 import { conversationsApi } from "@shared/api";
-import type { User } from "@shared/types/user";
 import type { Conversation } from "@shared/types/conversation";
-import { Avatar, Input, Spinner } from "@shared/ui";
+import type { User } from "@shared/types/user";
+import { Avatar, Button, Input, Spinner } from "@shared/ui";
 import { cn } from "@shared/utils";
-import { Search, X, Mail } from "lucide-react";
-import { useState, useEffect } from "react";
+import axios from "axios";
+import { Mail, Search, X } from "lucide-react";
+import { useState } from "react";
+
+import { useCountdown } from "../hooks/useCountdown";
 import { useUserSearch } from "../hooks/useUserSearch";
-import { Button } from "@shared/ui";
-
-/**
- * Formats milliseconds into a countdown string:
- * - 23h 14m
- * - 12m 03s
- * - 45s
- */
-const formatCooldown = (ms: number): string => {
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-
-  if (hours > 0) {
-    return `${hours}h ${minutes % 60}m`;
-  }
-  if (minutes > 0) {
-    const s = seconds % 60;
-    return `${minutes}m ${s < 10 ? `0${s}` : s}s`;
-  }
-  return `${seconds}s`;
-};
 
 interface UserSearchPanelProps {
   onConversationCreated: (conversation: Conversation) => void;
@@ -43,43 +24,28 @@ export function UserSearchPanel({
     useUserSearch();
   const [creating, setCreating] = useState<number | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
-  const [inviteStatus, setInviteStatus] = useState<"idle" | "reminder_sent">("idle");
+  const [inviteStatus, setInviteStatus] = useState<"idle" | "reminder_sent">(
+    "idle",
+  );
 
-  // Cooldown state
-  const [availableAfter, setAvailableAfter] = useState<Date | null>(null);
-  const [remainingTime, setRemainingTime] = useState<string | null>(null);
+  const [availableAfterMs, setAvailableAfterMs] = useState<number | null>(null);
+  const remainingTime = useCountdown(availableAfterMs, 1000);
 
-  // Countdown timer effect
-  useEffect(() => {
-    if (!availableAfter) {
-      setRemainingTime(null);
-      return;
-    }
-
-    const updateCountdown = () => {
-      const now = new Date().getTime();
-      const target = availableAfter.getTime();
-      const diff = target - now;
-
-      if (diff <= 0) {
-        setAvailableAfter(null);
-        setRemainingTime(null);
-      } else {
-        setRemainingTime(formatCooldown(diff));
-      }
-    };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-    return () => clearInterval(interval);
-  }, [availableAfter]);
-
-  useEffect(() => {
+  const resetInviteState = () => {
     setCreateError(null);
     setInviteStatus("idle");
-    setAvailableAfter(null);
-    setRemainingTime(null);
-  }, [query]);
+    setAvailableAfterMs(null);
+  };
+
+  const handleQueryChange = (value: string) => {
+    setQuery(value);
+    resetInviteState();
+  };
+
+  const handleClearSearch = () => {
+    clearSearch();
+    resetInviteState();
+  };
 
   const handleSelectUser = async (user: User) => {
     setCreating(user.id);
@@ -87,7 +53,7 @@ export function UserSearchPanel({
     setInviteStatus("idle");
     try {
       const response = await conversationsApi.createConversation(user.id);
-      clearSearch();
+      handleClearSearch();
       onConversationCreated(response.conversation);
     } catch {
       setCreateError("Couldn't start a conversation. Please try again.");
@@ -99,7 +65,8 @@ export function UserSearchPanel({
   const handleInvite = async () => {
     if (creating === -1 || !!remainingTime) return;
 
-    setCreating(-1); // Use -1 for inviting
+    // -1 = invite-by-email in flight (no real user id to key off)
+    setCreating(-1);
     setCreateError(null);
     setInviteStatus("idle");
     try {
@@ -107,16 +74,18 @@ export function UserSearchPanel({
       if (conversation.action === "reminder_sent") {
         setInviteStatus("reminder_sent");
       } else if (conversation.action === "created") {
-        clearSearch();
+        handleClearSearch();
         onConversationCreated(conversation);
       }
-    } catch (error: any) {
-      if (error.response?.status === 429) {
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 429) {
         const errorData = error.response.data;
-        setCreateError(errorData.error || "You can only send one invite every 24 hours.");
-        
+        setCreateError(
+          errorData.error || "You can only send one invite every 24 hours.",
+        );
+
         if (errorData.available_after) {
-          setAvailableAfter(new Date(errorData.available_after));
+          setAvailableAfterMs(new Date(errorData.available_after).getTime());
         }
       } else {
         setCreateError("Couldn't send invite. Please try again.");
@@ -139,7 +108,7 @@ export function UserSearchPanel({
           type="text"
           placeholder="Search by username or email…"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => handleQueryChange(e.target.value)}
           className="pl-9 pr-9"
           autoComplete="off"
           autoFocus
@@ -147,7 +116,7 @@ export function UserSearchPanel({
         {query && (
           <button
             type="button"
-            onClick={clearSearch}
+            onClick={handleClearSearch}
             aria-label="Clear search"
             className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors"
           >
@@ -195,22 +164,25 @@ export function UserSearchPanel({
               {isEmail ? (
                 <>
                   <p className="text-xs mb-2">Start conversation with {query} </p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={handleInvite}
-                    disabled={creating === -1 || inviteStatus === "reminder_sent" || !!remainingTime}
+                    disabled={
+                      creating === -1 ||
+                      inviteStatus === "reminder_sent" ||
+                      !!remainingTime
+                    }
                     className="w-full flex items-center justify-center gap-2"
                   >
                     <Mail className="h-4 w-4" />
-                    {creating === -1 
-                      ? "Sending invite..." 
-                      : inviteStatus === "reminder_sent" 
-                        ? "Invite Sent" 
+                    {creating === -1
+                      ? "Sending invite..."
+                      : inviteStatus === "reminder_sent"
+                        ? "Invite Sent"
                         : remainingTime
                           ? `Available in ${remainingTime}`
-                          : "Send Invite"
-                    }
+                          : "Send Invite"}
                   </Button>
                 </>
               ) : (
