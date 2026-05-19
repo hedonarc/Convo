@@ -1,4 +1,3 @@
-import { useAuth } from "@/providers";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authApi } from "@shared/api";
 import { ROUTES } from "@shared/constants";
@@ -20,6 +19,8 @@ import { type RegisterFormValues, registerSchema } from "@shared/validation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
+
+import { useAuth } from "@/providers";
 
 export default function Register() {
   const navigate = useNavigate();

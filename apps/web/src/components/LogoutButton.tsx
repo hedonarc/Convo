@@ -1,10 +1,10 @@
-import { useAuth } from "@/providers";
+import { ROUTES } from "@shared/constants";
 import { Button } from "@shared/ui";
 import { LogOut } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
-import { ROUTES } from "@shared/constants";
+import { useAuth } from "@/providers";
 
 export function LogoutButton() {
   const { logout } = useAuth();

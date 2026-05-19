@@ -1,7 +1,7 @@
-import { useAuth } from "@/providers";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authApi } from "@shared/api";
 import { ROUTES } from "@shared/constants";
+import { authText } from "@shared/constants/strings/index.en";
 import {
   Button,
   Card,
@@ -19,7 +19,8 @@ import { type LoginFormValues, loginSchema } from "@shared/validation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
-import { authText } from "@shared/constants/strings/index.en";
+
+import { useAuth } from "@/providers";
 
 export default function Login() {
   const navigate = useNavigate();

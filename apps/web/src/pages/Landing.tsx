@@ -1,8 +1,8 @@
 import { ROUTES } from "@shared/constants";
+import { landingText } from "@shared/constants/strings/index.en";
 import { buttonVariants, Link } from "@shared/ui";
 
 import convoIcon from "../assets/convo.svg";
-import { landingText } from "@shared/constants/strings/index.en";
 
 export default function Landing() {
   return (
