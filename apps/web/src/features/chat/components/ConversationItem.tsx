@@ -30,11 +30,10 @@ export function ConversationItem({
   onClick,
 }: ConversationItemProps) {
   const { user } = useAuth();
-
-  const displayUser =
-    conversation.participants?.length === 1
-      ? user
-      : conversation.participants?.find((p: any) => p.id !== user?.id);
+  const isMe = conversation.participants?.length === 1;
+  const displayUser = isMe
+    ? user
+    : conversation.participants?.find((p: any) => p.id !== user?.id);
 
   const displayName = displayUser?.first_name + " " + displayUser?.last_name;
 
@@ -64,7 +63,7 @@ export function ConversationItem({
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
           <p className="text-text-primary truncate text-sm font-semibold">
-            {displayName}
+            {isMe ? displayName + " (Me)" : displayName}
           </p>
           <span className="text-text-secondary shrink-0 text-xs">
             {formatRelativeTime(conversation.updated_at)}

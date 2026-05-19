@@ -5,3 +5,4 @@ export * from "./src/Card";
 export * from "./src/Link";
 export * from "./src/Avatar";
 export * from "./src/Spinner";
+export * from "./src/AvatarCropModal";

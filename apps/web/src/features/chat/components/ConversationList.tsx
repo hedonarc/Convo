@@ -1,6 +1,6 @@
 import { apiClient } from "@shared/api/client";
 import type { Conversation } from "@shared/types/conversation";
-import { Avatar, Button } from "@shared/ui";
+import { Avatar, AvatarCropModal, Button } from "@shared/ui";
 import { LogOut, MessageSquarePlus, Pencil } from "lucide-react";
 import { useRef, useState } from "react";
 import { useAuth } from "../../../providers/auth.provider";
@@ -24,6 +24,8 @@ export function ConversationList({
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -43,24 +45,40 @@ export function ConversationList({
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
-    if (!file || !user) return;
+    if (!file) return;
+
+    const imageUrl = URL.createObjectURL(file);
+
+    setSelectedImage(imageUrl);
+    setIsCropModalOpen(true);
+
+    e.target.value = "";
+  };
+
+  const handleAvatarUpload = async (croppedFile: File) => {
+    if (!user) return;
 
     try {
       setIsUploadingAvatar(true);
 
       const formData = new FormData();
-      formData.append("avatar", file);
+      formData.append("avatar", croppedFile);
 
       const response = await apiClient.patch("/api/me/", formData);
 
       setUser(response.data);
+
+      setIsCropModalOpen(false);
+
+      if (selectedImage) {
+        URL.revokeObjectURL(selectedImage);
+      }
+
+      setSelectedImage(null);
     } catch (error) {
       console.error("Failed to upload avatar:", error);
     } finally {
       setIsUploadingAvatar(false);
-
-      // reset input so same image can be selected again
-      e.target.value = "";
     }
   };
 
@@ -153,6 +171,21 @@ export function ConversationList({
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         onConversationCreated={handleConversationCreated}
+      />
+      <AvatarCropModal
+        open={isCropModalOpen}
+        image={selectedImage}
+        loading={isUploadingAvatar}
+        onClose={() => {
+          setIsCropModalOpen(false);
+
+          if (selectedImage) {
+            URL.revokeObjectURL(selectedImage);
+          }
+
+          setSelectedImage(null);
+        }}
+        onSave={handleAvatarUpload}
       />
     </>
   );
