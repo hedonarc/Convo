@@ -38,17 +38,22 @@ export function UserSearchPanel({
   const showResults = query.trim().length >= 2;
 
   return (
-    <div className={cn("flex flex-col gap-3", compact ? "w-full" : "w-full max-w-sm")}>
+    <div
+      className={cn(
+        "flex flex-col gap-3",
+        compact ? "w-full" : "w-full max-w-sm",
+      )}
+    >
       {/* Search input */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary pointer-events-none" />
+        <Search className="text-text-secondary pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
         <Input
           id="user-search-input"
           type="text"
           placeholder="Search by username or email…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="pl-9 pr-9"
+          className="pr-9 pl-9"
           autoComplete="off"
           autoFocus
         />
@@ -57,7 +62,7 @@ export function UserSearchPanel({
             type="button"
             onClick={clearSearch}
             aria-label="Clear search"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors"
+            className="text-text-secondary hover:text-text-primary absolute top-1/2 right-3 -translate-y-1/2 transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -66,10 +71,10 @@ export function UserSearchPanel({
 
       {/* Results area */}
       {showResults && (
-        <div className="rounded-lg border border-border bg-surface overflow-hidden">
+        <div className="border-border bg-surface overflow-hidden rounded-lg border">
           {/* Searching spinner */}
           {isSearching && (
-            <div className="flex items-center justify-center gap-2 py-6 text-text-secondary text-sm">
+            <div className="text-text-secondary flex items-center justify-center gap-2 py-6 text-sm">
               <Spinner size="sm" />
               <span>Searching…</span>
             </div>
@@ -77,7 +82,7 @@ export function UserSearchPanel({
 
           {/* Search error */}
           {!isSearching && searchError && (
-            <p className="py-4 px-4 text-sm text-red-500">{searchError}</p>
+            <p className="px-4 py-4 text-sm text-red-500">{searchError}</p>
           )}
 
           {/* Create error */}
@@ -87,7 +92,7 @@ export function UserSearchPanel({
 
           {/* No results */}
           {!isSearching && !searchError && users.length === 0 && (
-            <div className="flex flex-col items-center gap-1 py-6 text-text-secondary">
+            <div className="text-text-secondary flex flex-col items-center gap-1 py-6">
               <p className="text-sm font-medium">No user found</p>
               <p className="text-xs">Try a different username or email</p>
             </div>
@@ -104,23 +109,26 @@ export function UserSearchPanel({
                     disabled={creating === user.id}
                     onClick={() => handleSelectUser(user)}
                     className={cn(
-                      "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",
-                      "hover:bg-brand/5 focus-visible:outline-none focus-visible:bg-brand/5",
-                      "disabled:opacity-50 disabled:pointer-events-none",
-                      "border-b border-border last:border-0",
+                      "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors",
+                      "hover:bg-brand/5 focus-visible:bg-brand/5 focus-visible:outline-none",
+                      "disabled:pointer-events-none disabled:opacity-50",
+                      "border-border border-b last:border-0",
                     )}
                   >
                     <Avatar
-                      name={`${user.first_name} ${user.last_name}`.trim() || user.username}
+                      name={
+                        `${user.first_name} ${user.last_name}`.trim() ||
+                        user.username
+                      }
                       size="default"
                     />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-text-primary truncate">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-text-primary truncate text-sm font-medium">
                         {user.first_name || user.last_name
                           ? `${user.first_name} ${user.last_name}`.trim()
                           : user.username}
                       </p>
-                      <p className="text-xs text-text-secondary truncate">
+                      <p className="text-text-secondary truncate text-xs">
                         @{user.username}
                       </p>
                     </div>
@@ -135,7 +143,7 @@ export function UserSearchPanel({
 
       {/* Prompt before typing */}
       {!showResults && (
-        <p className="text-xs text-text-secondary text-center">
+        <p className="text-text-secondary text-center text-xs">
           Type at least 2 characters to search
         </p>
       )}

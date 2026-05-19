@@ -1,5 +1,5 @@
 import type { Conversation } from "@shared/types/conversation";
-import { Button } from "@shared/ui";
+import { Avatar, Button } from "@shared/ui";
 import { LogOut, MessageSquarePlus } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../../../providers/auth.provider";
@@ -29,21 +29,40 @@ export function ConversationList({
 
   return (
     <>
-      <aside className="flex h-full w-72 shrink-0 flex-col border-r border-border bg-surface">
+      <aside className="border-border bg-surface flex h-full w-72 shrink-0 flex-col border-r">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-border">
-          <div>
-            <h2 className="text-base font-semibold text-text-primary">Messages</h2>
-            {user && (
-              <p className="text-xs text-text-secondary mt-0.5">@{user.username}</p>
-            )}
+        <div className="border-border flex items-center justify-between border-b px-4 py-4">
+          {/* LEFT SIDE */}
+          <div className="flex items-center gap-3">
+            <Avatar
+              name={user?.username}
+              url={
+                user?.avatar ??
+                "https://media.istockphoto.com/id/2230699086/photo/planning-trip-with-ai-chatbot-on-smartphone.jpg?s=1024x1024&w=is&k=20&c=kXj7f23jFT0z6CNIp7gAAglrRFSwad9_21MGEqa7_y4="
+              }
+              size="lg"
+            />
+
+            <div>
+              <h2 className="text-text-primary text-base font-semibold">
+                Messages
+              </h2>
+
+              {user && (
+                <p className="text-text-secondary mt-0.5 text-xs">
+                  @{user.username}
+                </p>
+              )}
+            </div>
           </div>
+
+          {/* RIGHT SIDE */}
           <button
             type="button"
             id="new-chat-button"
             onClick={() => setDialogOpen(true)}
             aria-label="New conversation"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary hover:text-brand hover:bg-brand/10 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="text-text-secondary hover:text-brand hover:bg-brand/10 focus-visible:ring-ring flex h-8 w-8 items-center justify-center rounded-lg transition-colors focus-visible:ring-1 focus-visible:outline-none"
           >
             <MessageSquarePlus className="h-4 w-4" />
           </button>
@@ -65,13 +84,13 @@ export function ConversationList({
         </nav>
 
         {/* Footer — logout */}
-        <div className="border-t border-border p-3">
+        <div className="border-border border-t p-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={logout}
             id="sidebar-logout-button"
-            className="w-full justify-start gap-2 text-text-secondary hover:text-text-primary"
+            className="text-text-secondary hover:text-text-primary w-full justify-start gap-2"
           >
             <LogOut className="h-4 w-4" />
             Sign out

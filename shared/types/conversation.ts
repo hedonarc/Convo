@@ -5,6 +5,7 @@ export interface Conversation {
   last_message: ConversationLastMessage | null;
   created_at: string;
   updated_at: string;
+  participants?: any
 }
 
 export interface ConversationLastMessage {

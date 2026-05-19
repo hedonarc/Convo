@@ -18,7 +18,10 @@ function formatRelativeTime(iso: string): string {
   if (hours < 24) return `${hours}h`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d`;
-  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 export function ConversationItem({
@@ -28,11 +31,12 @@ export function ConversationItem({
 }: ConversationItemProps) {
   const { user } = useAuth();
 
-  // Derive a display name: use conversation_key as a fallback label
-  // (will be enhanced once the serializer exposes participant user data)
-  const displayName = conversation.conversation_key
-    ? conversation.conversation_key.replace(/_/g, " ").trim()
-    : `Conversation #${conversation.id}`;
+  const displayUser =
+    conversation.participants?.length === 1
+      ? conversation.participants[0]
+      : conversation.participants?.find((p: any) => p.id !== user?.id);
+
+  const displayName = displayUser?.first_name + " " + displayUser?.last_name;
 
   const lastMessageText = conversation.last_message
     ? conversation.last_message.is_deleted
@@ -40,8 +44,7 @@ export function ConversationItem({
       : conversation.last_message.content
     : "No messages yet";
 
-  const isMine =
-    conversation.last_message?.sender === user?.id;
+  const isMine = conversation.last_message?.sender === user?.id;
 
   return (
     <button
@@ -49,25 +52,32 @@ export function ConversationItem({
       id={`conversation-item-${conversation.id}`}
       onClick={onClick}
       className={cn(
-        "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",
-        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+        "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors",
+        "focus-visible:ring-ring focus-visible:ring-1 focus-visible:outline-none",
         isActive
-          ? "bg-brand/10 border-r-2 border-brand"
+          ? "bg-brand/10 border-brand border-r-2"
           : "hover:bg-brand/5 border-r-2 border-transparent",
       )}
     >
-      <Avatar name={displayName} size="default" />
+      <Avatar
+        name={displayName}
+        url={
+          displayUser?.avatar ??
+          "https://media.istockphoto.com/id/2230699086/photo/planning-trip-with-ai-chatbot-on-smartphone.jpg?s=1024x1024&w=is&k=20&c=kXj7f23jFT0z6CNIp7gAAglrRFSwad9_21MGEqa7_y4="
+        }
+        size="default"
+      />
 
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
-          <p className="text-sm font-semibold text-text-primary truncate">
+          <p className="text-text-primary truncate text-sm font-semibold">
             {displayName}
           </p>
-          <span className="text-xs text-text-secondary shrink-0">
+          <span className="text-text-secondary shrink-0 text-xs">
             {formatRelativeTime(conversation.updated_at)}
           </span>
         </div>
-        <p className="text-xs text-text-secondary truncate mt-0.5">
+        <p className="text-text-secondary mt-0.5 truncate text-xs">
           {isMine ? `You: ${lastMessageText}` : lastMessageText}
         </p>
       </div>
