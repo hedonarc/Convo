@@ -71,7 +71,7 @@ export default function Chat() {
           <div className="flex flex-col items-center gap-2">
             <div className="flex flex-1 flex-col items-center justify-center p-6">
               {activeConversation.invitation &&
-              !activeConversation.invitation.is_accepted ? (
+                !activeConversation.invitation.is_accepted ? (
                 <PendingInvitePanel
                   key={activeConversation.id}
                   conversation={activeConversation}

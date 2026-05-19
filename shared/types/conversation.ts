@@ -24,7 +24,7 @@ export interface ConversationLastMessage {
 
 // A participant currently carries the same fields as a User. Reserved for
 // future per-membership data (conversation id, joined_at, last_read_message_id).
-export interface Participant extends User {}
+export interface Participant extends User { }
 
 export interface PaginatedResponse<T> {
   next: string | null;
