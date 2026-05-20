@@ -6,8 +6,8 @@ import { useState } from "react";
 import { useAuth } from "@/providers";
 
 import { ConversationItem } from "./ConversationItem";
-import { NewChatDialog } from "./NewChatDialog";
 import { ConversationListHeader } from "./ConversationListHeader";
+import { NewChatDialog } from "./NewChatDialog";
 
 interface ConversationListProps {
   conversations: Conversation[];

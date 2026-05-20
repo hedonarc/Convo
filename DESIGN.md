@@ -189,6 +189,8 @@ Components already in `shared/ui/src/`:
 | `FormField` | ✅ In use | Composes `Label` + `Input` + error text; `error` message drives the input error state |
 | `ErrorBanner` | ✅ In use | Form-level error notice; `role="alert"`, semantic-exception red; renders null when no message |
 | `AuthCard` | ✅ In use | Auth page shell — centered `Card` with title/description, `form`, and `footer` slot |
+| `Modal` | ✅ In use | Standard dialog chrome — backdrop, ESC + click-outside to close, ARIA; compose with `ModalHeader` / `ModalFooter` |
+| `Slider` | ✅ In use | Brand-styled native range input — visible thumb on WebKit/Firefox, hover/active scale feedback |
 
 Add new components here as they're copied in.
 

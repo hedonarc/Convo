@@ -14,4 +14,11 @@ export const usersApi = {
     );
     return response.data;
   },
+
+  updateMe: async (data: FormData): Promise<User> => {
+    const response = await apiClient.patch<User>(API_ENDPOINTS.ME, data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+  },
 };

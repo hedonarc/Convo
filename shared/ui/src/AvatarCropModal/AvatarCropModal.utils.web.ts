@@ -9,6 +9,8 @@ export interface AvatarCropModalProps {
   open: boolean;
   image: string | null;
   loading?: boolean;
+  /** External error (e.g. upload failure from the parent). */
+  error?: string | null;
   onClose: () => void;
   onSave: (file: File) => Promise<void>;
 }

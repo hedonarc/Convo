@@ -1,5 +1,4 @@
 import { cn } from "@shared/utils";
-import { useState,useMemo } from "react";
 
 interface AvatarProps {
   name?: string;
@@ -21,8 +20,12 @@ function getInitials(name?: string): string {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 }
 
-export function Avatar({ name, className, size = "default", url }: AvatarProps) {
-
+export function Avatar({
+  name,
+  className,
+  size = "default",
+  url,
+}: AvatarProps) {
   return (
     <div
       aria-label={name ?? "User avatar"}
@@ -33,10 +36,7 @@ export function Avatar({ name, className, size = "default", url }: AvatarProps) 
       )}
     >
       {url ? (
-        <img
-          src={url}
-          className="h-full w-full object-cover"
-        />
+        <img src={url} alt="" className="h-full w-full object-cover" />
       ) : (
         getInitials(name)
       )}

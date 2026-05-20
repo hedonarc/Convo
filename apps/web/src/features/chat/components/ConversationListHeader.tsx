@@ -1,14 +1,13 @@
-import { Avatar, AvatarCropModal } from "@shared/ui";
+import { usersApi } from "@shared/api";
+import type { User } from "@shared/types/user";
+import { Avatar, AvatarCropModal, Spinner } from "@shared/ui";
+import { extractApiError } from "@shared/utils";
 import { MessageSquarePlus, Pencil } from "lucide-react";
 import { useRef, useState } from "react";
-import { apiClient } from "@shared/api/client";
-import { API_ENDPOINTS } from "@shared/constants";
-
-import type { User } from "@shared/types/user";
 
 interface ConversationListHeaderProps {
   user: User | null;
-  setUser: (user: User) => void;
+  setUser: (user: User | null) => void;
   fullName?: string;
   onNewChat: () => void;
 }
@@ -22,6 +21,7 @@ export function ConversationListHeader({
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -33,9 +33,8 @@ export function ConversationListHeader({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const imageUrl = URL.createObjectURL(file);
-
-    setSelectedImage(imageUrl);
+    setUploadError(null);
+    setSelectedImage(URL.createObjectURL(file));
     setIsCropModalOpen(true);
 
     e.target.value = "";
@@ -44,83 +43,81 @@ export function ConversationListHeader({
   const handleAvatarUpload = async (croppedFile: File) => {
     if (!user) return;
 
+    setUploadError(null);
+    setIsUploadingAvatar(true);
     try {
-      setIsUploadingAvatar(true);
-
       const formData = new FormData();
       formData.append("avatar", croppedFile);
-
-      const response = await apiClient.patch(API_ENDPOINTS.ME, formData);
-
-      setUser(response.data);
-
-      setIsCropModalOpen(false);
-
-      if (selectedImage) {
-        URL.revokeObjectURL(selectedImage);
-      }
-
-      setSelectedImage(null);
-    } catch (error) {
-      console.error("Failed to upload avatar:", error);
+      const updated = await usersApi.updateMe(formData);
+      setUser(updated);
+      closeCropModal();
+    } catch (err) {
+      setUploadError(extractApiError(err, "Failed to upload avatar."));
     } finally {
       setIsUploadingAvatar(false);
     }
   };
 
-  const handleCloseCropModal = () => {
+  const closeCropModal = () => {
     setIsCropModalOpen(false);
-
-    if (selectedImage) {
-      URL.revokeObjectURL(selectedImage);
-    }
-
+    if (selectedImage) URL.revokeObjectURL(selectedImage);
     setSelectedImage(null);
+    setUploadError(null);
   };
 
   return (
     <>
-      {/* Header */}
       <div className="border-border flex items-center justify-between border-b px-4 py-4">
-        <div className="flex items-center gap-3">
-          {/* Avatar */}
-          <div className="group relative">
+        <div className="flex min-w-0 items-center gap-3">
+          {/* Avatar — whole tile is the click target for editing. */}
+          <button
+            type="button"
+            onClick={handleAvatarClick}
+            disabled={isUploadingAvatar}
+            aria-label="Edit avatar"
+            className="group focus-visible:ring-ring relative shrink-0 rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none"
+          >
             <Avatar name={fullName} url={user?.avatar} size="default" />
 
-            <button
-              type="button"
-              aria-label="Edit avatar"
-              disabled={isUploadingAvatar}
-              onClick={handleAvatarClick}
-              className="absolute right-0 bottom-0 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-100"
+            {/* Brand-coloured pencil badge — sits on the bottom-right corner. */}
+            <span
+              aria-hidden
+              className="bg-brand text-brand-foreground ring-surface absolute -right-0.5 -bottom-0.5 flex h-4 w-4 items-center justify-center rounded-full opacity-0 ring-2 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
             >
-              <Pencil className="h-3 w-3" />
-            </button>
+              <Pencil className="h-2.5 w-2.5" />
+            </span>
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleAvatarChange}
-            />
-          </div>
+            {/* Busy overlay while uploading. */}
+            {isUploadingAvatar && (
+              <span
+                aria-hidden
+                className="bg-surface/70 absolute inset-0 flex items-center justify-center rounded-full"
+              >
+                <Spinner size="sm" />
+              </span>
+            )}
+          </button>
 
-          {/* User Info */}
-          <div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleAvatarChange}
+          />
+
+          <div className="min-w-0">
             <h2 className="text-text-primary text-base font-semibold">
               Messages
             </h2>
-
             {user && (
-              <p className="text-text-secondary mt-0.5 text-xs">
+              <p className="text-text-secondary mt-0.5 truncate text-xs">
                 @{user.username}
               </p>
             )}
           </div>
         </div>
 
-        {/* New Chat */}
         <button
           type="button"
           aria-label="New conversation"
@@ -135,7 +132,8 @@ export function ConversationListHeader({
         open={isCropModalOpen}
         image={selectedImage}
         loading={isUploadingAvatar}
-        onClose={handleCloseCropModal}
+        error={uploadError}
+        onClose={closeCropModal}
         onSave={handleAvatarUpload}
       />
     </>

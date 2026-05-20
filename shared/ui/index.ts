@@ -8,4 +8,6 @@ export * from "./src/AuthCard";
 export * from "./src/Link";
 export * from "./src/Avatar";
 export * from "./src/Spinner";
+export * from "./src/Slider";
+export * from "./src/Modal";
 export * from "./src/AvatarCropModal";

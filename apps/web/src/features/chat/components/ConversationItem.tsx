@@ -37,8 +37,9 @@ export function ConversationItem({
     : conversation.participants?.find((p: Participant) => p.id !== user?.id);
 
   const displayName =
-    `${displayUser?.first_name} ${displayUser?.last_name}`.trim() ||
-    displayUser?.username;
+    [displayUser?.first_name, displayUser?.last_name]
+      .filter(Boolean)
+      .join(" ") || displayUser?.username;
 
   const invitation = conversation.invitation;
 
