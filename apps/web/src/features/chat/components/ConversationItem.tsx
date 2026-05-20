@@ -1,7 +1,8 @@
 import type { Conversation } from "@shared/types/conversation";
 import { Avatar } from "@shared/ui";
 import { cn } from "@shared/utils";
-import { useAuth } from "../../../providers/auth.provider";
+
+import { useAuth } from "@/providers";
 
 interface ConversationItemProps {
   conversation: Conversation;
@@ -18,7 +19,10 @@ function formatRelativeTime(iso: string): string {
   if (hours < 24) return `${hours}h`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d`;
-  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 export function ConversationItem({
@@ -34,14 +38,26 @@ export function ConversationItem({
     ? conversation.conversation_key.replace(/_/g, " ").trim()
     : `Conversation #${conversation.id}`;
 
-  const lastMessageText = conversation.last_message
-    ? conversation.last_message.is_deleted
-      ? "Message deleted"
-      : conversation.last_message.content
-    : "No messages yet";
+  const invitation = conversation.invitation;
 
-  const isMine =
-    conversation.last_message?.sender === user?.id;
+  const isPendingInvitation =
+    !!invitation && !invitation.is_accepted;
+
+  const lastMessageText = (() => {
+    if (isPendingInvitation && invitation?.email) {
+      return `Waiting for ${invitation.email}`;
+    }
+
+    const lastMessage = conversation.last_message;
+
+    if (!lastMessage) return "No messages yet";
+
+    if (lastMessage.is_deleted) return "Message deleted";
+
+    return lastMessage.content;
+  })();
+
+  const isCurrentUserSender = conversation.last_message?.sender === user?.id;
 
   return (
     <button
@@ -49,26 +65,35 @@ export function ConversationItem({
       id={`conversation-item-${conversation.id}`}
       onClick={onClick}
       className={cn(
-        "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",
-        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+        "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors",
+        "focus-visible:ring-ring focus-visible:ring-1 focus-visible:outline-none",
         isActive
-          ? "bg-brand/10 border-r-2 border-brand"
+          ? "bg-brand/10 border-brand border-r-2"
           : "hover:bg-brand/5 border-r-2 border-transparent",
       )}
     >
       <Avatar name={displayName} size="default" />
 
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
-          <p className="text-sm font-semibold text-text-primary truncate">
-            {displayName}
-          </p>
-          <span className="text-xs text-text-secondary shrink-0">
-            {formatRelativeTime(conversation.updated_at)}
-          </span>
+          <div className="flex min-w-0 items-center gap-2">
+            <p className="text-text-primary truncate text-sm font-semibold">
+              {displayName}
+            </p>
+            {isPendingInvitation && (
+              <span className="bg-brand/10 text-brand ring-brand/20 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ring-1 ring-inset">
+                Pending
+              </span>
+            )}
+          </div>
+          {conversation.last_message && (
+            <span className="text-text-secondary shrink-0 text-xs">
+              {formatRelativeTime(conversation.updated_at)}
+            </span>
+          )}
         </div>
-        <p className="text-xs text-text-secondary truncate mt-0.5">
-          {isMine ? `You: ${lastMessageText}` : lastMessageText}
+        <p className="text-text-secondary mt-0.5 truncate text-xs">
+          {isCurrentUserSender ? `You: ${lastMessageText}` : lastMessageText}
         </p>
       </div>
     </button>

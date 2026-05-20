@@ -1,11 +1,13 @@
+import type { Conversation } from "@shared/types/conversation";
 import { X } from "lucide-react";
 import { useEffect, useRef } from "react";
+
 import { UserSearchPanel } from "./UserSearchPanel";
 
 interface NewChatDialogProps {
   open: boolean;
   onClose: () => void;
-  onConversationCreated: () => void;
+  onConversationCreated: (conversation: Conversation) => void;
 }
 
 export function NewChatDialog({
@@ -32,8 +34,8 @@ export function NewChatDialog({
 
   if (!open) return null;
 
-  const handleCreated = () => {
-    onConversationCreated();
+  const handleCreated = (conversation: Conversation) => {
+    onConversationCreated(conversation);
     onClose();
   };
 
@@ -44,29 +46,26 @@ export function NewChatDialog({
       aria-modal="true"
       aria-label="Start a new conversation"
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in-0 duration-150"
+      className="animate-in fade-in-0 fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm duration-150"
     >
-      <div className="relative w-full max-w-md rounded-xl border border-border bg-surface shadow-2xl p-6 mx-4 animate-in zoom-in-95 duration-150">
+      <div className="border-border bg-surface animate-in zoom-in-95 relative mx-4 w-full max-w-md rounded-xl border p-6 shadow-2xl duration-150">
         {/* Header */}
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-semibold text-text-primary">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-text-primary text-lg font-semibold">
             New conversation
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="rounded-md p-1.5 text-text-secondary hover:text-text-primary hover:bg-brand/5 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="text-text-secondary hover:text-text-primary hover:bg-brand/5 focus-visible:ring-ring rounded-md p-1.5 transition-colors focus-visible:ring-1 focus-visible:outline-none"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Search panel */}
-        <UserSearchPanel
-          onConversationCreated={handleCreated}
-          compact
-        />
+        <UserSearchPanel onConversationCreated={handleCreated} compact />
       </div>
     </div>
   );
