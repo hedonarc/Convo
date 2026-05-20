@@ -27,7 +27,7 @@ export function Avatar({ name, className, size = "default", url }: AvatarProps) 
     <div
       aria-label={name ?? "User avatar"}
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-full bg-brand/10 font-semibold text-brand select-none",
+        "center shrink-0 rounded-full overflow-hidden bg-brand/10 font-semibold text-brand select-none",
         sizeClasses[size],
         className,
       )}

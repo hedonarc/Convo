@@ -73,13 +73,21 @@ export function ConversationItem({
           : "hover:bg-brand/5 border-r-2 border-transparent",
       )}
     >
-      <Avatar name={displayName} url={displayUser?.avatar} size="default" />
+      <Avatar
+        name={isPendingInvitation ? invitation?.email : displayName}
+        url={isPendingInvitation ? undefined : displayUser?.avatar}
+        size="default"
+      />
 
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
             <p className="text-text-primary truncate text-sm font-semibold">
-              {isMe ? displayName + " (Me)" : displayName}
+              {isPendingInvitation
+                ? invitation?.email
+                : isMe
+                  ? displayName + " (Me)"
+                  : displayName}
             </p>
             {isPendingInvitation && (
               <span className="bg-brand/10 text-brand ring-brand/20 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ring-1 ring-inset">
