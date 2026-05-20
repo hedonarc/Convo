@@ -1,16 +1,24 @@
+import axios from "axios";
 import { API_ENDPOINTS } from "@shared/constants";
 import { apiClient } from "./client";
 
 let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (value: unknown) => void;
-  reject: (error: unknown) => void;
-}> = [];
+type QueueItem = {
+  resolve: (value: any) => void;
+  reject: (error: any) => void;
+};
+
+let failedQueue: QueueItem[] = [];
 
 const processQueue = (error: unknown) => {
   failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve(null)));
   failedQueue = [];
 };
+
+const refreshClient = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000",
+  withCredentials: true,
+});
 
 export function setupInterceptors() {
   apiClient.interceptors.response.use(
@@ -32,7 +40,7 @@ export function setupInterceptors() {
 
         try {
           // Refresh cookie is sent automatically via withCredentials
-          await apiClient.post(API_ENDPOINTS.TOKEN_REFRESH);
+          await refreshClient.post(API_ENDPOINTS.TOKEN_REFRESH);
           processQueue(null);
           return apiClient(originalRequest);
         } catch (err) {

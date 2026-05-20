@@ -1,9 +1,10 @@
 import { ROUTES } from "@shared/constants";
-import { BrowserRouter as Router, Route, Routes } from "react-router";
+import { BrowserRouter as Router, Routes, Route } from "react-router";
 
 import AuthLayout from "../layouts/auth.layout";
 import GuestLayout from "../layouts/guest.layout";
 import RootLayout from "../layouts/root.layout";
+
 import Chat from "../pages/Chat";
 import Landing from "../pages/Landing";
 import Login from "../pages/Login";
@@ -13,13 +14,16 @@ export function AppRouter() {
   return (
     <Router>
       <Routes>
+        {/* Root shell */}
         <Route element={<RootLayout />}>
+          {/* Public routes */}
           <Route element={<GuestLayout />}>
             <Route path={ROUTES.LANDING} element={<Landing />} />
             <Route path={ROUTES.LOGIN} element={<Login />} />
             <Route path={ROUTES.REGISTER} element={<Register />} />
           </Route>
 
+          {/* Protected routes */}
           <Route element={<AuthLayout />}>
             <Route path={ROUTES.CHAT} element={<Chat />} />
           </Route>
