@@ -28,15 +28,7 @@ export function setupInterceptors() {
     async (error) => {
       const originalRequest = error.config;
 
-      // Prevent infinite retry loop
-      const isRefreshRequest =
-        originalRequest.url === API_ENDPOINTS.TOKEN_REFRESH;
-
-      if (
-        error.response?.status === 401 &&
-        !originalRequest._retry &&
-        !isRefreshRequest
-      ) {
+      if (error.response?.status === 401 && !originalRequest._retry) {
         if (isRefreshing) {
           return new Promise<void>((resolve, reject) => {
             failedQueue.push({ resolve, reject });
@@ -50,9 +42,7 @@ export function setupInterceptors() {
 
         try {
           await refreshClient.post(API_ENDPOINTS.TOKEN_REFRESH);
-
           processQueue(null);
-
           return apiClient(originalRequest);
         } catch (err) {
           processQueue(err);
