@@ -28,6 +28,11 @@ export const authApi = {
     return response.data; // token set as httpOnly cookie by server
   },
 
+  me: async (): Promise<User> => {
+    const response = await apiClient.get<User>(API_ENDPOINTS.ME);
+    return response.data;
+  },
+  
   register: async (data: RegisterData): Promise<AuthResponse> => {
     const response = await apiClient.post<AuthResponse>(
       API_ENDPOINTS.REGISTER,
