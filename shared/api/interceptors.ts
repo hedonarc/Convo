@@ -7,7 +7,6 @@ type QueueItem = {
   resolve: (value: any) => void;
   reject: (error: any) => void;
 };
-
 let failedQueue: QueueItem[] = [];
 
 const processQueue = (error: unknown) => {
@@ -26,11 +25,19 @@ export function setupInterceptors() {
     async (error) => {
       const originalRequest = error.config;
 
-      if (error.response?.status === 401 && !originalRequest._retry) {
+      // Prevent infinite retry loop
+      const isRefreshRequest =
+        originalRequest.url === API_ENDPOINTS.TOKEN_REFRESH;
+
+      if (
+        error.response?.status === 401 &&
+        !originalRequest._retry &&
+        !isRefreshRequest
+      ) {
         if (isRefreshing) {
-          return new Promise((resolve, reject) =>
-            failedQueue.push({ resolve, reject }),
-          )
+          return new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          })
             .then(() => apiClient(originalRequest))
             .catch((e) => Promise.reject(e));
         }
@@ -39,14 +46,14 @@ export function setupInterceptors() {
         isRefreshing = true;
 
         try {
-          // Refresh cookie is sent automatically via withCredentials
           await refreshClient.post(API_ENDPOINTS.TOKEN_REFRESH);
+
           processQueue(null);
+
           return apiClient(originalRequest);
         } catch (err) {
           processQueue(err);
-          // Session expired — redirect to login
-          window.location.href = "/login";
+          localStorage.clear()
           return Promise.reject(err);
         } finally {
           isRefreshing = false;

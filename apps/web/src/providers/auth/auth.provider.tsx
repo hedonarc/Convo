@@ -1,4 +1,4 @@
-import { authApi } from "@shared/api";
+import { authApi, usersApi } from "@shared/api";
 import type { User } from "@shared/types/user";
 import { useEffect, useState } from "react";
 
@@ -10,8 +10,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const initAuth = async () => {
     try {
-      const res = await authApi.me(); // 🔥 checks cookie
-      console.log(res);
+      const res = await usersApi.me();
       setUser(res);
     } catch {
       setUser(null);

@@ -6,7 +6,6 @@
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "skipLibCheck": true,
-    "baseUrl": ".",
     "paths": {
       "@shared/*": ["./*"],
       "react": ["../apps/web/node_modules/@types/react", "../apps/web/node_modules/react"],
