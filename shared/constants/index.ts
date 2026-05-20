@@ -12,4 +12,5 @@ export const API_ENDPOINTS = {
   TOKEN_REFRESH: "/api/token/refresh/",
   CONVERSATIONS: "/api/conversations/",
   USERS: "/api/users/",
+  INVITES: "/api/invites/",
 } as const;

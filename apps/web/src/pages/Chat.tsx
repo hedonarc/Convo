@@ -2,8 +2,10 @@ import type { Conversation } from "@shared/types/conversation";
 import { Spinner } from "@shared/ui";
 import { AlertCircle } from "lucide-react";
 import { useState } from "react";
+
 import { ConversationList } from "../features/chat/components/ConversationList";
 import { EmptyState } from "../features/chat/components/EmptyState";
+import { PendingInvitePanel } from "../features/chat/components/PendingInvitePanel";
 import { useConversations } from "../features/chat/hooks/useConversations";
 
 export default function Chat() {
@@ -11,10 +13,15 @@ export default function Chat() {
   const [activeConversation, setActiveConversation] =
     useState<Conversation | null>(null);
 
+  const handleCreated = async (conversation: Conversation) => {
+    await refetch();
+    setActiveConversation(conversation);
+  };
+
   // ── Loading ─────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="bg-background flex h-screen items-center justify-center">
+      <div className="flex h-screen items-center justify-center">
         <Spinner size="lg" />
       </div>
     );
@@ -23,7 +30,7 @@ export default function Chat() {
   // ── Error ────────────────────────────────────────────────────────────────
   if (error) {
     return (
-      <div className="bg-background flex h-screen flex-col items-center justify-center gap-4 px-6">
+      <div className="center h-screen flex-col gap-4 px-6">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-50 dark:bg-red-900/10">
           <AlertCircle className="h-7 w-7 text-red-500" />
         </div>
@@ -42,38 +49,50 @@ export default function Chat() {
   // ── Empty state ──────────────────────────────────────────────────────────
   if (conversations.length === 0) {
     return (
-      <div className="bg-background flex h-screen items-center justify-center">
-        <EmptyState onConversationCreated={refetch} />
+      <div className="flex h-screen items-center justify-center">
+        <EmptyState onConversationCreated={handleCreated} />
       </div>
     );
   }
 
   // ── Has conversations ────────────────────────────────────────────────────
   return (
-    <div className="bg-background flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden">
       <ConversationList
         conversations={conversations}
         activeId={activeConversation?.id ?? null}
         onSelect={setActiveConversation}
-        onConversationCreated={refetch}
+        onConversationCreated={handleCreated}
       />
 
       {/* Right pane placeholder */}
-      <main className="text-text-secondary flex flex-1 flex-col items-center justify-center gap-3">
+      <main className="center text-text-secondary flex-1 flex-col gap-3">
         {activeConversation ? (
           <div className="flex flex-col items-center gap-2">
-            <p className="text-text-primary text-sm font-medium">
-              Conversation #{activeConversation.id}
-            </p>
-            <p className="text-xs">Message pane coming soon</p>
+            <div className="flex flex-1 flex-col items-center justify-center p-6">
+              {activeConversation.invitation &&
+              !activeConversation.invitation.is_accepted ? (
+                <PendingInvitePanel
+                  key={activeConversation.id}
+                  conversation={activeConversation}
+                />
+              ) : (
+                <div className="text-text-secondary flex flex-col items-center gap-2">
+                  <p className="text-text-primary text-sm font-medium">
+                    Conversation #{activeConversation.id}
+                  </p>
+                  <p className="text-xs">Message pane coming soon</p>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
-          <>
+          <div className="text-text-secondary flex flex-1 flex-col items-center justify-center gap-3">
             <p className="text-sm font-medium">Select a conversation</p>
             <p className="text-xs">
               Choose from the list on the left to start messaging
             </p>
-          </>
+          </div>
         )}
       </main>
     </div>

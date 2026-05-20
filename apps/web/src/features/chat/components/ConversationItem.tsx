@@ -1,7 +1,8 @@
-import type { Conversation } from "@shared/types/conversation";
+import type { Conversation, Participant } from "@shared/types/conversation";
 import { Avatar } from "@shared/ui";
 import { cn } from "@shared/utils";
-import { useAuth } from "../../../providers/auth.provider";
+
+import { useAuth } from "@/providers";
 
 interface ConversationItemProps {
   conversation: Conversation;
@@ -33,17 +34,29 @@ export function ConversationItem({
   const isMe = conversation.participants?.length === 1;
   const displayUser = isMe
     ? user
-    : conversation.participants?.find((p: any) => p.id !== user?.id);
+    : conversation.participants?.find((p: Participant) => p.id !== user?.id);
 
   const displayName = displayUser?.first_name + " " + displayUser?.last_name;
 
-  const lastMessageText = conversation.last_message
-    ? conversation.last_message.is_deleted
-      ? "Message deleted"
-      : conversation.last_message.content
-    : "No messages yet";
+  const invitation = conversation.invitation;
 
-  const isMine = conversation.last_message?.sender === user?.id;
+  const isPendingInvitation = !!invitation && !invitation.is_accepted;
+
+  const lastMessageText = (() => {
+    if (isPendingInvitation && invitation?.email) {
+      return `Waiting for ${invitation.email}`;
+    }
+
+    const lastMessage = conversation.last_message;
+
+    if (!lastMessage) return "No messages yet";
+
+    if (lastMessage.is_deleted) return "Message deleted";
+
+    return lastMessage.content;
+  })();
+
+  const isCurrentUserSender = conversation.last_message?.sender === user?.id;
 
   return (
     <button
@@ -62,15 +75,24 @@ export function ConversationItem({
 
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
-          <p className="text-text-primary truncate text-sm font-semibold">
-            {isMe ? displayName + " (Me)" : displayName}
-          </p>
-          <span className="text-text-secondary shrink-0 text-xs">
-            {formatRelativeTime(conversation.updated_at)}
-          </span>
+          <div className="flex min-w-0 items-center gap-2">
+            <p className="text-text-primary truncate text-sm font-semibold">
+              {isMe ? displayName + " (Me)" : displayName}
+            </p>
+            {isPendingInvitation && (
+              <span className="bg-brand/10 text-brand ring-brand/20 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ring-1 ring-inset">
+                Pending
+              </span>
+            )}
+          </div>
+          {conversation.last_message && (
+            <span className="text-text-secondary shrink-0 text-xs">
+              {formatRelativeTime(conversation.updated_at)}
+            </span>
+          )}
         </div>
         <p className="text-text-secondary mt-0.5 truncate text-xs">
-          {isMine ? `You: ${lastMessageText}` : lastMessageText}
+          {isCurrentUserSender ? `You: ${lastMessageText}` : lastMessageText}
         </p>
       </div>
     </button>

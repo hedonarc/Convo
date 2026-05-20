@@ -3,7 +3,9 @@ import type { Conversation } from "@shared/types/conversation";
 import { Avatar, AvatarCropModal, Button } from "@shared/ui";
 import { LogOut, MessageSquarePlus, Pencil } from "lucide-react";
 import { useRef, useState } from "react";
-import { useAuth } from "../../../providers/auth.provider";
+
+import { useAuth } from "@/providers";
+
 import { ConversationItem } from "./ConversationItem";
 import { NewChatDialog } from "./NewChatDialog";
 
@@ -11,7 +13,7 @@ interface ConversationListProps {
   conversations: Conversation[];
   activeId: number | null;
   onSelect: (conversation: Conversation) => void;
-  onConversationCreated: () => void;
+  onConversationCreated: (conversation: Conversation) => void;
 }
 
 export function ConversationList({
@@ -33,8 +35,8 @@ export function ConversationList({
     `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim() ||
     user?.username;
 
-  const handleConversationCreated = () => {
-    onConversationCreated();
+  const handleConversationCreated = (conversation: Conversation) => {
+    onConversationCreated(conversation);
     setDialogOpen(false);
   };
 

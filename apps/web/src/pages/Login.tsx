@@ -2,18 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { authApi } from "@shared/api";
 import { ROUTES } from "@shared/constants";
 import { authText } from "@shared/constants/strings/index.en";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label,
-  Link,
-} from "@shared/ui";
+import { AuthCard, Button, ErrorBanner, FormField, Link } from "@shared/ui";
 import { extractApiError } from "@shared/utils";
 import { type LoginFormValues, loginSchema } from "@shared/validation";
 import { useState } from "react";
@@ -50,64 +39,38 @@ export default function Login() {
   };
 
   return (
-    <div className="full-center px-4 py-12 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold tracking-tight">
-            {authText.welcomeBack}
-          </CardTitle>
-          <CardDescription>{authText.enterEmailPassword}</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="rounded-md bg-red-50 p-3 text-sm text-red-500 dark:bg-red-900/10 dark:text-red-400">
-                {error}
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="identifier">{authText.emailOrUsername}</Label>
-              <Input
-                id="identifier"
-                type="text"
-                placeholder={authText.usernamePlaceholder}
-                error={!!errors.identifier}
-                {...register("identifier")}
-              />
-              {errors.identifier && (
-                <p className="text-sm font-medium text-red-500">
-                  {errors.identifier.message}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">{authText.password}</Label>
-              </div>
-              <Input
-                id="password"
-                type="password"
-                error={!!errors.password}
-                {...register("password")}
-              />
-              {errors.password && (
-                <p className="text-sm font-medium text-red-500">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button className="w-full" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? authText.loggingIn : authText.login}
-            </Button>
-            <div className="text-text-secondary text-center text-sm">
-              {authText.dontHaveAccount}
-              <Link to={ROUTES.REGISTER}>{authText.register}</Link>
-            </div>
-          </CardFooter>
-        </form>
-      </Card>
-    </div>
+    <AuthCard
+      title={authText.welcomeBack}
+      description={authText.enterEmailPassword}
+      onSubmit={handleSubmit(onSubmit)}
+      footer={
+        <>
+          <Button className="w-full" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? authText.loggingIn : authText.login}
+          </Button>
+          <div className="text-text-secondary text-center text-sm">
+            {authText.dontHaveAccount}
+            <Link to={ROUTES.REGISTER}>{authText.register}</Link>
+          </div>
+        </>
+      }
+    >
+      <ErrorBanner message={error} />
+      <FormField
+        id="identifier"
+        type="text"
+        label={authText.emailOrUsername}
+        placeholder={authText.emailOrUsernamePlaceholder}
+        error={errors.identifier?.message}
+        {...register("identifier")}
+      />
+      <FormField
+        id="password"
+        type="password"
+        label={authText.password}
+        error={errors.password?.message}
+        {...register("password")}
+      />
+    </AuthCard>
   );
 }

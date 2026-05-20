@@ -1,13 +1,18 @@
 import { conversationsApi } from "@shared/api";
+import type { Conversation } from "@shared/types/conversation";
 import type { User } from "@shared/types/user";
-import { Avatar, Input, Spinner } from "@shared/ui";
+import { Spinner } from "@shared/ui";
 import { cn } from "@shared/utils";
-import { Search, X } from "lucide-react";
-import { useState } from "react";
+import axios from "axios";
+
 import { useUserSearch } from "../hooks/useUserSearch";
+import { useUserSearchPanelStatus } from "../hooks/useUserSearchPanelStatus";
+import { InviteByEmailCta } from "./InviteByEmailCta";
+import { SearchField } from "./SearchField";
+import { UserResultList } from "./UserResultList";
 
 interface UserSearchPanelProps {
-  onConversationCreated: () => void;
+  onConversationCreated: (conversation: Conversation) => void;
   /** compact = inline panel (used inside NewChatDialog) */
   compact?: boolean;
 }
@@ -18,24 +23,69 @@ export function UserSearchPanel({
 }: UserSearchPanelProps) {
   const { query, setQuery, users, isSearching, searchError, clearSearch } =
     useUserSearch();
-  const [creating, setCreating] = useState<number | null>(null);
-  const [createError, setCreateError] = useState<string | null>(null);
+  const {
+    creatingId,
+    isInviting,
+    inviteSent,
+    createError,
+    remainingTime,
+    reset,
+    startConversation,
+    startInvite,
+    resolveReminderSent,
+    resolveError,
+  } = useUserSearchPanelStatus();
+
+  const handleQueryChange = (value: string) => {
+    setQuery(value);
+    reset();
+  };
+
+  const handleClearSearch = () => {
+    clearSearch();
+    reset();
+  };
 
   const handleSelectUser = async (user: User) => {
-    setCreating(user.id);
-    setCreateError(null);
+    startConversation(user.id);
     try {
-      await conversationsApi.createConversation(user.id);
-      clearSearch();
-      onConversationCreated();
+      const response = await conversationsApi.createConversation(user.id);
+      handleClearSearch();
+      onConversationCreated(response.conversation);
     } catch {
-      setCreateError("Couldn't start a conversation. Please try again.");
-    } finally {
-      setCreating(null);
+      resolveError("Couldn't start a conversation. Please try again.");
+    }
+  };
+
+  const handleInvite = async () => {
+    if (isInviting || !!remainingTime) return;
+
+    startInvite();
+    try {
+      const conversation = await conversationsApi.createInvite(query);
+      if (conversation.action === "reminder_sent") {
+        resolveReminderSent();
+      } else if (conversation.action === "created") {
+        handleClearSearch();
+        onConversationCreated(conversation);
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 429) {
+        const errorData = error.response.data;
+        resolveError(
+          errorData.error || "You can only send one invite every 24 hours.",
+          errorData.available_after
+            ? new Date(errorData.available_after).getTime()
+            : undefined,
+        );
+      } else {
+        resolveError("Couldn't send invite. Please try again.");
+      }
     }
   };
 
   const showResults = query.trim().length >= 2;
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(query);
 
   return (
     <div
@@ -44,35 +94,14 @@ export function UserSearchPanel({
         compact ? "w-full" : "w-full max-w-sm",
       )}
     >
-      {/* Search input */}
-      <div className="relative">
-        <Search className="text-text-secondary pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-        <Input
-          id="user-search-input"
-          type="text"
-          placeholder="Search by username or email…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="pr-9 pl-9"
-          autoComplete="off"
-          autoFocus
-        />
-        {query && (
-          <button
-            type="button"
-            onClick={clearSearch}
-            aria-label="Clear search"
-            className="text-text-secondary hover:text-text-primary absolute top-1/2 right-3 -translate-y-1/2 transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
-      </div>
+      <SearchField
+        value={query}
+        onChange={handleQueryChange}
+        onClear={handleClearSearch}
+      />
 
-      {/* Results area */}
       {showResults && (
         <div className="border-border bg-surface overflow-hidden rounded-lg border">
-          {/* Searching spinner */}
           {isSearching && (
             <div className="text-text-secondary flex items-center justify-center gap-2 py-6 text-sm">
               <Spinner size="sm" />
@@ -80,68 +109,43 @@ export function UserSearchPanel({
             </div>
           )}
 
-          {/* Search error */}
           {!isSearching && searchError && (
             <p className="px-4 py-4 text-sm text-red-500">{searchError}</p>
           )}
 
-          {/* Create error */}
           {createError && (
-            <p className="px-4 pt-3 text-sm text-red-500">{createError}</p>
-          )}
-
-          {/* No results */}
-          {!isSearching && !searchError && users.length === 0 && (
-            <div className="text-text-secondary flex flex-col items-center gap-1 py-6">
-              <p className="text-sm font-medium">No user found</p>
-              <p className="text-xs">Try a different username or email</p>
+            <div className="bg-brand/5 border-border border-b px-4 py-3">
+              <p className="text-sm text-red-500">{createError}</p>
             </div>
           )}
 
-          {/* Results list */}
+          {inviteSent && (
+            <div className="bg-brand/5 border-border border-b px-4 py-3">
+              <p className="text-brand text-sm font-medium">Invitation sent!</p>
+            </div>
+          )}
+
+          {!isSearching && !searchError && users.length === 0 && (
+            <InviteByEmailCta
+              query={query}
+              isEmail={isEmail}
+              isInviting={isInviting}
+              inviteSent={inviteSent}
+              remainingTime={remainingTime}
+              onInvite={handleInvite}
+            />
+          )}
+
           {!isSearching && users.length > 0 && (
-            <ul role="list">
-              {users.map((user) => (
-                <li key={user.id}>
-                  <button
-                    type="button"
-                    id={`user-result-${user.id}`}
-                    disabled={creating === user.id}
-                    onClick={() => handleSelectUser(user)}
-                    className={cn(
-                      "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors",
-                      "hover:bg-brand/5 focus-visible:bg-brand/5 focus-visible:outline-none",
-                      "disabled:pointer-events-none disabled:opacity-50",
-                      "border-border border-b last:border-0",
-                    )}
-                  >
-                    <Avatar
-                      name={
-                        `${user.first_name} ${user.last_name}`.trim() ||
-                        user.username
-                      }
-                      size="default"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-text-primary truncate text-sm font-medium">
-                        {user.first_name || user.last_name
-                          ? `${user.first_name} ${user.last_name}`.trim()
-                          : user.username}
-                      </p>
-                      <p className="text-text-secondary truncate text-xs">
-                        @{user.username}
-                      </p>
-                    </div>
-                    {creating === user.id && <Spinner size="sm" />}
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <UserResultList
+              users={users}
+              creatingId={creatingId}
+              onSelect={handleSelectUser}
+            />
           )}
         </div>
       )}
 
-      {/* Prompt before typing */}
       {!showResults && (
         <p className="text-text-secondary text-center text-xs">
           Type at least 2 characters to search

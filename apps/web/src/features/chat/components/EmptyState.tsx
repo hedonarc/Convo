@@ -1,15 +1,17 @@
+import type { Conversation } from "@shared/types/conversation";
 import { MessageSquarePlus } from "lucide-react";
+
 import { UserSearchPanel } from "./UserSearchPanel";
 
 interface EmptyStateProps {
-  onConversationCreated: () => void;
+  onConversationCreated: (conversation: Conversation) => void;
 }
 
 export function EmptyState({ onConversationCreated }: EmptyStateProps) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-8 px-6">
+    <div className="center flex-1 flex-col gap-8 px-6">
       {/* Icon */}
-      <div className="bg-brand/10 flex h-20 w-20 items-center justify-center rounded-2xl">
+      <div className="center bg-brand/10 h-20 w-20 rounded-2xl">
         <MessageSquarePlus className="text-brand h-10 w-10" />
       </div>
 
