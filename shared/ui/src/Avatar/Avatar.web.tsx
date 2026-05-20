@@ -1,10 +1,11 @@
 import { cn } from "@shared/utils";
+import { useState,useMemo } from "react";
 
 interface AvatarProps {
   name?: string;
   className?: string;
   size?: "sm" | "default" | "lg";
-  url?: string | null;
+  url?: string;
 }
 
 const sizeClasses = {
@@ -21,6 +22,7 @@ function getInitials(name?: string): string {
 }
 
 export function Avatar({ name, className, size = "default", url }: AvatarProps) {
+
   return (
     <div
       aria-label={name ?? "User avatar"}
@@ -33,7 +35,6 @@ export function Avatar({ name, className, size = "default", url }: AvatarProps) 
       {url ? (
         <img
           src={url}
-          alt={name ?? "User avatar"}
           className="h-full w-full object-cover"
         />
       ) : (

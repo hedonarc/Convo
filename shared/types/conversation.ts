@@ -26,7 +26,7 @@ export interface Participant {
   username: string;
   first_name: string;
   last_name: string;
-  avatar: string;
+  avatar?: string;
   // Will add this in future:
   //   conversation: number;
   //   joined_at: string;
