@@ -21,7 +21,7 @@ export default function Chat() {
   // ── Loading ─────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="bg-background flex h-screen items-center justify-center">
+      <div className="flex h-screen items-center justify-center">
         <Spinner size="lg" />
       </div>
     );
@@ -30,7 +30,7 @@ export default function Chat() {
   // ── Error ────────────────────────────────────────────────────────────────
   if (error) {
     return (
-      <div className="bg-background flex h-screen flex-col items-center justify-center gap-4 px-6">
+      <div className="flex h-screen flex-col items-center justify-center gap-4 px-6">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-50 dark:bg-red-900/10">
           <AlertCircle className="h-7 w-7 text-red-500" />
         </div>
@@ -49,7 +49,7 @@ export default function Chat() {
   // ── Empty state ──────────────────────────────────────────────────────────
   if (conversations.length === 0) {
     return (
-      <div className="bg-background flex h-screen items-center justify-center">
+      <div className="flex h-screen items-center justify-center">
         <EmptyState onConversationCreated={handleCreated} />
       </div>
     );
@@ -57,7 +57,7 @@ export default function Chat() {
 
   // ── Has conversations ────────────────────────────────────────────────────
   return (
-    <div className="bg-background flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden">
       <ConversationList
         conversations={conversations}
         activeId={activeConversation?.id ?? null}
@@ -71,7 +71,7 @@ export default function Chat() {
           <div className="flex flex-col items-center gap-2">
             <div className="flex flex-1 flex-col items-center justify-center p-6">
               {activeConversation.invitation &&
-              !activeConversation.invitation.is_accepted ? (
+                !activeConversation.invitation.is_accepted ? (
                 <PendingInvitePanel
                   key={activeConversation.id}
                   conversation={activeConversation}
