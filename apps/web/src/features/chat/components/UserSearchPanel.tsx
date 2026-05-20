@@ -4,10 +4,9 @@ import type { User } from "@shared/types/user";
 import { Spinner } from "@shared/ui";
 import { cn } from "@shared/utils";
 import axios from "axios";
-import { useState } from "react";
 
-import { useCountdown } from "../hooks/useCountdown";
 import { useUserSearch } from "../hooks/useUserSearch";
+import { useUserSearchPanelStatus } from "../hooks/useUserSearchPanelStatus";
 import { InviteByEmailCta } from "./InviteByEmailCta";
 import { SearchField } from "./SearchField";
 import { UserResultList } from "./UserResultList";
@@ -24,57 +23,48 @@ export function UserSearchPanel({
 }: UserSearchPanelProps) {
   const { query, setQuery, users, isSearching, searchError, clearSearch } =
     useUserSearch();
-  const [creating, setCreating] = useState<number | null>(null);
-  const [createError, setCreateError] = useState<string | null>(null);
-  const [inviteStatus, setInviteStatus] = useState<"idle" | "reminder_sent">(
-    "idle",
-  );
-
-  const [availableAfterMs, setAvailableAfterMs] = useState<number | null>(null);
-  const remainingTime = useCountdown(availableAfterMs, 1000);
-
-  const resetInviteState = () => {
-    setCreateError(null);
-    setInviteStatus("idle");
-    setAvailableAfterMs(null);
-  };
+  const {
+    creatingId,
+    isInviting,
+    inviteSent,
+    createError,
+    remainingTime,
+    reset,
+    startConversation,
+    startInvite,
+    resolveReminderSent,
+    resolveError,
+  } = useUserSearchPanelStatus();
 
   const handleQueryChange = (value: string) => {
     setQuery(value);
-    resetInviteState();
+    reset();
   };
 
   const handleClearSearch = () => {
     clearSearch();
-    resetInviteState();
+    reset();
   };
 
   const handleSelectUser = async (user: User) => {
-    setCreating(user.id);
-    setCreateError(null);
-    setInviteStatus("idle");
+    startConversation(user.id);
     try {
       const response = await conversationsApi.createConversation(user.id);
       handleClearSearch();
       onConversationCreated(response.conversation);
     } catch {
-      setCreateError("Couldn't start a conversation. Please try again.");
-    } finally {
-      setCreating(null);
+      resolveError("Couldn't start a conversation. Please try again.");
     }
   };
 
   const handleInvite = async () => {
-    if (creating === -1 || !!remainingTime) return;
+    if (isInviting || !!remainingTime) return;
 
-    // -1 = invite-by-email in flight (no real user id to key off)
-    setCreating(-1);
-    setCreateError(null);
-    setInviteStatus("idle");
+    startInvite();
     try {
       const conversation = await conversationsApi.createInvite(query);
       if (conversation.action === "reminder_sent") {
-        setInviteStatus("reminder_sent");
+        resolveReminderSent();
       } else if (conversation.action === "created") {
         handleClearSearch();
         onConversationCreated(conversation);
@@ -82,18 +72,15 @@ export function UserSearchPanel({
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 429) {
         const errorData = error.response.data;
-        setCreateError(
+        resolveError(
           errorData.error || "You can only send one invite every 24 hours.",
+          errorData.available_after
+            ? new Date(errorData.available_after).getTime()
+            : undefined,
         );
-
-        if (errorData.available_after) {
-          setAvailableAfterMs(new Date(errorData.available_after).getTime());
-        }
       } else {
-        setCreateError("Couldn't send invite. Please try again.");
+        resolveError("Couldn't send invite. Please try again.");
       }
-    } finally {
-      setCreating(null);
     }
   };
 
@@ -132,7 +119,7 @@ export function UserSearchPanel({
             </div>
           )}
 
-          {inviteStatus === "reminder_sent" && (
+          {inviteSent && (
             <div className="bg-brand/5 border-border border-b px-4 py-3">
               <p className="text-brand text-sm font-medium">Invitation sent!</p>
             </div>
@@ -142,8 +129,8 @@ export function UserSearchPanel({
             <InviteByEmailCta
               query={query}
               isEmail={isEmail}
-              isInviting={creating === -1}
-              inviteSent={inviteStatus === "reminder_sent"}
+              isInviting={isInviting}
+              inviteSent={inviteSent}
               remainingTime={remainingTime}
               onInvite={handleInvite}
             />
@@ -152,7 +139,7 @@ export function UserSearchPanel({
           {!isSearching && users.length > 0 && (
             <UserResultList
               users={users}
-              creatingId={creating}
+              creatingId={creatingId}
               onSelect={handleSelectUser}
             />
           )}

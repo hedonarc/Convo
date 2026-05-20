@@ -38,18 +38,26 @@ export function ConversationItem({
     ? conversation.conversation_key.replace(/_/g, " ").trim()
     : `Conversation #${conversation.id}`;
 
-  const lastMessageText =
-    conversation.invitation &&
-    !conversation.invitation.is_accepted &&
-    conversation.invitation?.email
-      ? `Waiting for ${conversation.invitation.email}`
-      : conversation.last_message
-        ? conversation.last_message.is_deleted
-          ? "Message deleted"
-          : conversation.last_message.content
-        : "No messages yet";
+  const invitation = conversation.invitation;
 
-  const isMine = conversation.last_message?.sender === user?.id;
+  const isPendingInvitation =
+    !!invitation && !invitation.is_accepted;
+
+  const lastMessageText = (() => {
+    if (isPendingInvitation && invitation?.email) {
+      return `Waiting for ${invitation.email}`;
+    }
+
+    const lastMessage = conversation.last_message;
+
+    if (!lastMessage) return "No messages yet";
+
+    if (lastMessage.is_deleted) return "Message deleted";
+
+    return lastMessage.content;
+  })();
+
+  const isCurrentUserSender = conversation.last_message?.sender === user?.id;
 
   return (
     <button
@@ -72,12 +80,11 @@ export function ConversationItem({
             <p className="text-text-primary truncate text-sm font-semibold">
               {displayName}
             </p>
-            {conversation.invitation &&
-              !conversation.invitation?.is_accepted && (
-                <span className="bg-brand/10 text-brand ring-brand/20 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ring-1 ring-inset">
-                  Pending
-                </span>
-              )}
+            {isPendingInvitation && (
+              <span className="bg-brand/10 text-brand ring-brand/20 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ring-1 ring-inset">
+                Pending
+              </span>
+            )}
           </div>
           {conversation.last_message && (
             <span className="text-text-secondary shrink-0 text-xs">
@@ -86,7 +93,7 @@ export function ConversationItem({
           )}
         </div>
         <p className="text-text-secondary mt-0.5 truncate text-xs">
-          {isMine ? `You: ${lastMessageText}` : lastMessageText}
+          {isCurrentUserSender ? `You: ${lastMessageText}` : lastMessageText}
         </p>
       </div>
     </button>

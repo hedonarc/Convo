@@ -51,4 +51,8 @@
   .full-center {
     @apply flex min-h-screen items-center justify-center;
   }
+
+  .center {
+    @apply flex items-center justify-center;
+  }
 }

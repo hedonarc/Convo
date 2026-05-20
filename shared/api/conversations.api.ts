@@ -7,11 +7,13 @@ import type {
 import { apiClient } from "./client";
 
 export const conversationsApi = {
-  getConversations: async (): Promise<PaginatedResponse<Conversation>> => {
-    const response =
-      await apiClient.get<PaginatedResponse<Conversation>>(
-        API_ENDPOINTS.CONVERSATIONS,
-      );
+  getConversations: async (
+    signal?: AbortSignal,
+  ): Promise<PaginatedResponse<Conversation>> => {
+    const response = await apiClient.get<PaginatedResponse<Conversation>>(
+      API_ENDPOINTS.CONVERSATIONS,
+      { signal },
+    );
     return response.data;
   },
 
