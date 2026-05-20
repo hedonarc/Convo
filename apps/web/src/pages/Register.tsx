@@ -98,9 +98,7 @@ export default function Register() {
         placeholder={authText.emailPlaceholder}
         readOnly={!!inviteToken}
         className={
-          inviteToken
-            ? "bg-brand/5 cursor-not-allowed text-text-secondary"
-            : ""
+          inviteToken ? "bg-brand/5 text-text-secondary cursor-not-allowed" : ""
         }
         error={errors.email?.message}
         {...register("email")}

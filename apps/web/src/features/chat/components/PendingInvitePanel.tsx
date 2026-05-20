@@ -55,31 +55,31 @@ export function PendingInvitePanel({ conversation }: PendingInvitePanelProps) {
   };
 
   return (
-    <div className="flex flex-col items-center text-center max-w-sm animate-in fade-in zoom-in-95 duration-500">
-      <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-brand/10">
-        <Clock3 className="h-10 w-10 text-brand" />
+    <div className="animate-in fade-in zoom-in-95 flex max-w-sm flex-col items-center text-center duration-500">
+      <div className="bg-brand/10 mb-6 flex h-20 w-20 items-center justify-center rounded-full">
+        <Clock3 className="text-brand h-10 w-10" />
       </div>
 
-      <h3 className="text-lg font-semibold text-text-primary mb-2">
+      <h3 className="text-text-primary mb-2 text-lg font-semibold">
         Pending Invitation
       </h3>
 
-      <p className="text-sm text-text-secondary mb-1">
+      <p className="text-text-secondary mb-1 text-sm">
         You invited {invitation.email}
       </p>
 
-      <p className="text-xs text-text-secondary italic mb-6">
+      <p className="text-text-secondary mb-6 text-xs italic">
         Waiting for them to join
       </p>
 
       {resendError && (
-        <p className="text-xs text-red-500 mb-4 animate-in fade-in slide-in-from-top-1">
+        <p className="animate-in fade-in slide-in-from-top-1 mb-4 text-xs text-red-500">
           {resendError}
         </p>
       )}
 
       {resendSuccess && (
-        <p className="text-xs text-brand mb-4 animate-in fade-in slide-in-from-top-1">
+        <p className="text-brand animate-in fade-in slide-in-from-top-1 mb-4 text-xs">
           Reminder sent successfully!
         </p>
       )}
@@ -91,11 +91,7 @@ export function PendingInvitePanel({ conversation }: PendingInvitePanelProps) {
         onClick={handleResendInvite}
         disabled={resending || resendSuccess || !!remainingTime}
       >
-        {resending ? (
-          <Spinner size="sm" />
-        ) : (
-          <Repeat className="h-4 w-4" />
-        )}
+        {resending ? <Spinner size="sm" /> : <Repeat className="h-4 w-4" />}
         {remainingTime
           ? `Resend in ${remainingTime}`
           : resendSuccess

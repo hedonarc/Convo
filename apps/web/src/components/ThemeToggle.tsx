@@ -1,8 +1,8 @@
+import { sharedText } from "@shared/constants/strings/index.en";
 import { Button } from "@shared/ui";
 import { Moon, Sun } from "lucide-react";
 
 import { useTheme } from "@/providers";
-import { sharedText } from "@shared/constants/strings/index.en";
 
 export function ThemeToggle() {
   const { theme, toggle } = useTheme();

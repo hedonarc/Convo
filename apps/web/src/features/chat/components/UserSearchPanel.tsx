@@ -114,29 +114,27 @@ export function UserSearchPanel({
       />
 
       {showResults && (
-        <div className="rounded-lg border border-border bg-surface overflow-hidden">
+        <div className="border-border bg-surface overflow-hidden rounded-lg border">
           {isSearching && (
-            <div className="flex items-center justify-center gap-2 py-6 text-text-secondary text-sm">
+            <div className="text-text-secondary flex items-center justify-center gap-2 py-6 text-sm">
               <Spinner size="sm" />
               <span>Searching…</span>
             </div>
           )}
 
           {!isSearching && searchError && (
-            <p className="py-4 px-4 text-sm text-red-500">{searchError}</p>
+            <p className="px-4 py-4 text-sm text-red-500">{searchError}</p>
           )}
 
           {createError && (
-            <div className="px-4 py-3 bg-brand/5 border-b border-border">
+            <div className="bg-brand/5 border-border border-b px-4 py-3">
               <p className="text-sm text-red-500">{createError}</p>
             </div>
           )}
 
           {inviteStatus === "reminder_sent" && (
-            <div className="px-4 py-3 bg-brand/5 border-b border-border">
-              <p className="text-sm font-medium text-brand">
-                Invitation sent!
-              </p>
+            <div className="bg-brand/5 border-border border-b px-4 py-3">
+              <p className="text-brand text-sm font-medium">Invitation sent!</p>
             </div>
           )}
 
@@ -162,7 +160,7 @@ export function UserSearchPanel({
       )}
 
       {!showResults && (
-        <p className="text-xs text-text-secondary text-center">
+        <p className="text-text-secondary text-center text-xs">
           Type at least 2 characters to search
         </p>
       )}

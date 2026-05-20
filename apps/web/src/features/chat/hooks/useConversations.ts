@@ -1,6 +1,6 @@
 import { conversationsApi } from "@shared/api";
 import type { Conversation } from "@shared/types/conversation";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface UseConversationsResult {
   conversations: Conversation[];
@@ -14,7 +14,7 @@ export function useConversations(): UseConversationsResult {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchConversations = useCallback(async () => {
+  const fetchConversations = async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -25,11 +25,26 @@ export function useConversations(): UseConversationsResult {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
-    fetchConversations();
-  }, [fetchConversations]);
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const data = await conversationsApi.getConversations();
+        if (!cancelled) setConversations(data.results);
+      } catch {
+        if (!cancelled)
+          setError("Failed to load conversations. Please try again.");
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return { conversations, isLoading, error, refetch: fetchConversations };
 }

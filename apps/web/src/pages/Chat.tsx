@@ -21,7 +21,7 @@ export default function Chat() {
   // ── Loading ─────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
+      <div className="bg-background flex h-screen items-center justify-center">
         <Spinner size="lg" />
       </div>
     );
@@ -30,15 +30,15 @@ export default function Chat() {
   // ── Error ────────────────────────────────────────────────────────────────
   if (error) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center gap-4 bg-background px-6">
+      <div className="bg-background flex h-screen flex-col items-center justify-center gap-4 px-6">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-50 dark:bg-red-900/10">
           <AlertCircle className="h-7 w-7 text-red-500" />
         </div>
-        <p className="text-text-primary font-medium text-center">{error}</p>
+        <p className="text-text-primary text-center font-medium">{error}</p>
         <button
           type="button"
           onClick={refetch}
-          className="text-sm text-brand hover:text-brand/80 underline-offset-4 hover:underline transition-colors"
+          className="text-brand hover:text-brand/80 text-sm underline-offset-4 transition-colors hover:underline"
         >
           Try again
         </button>
@@ -49,7 +49,7 @@ export default function Chat() {
   // ── Empty state ──────────────────────────────────────────────────────────
   if (conversations.length === 0) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
+      <div className="bg-background flex h-screen items-center justify-center">
         <EmptyState onConversationCreated={handleCreated} />
       </div>
     );
@@ -57,7 +57,7 @@ export default function Chat() {
 
   // ── Has conversations ────────────────────────────────────────────────────
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="bg-background flex h-screen overflow-hidden">
       <ConversationList
         conversations={conversations}
         activeId={activeConversation?.id ?? null}
@@ -66,10 +66,10 @@ export default function Chat() {
       />
 
       {/* Right pane placeholder */}
-      <main className="flex flex-1 flex-col items-center justify-center gap-3 text-text-secondary">
+      <main className="text-text-secondary flex flex-1 flex-col items-center justify-center gap-3">
         {activeConversation ? (
           <div className="flex flex-col items-center gap-2">
-            <div className="flex-1 flex flex-col items-center justify-center p-6">
+            <div className="flex flex-1 flex-col items-center justify-center p-6">
               {activeConversation.invitation &&
               !activeConversation.invitation.is_accepted ? (
                 <PendingInvitePanel
@@ -77,8 +77,8 @@ export default function Chat() {
                   conversation={activeConversation}
                 />
               ) : (
-                <div className="flex flex-col items-center gap-2 text-text-secondary">
-                  <p className="text-sm font-medium text-text-primary">
+                <div className="text-text-secondary flex flex-col items-center gap-2">
+                  <p className="text-text-primary text-sm font-medium">
                     Conversation #{activeConversation.id}
                   </p>
                   <p className="text-xs">Message pane coming soon</p>
@@ -87,7 +87,7 @@ export default function Chat() {
             </div>
           </div>
         ) : (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 text-text-secondary">
+          <div className="text-text-secondary flex flex-1 flex-col items-center justify-center gap-3">
             <p className="text-sm font-medium">Select a conversation</p>
             <p className="text-xs">
               Choose from the list on the left to start messaging

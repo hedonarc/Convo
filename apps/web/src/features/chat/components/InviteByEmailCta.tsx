@@ -19,17 +19,17 @@ export function InviteByEmailCta({
   onInvite,
 }: InviteByEmailCtaProps) {
   return (
-    <div className="flex flex-col items-center gap-3 py-6 px-4 text-text-secondary text-center">
+    <div className="text-text-secondary flex flex-col items-center gap-3 px-4 py-6 text-center">
       <p className="text-sm font-medium">No user found</p>
       {isEmail ? (
         <>
-          <p className="text-xs mb-2">Start conversation with {query} </p>
+          <p className="mb-2 text-xs">Start conversation with {query} </p>
           <Button
             variant="outline"
             size="sm"
             onClick={onInvite}
             disabled={isInviting || inviteSent || !!remainingTime}
-            className="w-full flex items-center justify-center gap-2"
+            className="flex w-full items-center justify-center gap-2"
           >
             <Mail className="h-4 w-4" />
             {isInviting

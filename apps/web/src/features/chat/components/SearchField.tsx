@@ -10,14 +10,14 @@ interface SearchFieldProps {
 export function SearchField({ value, onChange, onClear }: SearchFieldProps) {
   return (
     <div className="relative">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary pointer-events-none" />
+      <Search className="text-text-secondary pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
       <Input
         id="user-search-input"
         type="text"
         placeholder="Search by username or email…"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="pl-9 pr-9"
+        className="pr-9 pl-9"
         autoComplete="off"
         autoFocus
       />
@@ -26,7 +26,7 @@ export function SearchField({ value, onChange, onClear }: SearchFieldProps) {
           type="button"
           onClick={onClear}
           aria-label="Clear search"
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors"
+          className="text-text-secondary hover:text-text-primary absolute top-1/2 right-3 -translate-y-1/2 transition-colors"
         >
           <X className="h-4 w-4" />
         </button>
