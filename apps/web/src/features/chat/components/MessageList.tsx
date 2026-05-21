@@ -1,4 +1,8 @@
-import type { Message, MessageStatus } from "@shared/types/message";
+import type {
+  Message,
+  MessageStatus,
+  PendingMessage,
+} from "@shared/types/message";
 import type { User } from "@shared/types/user";
 import { Spinner } from "@shared/ui";
 import { MessageCircle } from "lucide-react";
@@ -11,6 +15,8 @@ interface MessageListProps {
   currentUserId: number;
   participants: User[];
   statusByMessageId?: Record<number, MessageStatus>;
+  /** Outgoing optimistic messages rendered after committed ones. */
+  pendingMessages?: PendingMessage[];
   emptyStateName?: string;
   isSelfChat?: boolean;
   hasMore?: boolean;
@@ -23,6 +29,7 @@ export function MessageList({
   currentUserId,
   participants,
   statusByMessageId,
+  pendingMessages,
   emptyStateName,
   isSelfChat,
   hasMore = false,
@@ -37,9 +44,11 @@ export function MessageList({
 
   const firstId = messages[0]?.id ?? null;
   const lastId = messages[messages.length - 1]?.id ?? null;
+  const pendingCount = pendingMessages?.length ?? 0;
 
-  // Scroll behaviour: jump to bottom on first load / new bottom message;
-  // preserve viewport position when an older page is prepended.
+  // Scroll behaviour for the committed list: jump to bottom on first load /
+  // new bottom message; preserve viewport position when an older page is
+  // prepended.
   useLayoutEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -61,6 +70,15 @@ export function MessageList({
     prevFirstIdRef.current = firstId;
     prevLastIdRef.current = lastId;
   }, [firstId, lastId]);
+
+  // Scroll to bottom whenever a new optimistic message is added so the user
+  // sees their own bubble immediately.
+  useLayoutEffect(() => {
+    if (pendingCount === 0) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [pendingCount]);
 
   // Trigger loadOlder when the top sentinel enters the viewport.
   useEffect(() => {
@@ -85,7 +103,8 @@ export function MessageList({
 
   const participantById = new Map(participants.map((p) => [p.id, p]));
 
-  if (messages.length === 0) {
+  // Empty state — only when there are no committed AND no pending bubbles.
+  if (messages.length === 0 && pendingCount === 0) {
     return (
       <div className="bg-background flex flex-1 flex-col items-center justify-center px-6 text-center">
         <div className="bg-brand/10 mb-3 flex h-16 w-16 items-center justify-center rounded-full">
@@ -118,9 +137,11 @@ export function MessageList({
           {isLoadingMore && <Spinner size="sm" />}
         </div>
       ) : (
-        <p className="text-text-secondary py-2 text-center text-xs">
-          Beginning of conversation
-        </p>
+        messages.length > 0 && (
+          <p className="text-text-secondary py-2 text-center text-xs">
+            Beginning of conversation
+          </p>
+        )
       )}
 
       {messages.map((message) => {
@@ -135,6 +156,30 @@ export function MessageList({
           />
         );
       })}
+
+      {pendingMessages?.map((p) => (
+        <MessageBubble
+          key={`pending-${p.clientId}`}
+          message={pendingToMessage(p, currentUserId)}
+          isOwn
+          status={p.status}
+        />
+      ))}
     </div>
   );
+}
+
+function pendingToMessage(p: PendingMessage, senderId: number): Message {
+  return {
+    id: 0,
+    conversation: 0,
+    sender: senderId,
+    content: p.content,
+    prev_content: null,
+    is_deleted: false,
+    created_at: p.createdAt,
+    updated_at: p.createdAt,
+    edited_at: null,
+    deleted_at: null,
+  };
 }

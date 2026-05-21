@@ -26,14 +26,20 @@ export function MessagePane({ conversation }: MessagePaneProps) {
     loadOlder,
     retry,
     appendIncoming,
+    pendingMessages,
+    addPending,
+    reconcilePending,
   } = useMessages(conversation.id);
 
-  // Subscribe to live message events for this conversation. The hook reads
-  // `onEvent` via a ref every frame, so an inline arrow is fine.
-  const { status } = useConversationSocket(conversation.id, (event) => {
-    if (event.type === "new_message") {
-      appendIncoming(event.data);
+  const { status, send } = useConversationSocket(conversation.id, (event) => {
+    if (event.type !== "new_message") return;
+
+    // If this is the echo of our own send, drop the matching optimistic entry
+    // before appending the server-canonical version.
+    if (user && event.data.sender === user.id) {
+      reconcilePending(event.data.content);
     }
+    appendIncoming(event.data);
   });
 
   if (!user) return null;
@@ -47,17 +53,23 @@ export function MessagePane({ conversation }: MessagePaneProps) {
     [otherUser?.first_name, otherUser?.last_name].filter(Boolean).join(" ") ||
     otherUser?.username;
 
-  // TODO Phase 3: send via socket — { action: "send_message", data: { content } }
-  const handleSend = () => {
-    // stub — see TODO above
+  // The sidebar already knows whether the conversation has any messages — if
+  // `last_message` is null we can skip the loading skeleton entirely and go
+  // straight to the empty state, avoiding a 5-fake-bubble flash for chats
+  // that haven't started yet.
+  const knownEmpty = !conversation.last_message;
+
+  const handleSend = (content: string) => {
+    addPending(content);
+    send("send_message", { content });
   };
 
   return (
-    <section className="flex h-full min-w-0 flex-1 flex-col">
+    <section className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
       <ChatHeader user={otherUser} isSelfChat={isSelfChat} />
 
-      <div className="relative flex flex-1 flex-col">
-        {isLoading ? (
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        {isLoading && !knownEmpty ? (
           <MessageListSkeleton />
         ) : error ? (
           <div className="bg-background flex flex-1 flex-col items-center justify-center gap-3 px-6">
@@ -71,6 +83,7 @@ export function MessagePane({ conversation }: MessagePaneProps) {
             messages={messages}
             currentUserId={user.id}
             participants={participants}
+            pendingMessages={pendingMessages}
             emptyStateName={emptyStateName}
             isSelfChat={isSelfChat}
             hasMore={hasMore}
@@ -82,7 +95,7 @@ export function MessagePane({ conversation }: MessagePaneProps) {
         <ConnectionStatus status={status} />
       </div>
 
-      <MessageInput onSend={handleSend} />
+      <MessageInput onSend={handleSend} disabled={status !== "open"} />
     </section>
   );
 }

@@ -59,6 +59,7 @@ export function MessageInput({
           rows={1}
           aria-label="Message"
           aria-invalid={isTooLong || undefined}
+          autoFocus
           className={cn(
             "border-border bg-input text-text-primary placeholder:text-text-secondary focus-visible:ring-ring flex-1 resize-none rounded-lg border px-3 py-2 text-sm focus-visible:ring-1 focus-visible:outline-none",
             isTooLong && "border-red-500 focus-visible:ring-red-500",

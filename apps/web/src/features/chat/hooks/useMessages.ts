@@ -1,5 +1,5 @@
 import { messagesApi } from "@shared/api";
-import type { Message } from "@shared/types/message";
+import type { Message, PendingMessage } from "@shared/types/message";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 
@@ -13,6 +13,15 @@ interface UseMessagesResult {
   retry: () => void;
   /** Append a live (WebSocket-delivered) message; no-op if id already present. */
   appendIncoming: (message: Message) => void;
+  /** Outgoing messages awaiting a server echo. */
+  pendingMessages: PendingMessage[];
+  /** Insert an optimistic outgoing message; returns the generated clientId. */
+  addPending: (content: string) => string;
+  /**
+   * Drop the first pending message whose content matches; called when the
+   * server echo of our own send arrives. Returns true if a match was removed.
+   */
+  reconcilePending: (content: string) => boolean;
 }
 
 /**
@@ -25,6 +34,7 @@ interface UseMessagesResult {
  */
 export function useMessages(conversationId: number): UseMessagesResult {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [pending, setPending] = useState<PendingMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -100,6 +110,31 @@ export function useMessages(conversationId: number): UseMessagesResult {
     });
   };
 
+  const addPending = (content: string): string => {
+    const clientId = generateClientId();
+    setPending((prev) => [
+      ...prev,
+      {
+        clientId,
+        content,
+        status: "sending",
+        createdAt: new Date().toISOString(),
+      },
+    ]);
+    return clientId;
+  };
+
+  const reconcilePending = (content: string): boolean => {
+    // Closure read of `pending` is safe because frames are processed one at a
+    // time within a single render cycle.
+    const idx = pending.findIndex(
+      (p) => p.content === content && p.status === "sending",
+    );
+    if (idx === -1) return false;
+    setPending((prev) => prev.filter((_, i) => i !== idx));
+    return true;
+  };
+
   return {
     messages,
     isLoading,
@@ -109,7 +144,18 @@ export function useMessages(conversationId: number): UseMessagesResult {
     loadOlder,
     retry,
     appendIncoming,
+    pendingMessages: pending,
+    addPending,
+    reconcilePending,
   };
+}
+
+function generateClientId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  // Sufficient for the lifetime of a single tab; only used as a React key.
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 function extractCursor(url: string | null): string | null {
