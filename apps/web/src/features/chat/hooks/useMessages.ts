@@ -11,6 +11,8 @@ interface UseMessagesResult {
   hasMore: boolean;
   loadOlder: () => Promise<void>;
   retry: () => void;
+  /** Append a live (WebSocket-delivered) message; no-op if id already present. */
+  appendIncoming: (message: Message) => void;
 }
 
 /**
@@ -91,6 +93,13 @@ export function useMessages(conversationId: number): UseMessagesResult {
 
   const retry = () => setVersion((v) => v + 1);
 
+  const appendIncoming = (message: Message) => {
+    setMessages((prev) => {
+      if (prev.some((m) => m.id === message.id)) return prev;
+      return [...prev, message];
+    });
+  };
+
   return {
     messages,
     isLoading,
@@ -99,6 +108,7 @@ export function useMessages(conversationId: number): UseMessagesResult {
     hasMore: nextCursor !== null,
     loadOlder,
     retry,
+    appendIncoming,
   };
 }
 

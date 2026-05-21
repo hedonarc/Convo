@@ -4,8 +4,10 @@ import { cn } from "@shared/utils";
 
 import { useAuth } from "@/providers";
 
+import { useConversationSocket } from "../hooks/useConversationSocket";
 import { useMessages } from "../hooks/useMessages";
 import { ChatHeader } from "./ChatHeader";
+import { ConnectionStatus } from "./ConnectionStatus";
 import { MessageInput } from "./MessageInput";
 import { MessageList } from "./MessageList";
 
@@ -15,8 +17,24 @@ interface MessagePaneProps {
 
 export function MessagePane({ conversation }: MessagePaneProps) {
   const { user } = useAuth();
-  const { messages, isLoading, isLoadingMore, error, hasMore, loadOlder, retry } =
-    useMessages(conversation.id);
+  const {
+    messages,
+    isLoading,
+    isLoadingMore,
+    error,
+    hasMore,
+    loadOlder,
+    retry,
+    appendIncoming,
+  } = useMessages(conversation.id);
+
+  // Subscribe to live message events for this conversation. The hook reads
+  // `onEvent` via a ref every frame, so an inline arrow is fine.
+  const { status } = useConversationSocket(conversation.id, (event) => {
+    if (event.type === "new_message") {
+      appendIncoming(event.data);
+    }
+  });
 
   if (!user) return null;
 
@@ -29,7 +47,7 @@ export function MessagePane({ conversation }: MessagePaneProps) {
     [otherUser?.first_name, otherUser?.last_name].filter(Boolean).join(" ") ||
     otherUser?.username;
 
-  // TODO Phase 3: wire to ConversationSocket.send({ action: "send_message", ... })
+  // TODO Phase 3: send via socket — { action: "send_message", data: { content } }
   const handleSend = () => {
     // stub — see TODO above
   };
@@ -38,27 +56,31 @@ export function MessagePane({ conversation }: MessagePaneProps) {
     <section className="flex h-full min-w-0 flex-1 flex-col">
       <ChatHeader user={otherUser} isSelfChat={isSelfChat} />
 
-      {isLoading ? (
-        <MessageListSkeleton />
-      ) : error ? (
-        <div className="bg-background flex flex-1 flex-col items-center justify-center gap-3 px-6">
-          <ErrorBanner message={error} className="max-w-md" />
-          <Button variant="outline" size="sm" onClick={retry}>
-            Try again
-          </Button>
-        </div>
-      ) : (
-        <MessageList
-          messages={messages}
-          currentUserId={user.id}
-          participants={participants}
-          emptyStateName={emptyStateName}
-          isSelfChat={isSelfChat}
-          hasMore={hasMore}
-          isLoadingMore={isLoadingMore}
-          onLoadOlder={loadOlder}
-        />
-      )}
+      <div className="relative flex flex-1 flex-col">
+        {isLoading ? (
+          <MessageListSkeleton />
+        ) : error ? (
+          <div className="bg-background flex flex-1 flex-col items-center justify-center gap-3 px-6">
+            <ErrorBanner message={error} className="max-w-md" />
+            <Button variant="outline" size="sm" onClick={retry}>
+              Try again
+            </Button>
+          </div>
+        ) : (
+          <MessageList
+            messages={messages}
+            currentUserId={user.id}
+            participants={participants}
+            emptyStateName={emptyStateName}
+            isSelfChat={isSelfChat}
+            hasMore={hasMore}
+            isLoadingMore={isLoadingMore}
+            onLoadOlder={loadOlder}
+          />
+        )}
+
+        <ConnectionStatus status={status} />
+      </div>
 
       <MessageInput onSend={handleSend} />
     </section>
@@ -66,7 +88,6 @@ export function MessagePane({ conversation }: MessagePaneProps) {
 }
 
 function MessageListSkeleton() {
-  // 5 message-shaped placeholders, alternating sides, varying widths.
   const rows = [0, 1, 2, 3, 4];
   return (
     <div className="bg-background flex flex-1 animate-pulse flex-col gap-3 px-4 py-6">
