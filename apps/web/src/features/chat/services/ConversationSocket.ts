@@ -10,6 +10,18 @@ interface ConversationSocketOptions {
   baseUrl: string;
   onEvent: (event: IncomingEvent) => void;
   onStatusChange: (status: SocketStatus) => void;
+  /**
+   * Called once per session when the server closes with `INVALID_TOKEN`. If
+   * the promise resolves, the socket reconnects with the freshly-set cookie.
+   * If it rejects, the close is treated as terminal and `onAuthExpired` fires.
+   */
+  refreshAuth?: () => Promise<void>;
+  /**
+   * Called when the connection is closed for an authentication-terminal
+   * reason (no token, or refresh failed). Consumer should clear the session
+   * state — typically by dispatching the app-wide `auth:expired` event.
+   */
+  onAuthExpired?: () => void;
   /** Override reconnect tuning if needed; defaults match the Phase-2 plan. */
   maxReconnectAttempts?: number;
   reconnectDelayMs?: number;
@@ -31,6 +43,7 @@ export class ConversationSocket {
   private ws: WebSocket | null = null;
   private intentionalClose = false;
   private reconnectAttempts = 0;
+  private authRefreshAttempted = false;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
   private readonly maxReconnectAttempts: number;
@@ -83,6 +96,7 @@ export class ConversationSocket {
 
   private handleOpen = (): void => {
     this.reconnectAttempts = 0;
+    this.authRefreshAttempted = false;
     this.opts.onStatusChange("open");
   };
 
@@ -101,12 +115,40 @@ export class ConversationSocket {
     this.ws = null;
     if (this.intentionalClose) return;
 
-    // Auth / authorization failures are terminal — don't retry.
+    // Expired access token — the refresh cookie may still be valid. Try once
+    // per session: refresh, then reconnect with the freshly-set access cookie.
+    if (
+      event.code === SOCKET_CLOSE_CODES.INVALID_TOKEN &&
+      this.opts.refreshAuth &&
+      !this.authRefreshAttempted
+    ) {
+      this.authRefreshAttempted = true;
+      this.opts.onStatusChange("reconnecting");
+      this.opts
+        .refreshAuth()
+        .then(() => this.connect())
+        .catch(() => {
+          this.opts.onAuthExpired?.();
+          this.opts.onStatusChange("closed");
+        });
+      return;
+    }
+
+    // Terminal auth failures: no token, refresh already attempted and failed,
+    // or no refresh handler injected. Dispatch the session-ended signal so
+    // the AuthProvider can clear React state and the route guards redirect.
     if (
       event.code === SOCKET_CLOSE_CODES.NO_TOKEN ||
-      event.code === SOCKET_CLOSE_CODES.INVALID_TOKEN ||
-      event.code === SOCKET_CLOSE_CODES.NOT_PARTICIPANT
+      event.code === SOCKET_CLOSE_CODES.INVALID_TOKEN
     ) {
+      this.opts.onAuthExpired?.();
+      this.opts.onStatusChange("closed");
+      return;
+    }
+
+    // Authorization failure (not a participant) — not an auth-expiry issue.
+    // Just close; the user is still logged in.
+    if (event.code === SOCKET_CLOSE_CODES.NOT_PARTICIPANT) {
       this.opts.onStatusChange("closed");
       return;
     }

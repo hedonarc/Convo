@@ -1,3 +1,4 @@
+import { AUTH_EXPIRED_EVENT, authApi } from "@shared/api";
 import { useEffect, useRef, useState } from "react";
 
 import { ConversationSocket } from "../services/ConversationSocket";
@@ -40,6 +41,12 @@ export function useConversationSocket(
       baseUrl,
       onEvent: (event) => onEventRef.current(event),
       onStatusChange: setStatus,
+      // If the access token has expired, try refreshing and reconnecting once
+      // before giving up. If the refresh fails the socket emits onAuthExpired,
+      // mirroring the REST interceptor's handling for consistent UX.
+      refreshAuth: authApi.refreshAccessToken,
+      onAuthExpired: () =>
+        window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT)),
     });
     socketRef.current = socket;
     socket.connect();
