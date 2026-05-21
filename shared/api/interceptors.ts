@@ -1,16 +1,19 @@
-import axios from "axios";
 import { API_ENDPOINTS } from "@shared/constants";
+import axios from "axios";
+
 import { apiClient } from "./client";
+
+export const AUTH_EXPIRED_EVENT = "auth:expired";
 
 let isRefreshing = false;
 type QueueItem = {
-  resolve: (value: any) => void;
-  reject: (error: any) => void;
+  resolve: () => void;
+  reject: (error: unknown) => void;
 };
 let failedQueue: QueueItem[] = [];
 
 const processQueue = (error: unknown) => {
-  failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve(null)));
+  failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve()));
   failedQueue = [];
 };
 
@@ -25,17 +28,9 @@ export function setupInterceptors() {
     async (error) => {
       const originalRequest = error.config;
 
-      // Prevent infinite retry loop
-      const isRefreshRequest =
-        originalRequest.url === API_ENDPOINTS.TOKEN_REFRESH;
-
-      if (
-        error.response?.status === 401 &&
-        !originalRequest._retry &&
-        !isRefreshRequest
-      ) {
+      if (error.response?.status === 401 && !originalRequest._retry) {
         if (isRefreshing) {
-          return new Promise((resolve, reject) => {
+          return new Promise<void>((resolve, reject) => {
             failedQueue.push({ resolve, reject });
           })
             .then(() => apiClient(originalRequest))
@@ -47,13 +42,11 @@ export function setupInterceptors() {
 
         try {
           await refreshClient.post(API_ENDPOINTS.TOKEN_REFRESH);
-
           processQueue(null);
-
           return apiClient(originalRequest);
         } catch (err) {
           processQueue(err);
-          localStorage.clear()
+          window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
           return Promise.reject(err);
         } finally {
           isRefreshing = false;
