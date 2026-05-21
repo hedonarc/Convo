@@ -1,4 +1,4 @@
-import type { Conversation } from "@shared/types/conversation";
+import type { Conversation, Participant } from "@shared/types/conversation";
 import { Avatar } from "@shared/ui";
 import { cn } from "@shared/utils";
 
@@ -31,17 +31,19 @@ export function ConversationItem({
   onClick,
 }: ConversationItemProps) {
   const { user } = useAuth();
+  const isMe = conversation.participants?.length === 1;
+  const displayUser = isMe
+    ? user
+    : conversation.participants?.find((p: Participant) => p.id !== user?.id);
 
-  // Derive a display name: use conversation_key as a fallback label
-  // (will be enhanced once the serializer exposes participant user data)
-  const displayName = conversation.conversation_key
-    ? conversation.conversation_key.replace(/_/g, " ").trim()
-    : `Conversation #${conversation.id}`;
+  const displayName =
+    [displayUser?.first_name, displayUser?.last_name]
+      .filter(Boolean)
+      .join(" ") || displayUser?.username;
 
   const invitation = conversation.invitation;
 
-  const isPendingInvitation =
-    !!invitation && !invitation.is_accepted;
+  const isPendingInvitation = !!invitation && !invitation.is_accepted;
 
   const lastMessageText = (() => {
     if (isPendingInvitation && invitation?.email) {
@@ -72,13 +74,21 @@ export function ConversationItem({
           : "hover:bg-brand/5 border-r-2 border-transparent",
       )}
     >
-      <Avatar name={displayName} size="default" />
+      <Avatar
+        name={isPendingInvitation ? invitation?.email : displayName}
+        url={isPendingInvitation ? undefined : displayUser?.avatar}
+        size="default"
+      />
 
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
             <p className="text-text-primary truncate text-sm font-semibold">
-              {displayName}
+              {isPendingInvitation
+                ? invitation?.email
+                : isMe
+                  ? displayName + " (Me)"
+                  : displayName}
             </p>
             {isPendingInvitation && (
               <span className="bg-brand/10 text-brand ring-brand/20 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ring-1 ring-inset">

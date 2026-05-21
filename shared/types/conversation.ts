@@ -1,3 +1,5 @@
+import type { User } from "./user";
+
 export interface Conversation {
   // Present only on invite create/reminder responses, not on listed conversations.
   action?: "created" | "reminder_sent";
@@ -20,13 +22,9 @@ export interface ConversationLastMessage {
   created_at: string;
 }
 
-export interface Participant {
-  id: number;
-  user: number;
-  conversation: number;
-  joined_at: string;
-  last_read_message_id: number | null;
-}
+// A participant currently carries the same fields as a User. Reserved for
+// future per-membership data (conversation id, joined_at, last_read_message_id).
+export interface Participant extends User {}
 
 export interface PaginatedResponse<T> {
   next: string | null;

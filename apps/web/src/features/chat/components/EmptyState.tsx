@@ -11,7 +11,7 @@ export function EmptyState({ onConversationCreated }: EmptyStateProps) {
   return (
     <div className="center flex-1 flex-col gap-8 px-6">
       {/* Icon */}
-      <div className="bg-brand/10 h-20 w-20 center rounded-2xl">
+      <div className="center bg-brand/10 h-20 w-20 rounded-2xl">
         <MessageSquarePlus className="text-brand h-10 w-10" />
       </div>
 

@@ -65,8 +65,7 @@ export function useUserSearchPanelStatus(): UseUserSearchPanelStatusResult {
   const remainingTime = useCountdown(cooldownUntilMs, 1000);
 
   return {
-    creatingId:
-      status.kind === "starting_conversation" ? status.userId : null,
+    creatingId: status.kind === "starting_conversation" ? status.userId : null,
     isInviting: status.kind === "inviting",
     inviteSent: status.kind === "reminder_sent",
     createError: status.kind === "error" ? status.message : null,

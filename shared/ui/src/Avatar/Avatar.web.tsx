@@ -4,6 +4,7 @@ interface AvatarProps {
   name?: string;
   className?: string;
   size?: "sm" | "default" | "lg";
+  url?: string;
 }
 
 const sizeClasses = {
@@ -19,17 +20,26 @@ function getInitials(name?: string): string {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 }
 
-export function Avatar({ name, className, size = "default" }: AvatarProps) {
+export function Avatar({
+  name,
+  className,
+  size = "default",
+  url,
+}: AvatarProps) {
   return (
     <div
       aria-label={name ?? "User avatar"}
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-full bg-brand/10 font-semibold text-brand select-none",
+        "center shrink-0 rounded-full overflow-hidden bg-brand/10 font-semibold text-brand select-none",
         sizeClasses[size],
         className,
       )}
     >
-      {getInitials(name)}
+      {url ? (
+        <img src={url} alt="" className="h-full w-full object-cover" />
+      ) : (
+        getInitials(name)
+      )}
     </div>
   );
 }

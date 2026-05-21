@@ -1,16 +1,26 @@
 import { API_ENDPOINTS } from "@shared/constants";
+import axios from "axios";
+
 import { apiClient } from "./client";
 
+export const AUTH_EXPIRED_EVENT = "auth:expired";
+
 let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (value: unknown) => void;
+type QueueItem = {
+  resolve: () => void;
   reject: (error: unknown) => void;
-}> = [];
+};
+let failedQueue: QueueItem[] = [];
 
 const processQueue = (error: unknown) => {
-  failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve(null)));
+  failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve()));
   failedQueue = [];
 };
+
+const refreshClient = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000",
+  withCredentials: true,
+});
 
 export function setupInterceptors() {
   apiClient.interceptors.response.use(
@@ -20,9 +30,9 @@ export function setupInterceptors() {
 
       if (error.response?.status === 401 && !originalRequest._retry) {
         if (isRefreshing) {
-          return new Promise((resolve, reject) =>
-            failedQueue.push({ resolve, reject }),
-          )
+          return new Promise<void>((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          })
             .then(() => apiClient(originalRequest))
             .catch((e) => Promise.reject(e));
         }
@@ -31,14 +41,12 @@ export function setupInterceptors() {
         isRefreshing = true;
 
         try {
-          // Refresh cookie is sent automatically via withCredentials
-          await apiClient.post(API_ENDPOINTS.TOKEN_REFRESH);
+          await refreshClient.post(API_ENDPOINTS.TOKEN_REFRESH);
           processQueue(null);
           return apiClient(originalRequest);
         } catch (err) {
           processQueue(err);
-          // Session expired — redirect to login
-          window.location.href = "/login";
+          window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
           return Promise.reject(err);
         } finally {
           isRefreshing = false;
