@@ -1,3 +1,10 @@
+/**
+ * Mirrors the backend's MessageSerializer
+ * (apps/conversations/api/serializers/message.py).
+ *
+ * `sender` is a user id only — resolve names/avatars via the conversation's
+ * `participants` array.
+ */
 export interface Message {
   id: number;
   conversation: number;
@@ -10,3 +17,6 @@ export interface Message {
   edited_at: string | null;
   deleted_at: string | null;
 }
+
+/** Client-side status for optimistic / pending sends. */
+export type MessageStatus = "sending" | "sent" | "failed";
