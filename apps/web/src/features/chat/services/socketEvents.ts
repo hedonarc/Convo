@@ -18,6 +18,10 @@ export type IncomingEvent =
   | { type: "message_deleted"; data: Message }
   | { type: "typing"; data: { user_id: number; is_typing: boolean } }
   | { type: "read_receipt"; data: { user_id: number; message_id: number } }
+  | {
+      type: "delivered_receipt";
+      data: { user_id: number; message_id: number };
+    }
   // Backend's error frame is asymmetric — message lives at the top level.
   | { type: "error"; message: string };
 

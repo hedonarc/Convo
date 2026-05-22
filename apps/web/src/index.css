@@ -55,4 +55,15 @@
   .center {
     @apply flex items-center justify-center;
   }
+
+  /* Hide native scrollbars while still allowing the container to scroll.
+     Used by long lists (message list, conversation list) so the chrome
+     stays clean. */
+  .no-scrollbar {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* legacy Edge */
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none; /* WebKit / Blink */
+  }
 }

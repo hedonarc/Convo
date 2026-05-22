@@ -61,6 +61,18 @@ export function ConversationItem({
 
   const isCurrentUserSender = conversation.last_message?.sender === user?.id;
 
+  // "Unread" = there's a last message, it wasn't from me, and either I've never
+  // read anything here or my read pointer is older than the latest message.
+  const myReadPointer =
+    user && conversation.read_receipts
+      ? (conversation.read_receipts[String(user.id)] ?? null)
+      : null;
+  const hasUnread =
+    !!conversation.last_message &&
+    !conversation.last_message.is_deleted &&
+    !isCurrentUserSender &&
+    (myReadPointer === null || conversation.last_message.id > myReadPointer);
+
   return (
     <button
       type="button"
@@ -96,13 +108,28 @@ export function ConversationItem({
               </span>
             )}
           </div>
-          {conversation.last_message && (
-            <span className="text-text-secondary shrink-0 text-xs">
-              {formatRelativeTime(conversation.updated_at)}
-            </span>
-          )}
+          <div className="flex shrink-0 items-center gap-2">
+            {conversation.last_message && (
+              <span className="text-text-secondary text-xs">
+                {formatRelativeTime(conversation.updated_at)}
+              </span>
+            )}
+            {hasUnread && (
+              <span
+                aria-label="Unread"
+                className="bg-brand h-2 w-2 shrink-0 rounded-full"
+              />
+            )}
+          </div>
         </div>
-        <p className="text-text-secondary mt-0.5 truncate text-xs">
+        <p
+          className={cn(
+            "mt-0.5 truncate text-xs",
+            hasUnread
+              ? "text-text-primary font-semibold"
+              : "text-text-secondary",
+          )}
+        >
           {isCurrentUserSender ? `You: ${lastMessageText}` : lastMessageText}
         </p>
       </div>

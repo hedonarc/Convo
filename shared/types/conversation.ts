@@ -15,9 +15,15 @@ export interface Conversation {
   /**
    * Per-participant read pointer keyed by user id (as string, because JSON).
    * `null` means the participant hasn't read anything yet. Used for the
-   * sidebar's unread dot and the "Seen" indicator on own messages.
+   * sidebar's unread dot and the "Seen" double-tick on own messages.
    */
   read_receipts?: Record<string, number | null>;
+  /**
+   * Per-participant delivery pointer keyed by user id. Always ≤ that user's
+   * `read_receipts` entry once they've read. Drives the gray double-tick on
+   * own messages (sent → delivered → seen progression).
+   */
+  delivery_receipts?: Record<string, number | null>;
 }
 
 // A participant currently carries the same fields as a User. Reserved for
