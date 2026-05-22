@@ -26,9 +26,4 @@ export const usersApi = {
     const response = await apiClient.get<User>(API_ENDPOINTS.ME, { signal });
     return response.data;
   },
-
-  me: async (signal?: AbortSignal): Promise<User> => {
-    const response = await apiClient.get<User>(API_ENDPOINTS.ME, { signal });
-    return response.data;
-  },
 };
