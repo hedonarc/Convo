@@ -1,4 +1,5 @@
 import { cn } from "@shared/utils";
+import { useEffect, useState } from "react";
 
 interface AvatarProps {
   name?: string;
@@ -26,17 +27,35 @@ export function Avatar({
   size = "default",
   url,
 }: AvatarProps) {
+  // Track image load failures so we fall back to initials instead of showing
+  // the browser's broken-image glyph. Reset whenever the url changes so a
+  // recovered avatar URL is given a fresh chance to load.
+  const [loadFailed, setLoadFailed] = useState(false);
+  useEffect(() => {
+    setLoadFailed(false);
+  }, [url]);
+
+  // Treat empty string and the literal string "undefined" as no-url; both can
+  // sneak in from optimistic fields or stale serializers and produce a 404.
+  const hasValidUrl = !!url && url !== "undefined" && url !== "null";
+  const showImage = hasValidUrl && !loadFailed;
+
   return (
     <div
       aria-label={name ?? "User avatar"}
       className={cn(
-        "center shrink-0 rounded-full overflow-hidden bg-brand/10 font-semibold text-brand select-none",
+        "center bg-brand/10 text-brand shrink-0 overflow-hidden rounded-full font-semibold select-none",
         sizeClasses[size],
         className,
       )}
     >
-      {url ? (
-        <img src={url} alt="" className="h-full w-full object-cover" />
+      {showImage ? (
+        <img
+          src={url}
+          alt=""
+          onError={() => setLoadFailed(true)}
+          className="h-full w-full object-cover"
+        />
       ) : (
         getInitials(name)
       )}

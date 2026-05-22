@@ -47,7 +47,8 @@ export function MessagePane({ conversation }: MessagePaneProps) {
   const participants = conversation.participants ?? [];
   const otherUser =
     participants.find((p) => p.id !== user.id) ?? participants[0] ?? null;
-  const isSelfChat = participants.length === 1 && participants[0]?.id === user.id;
+  const isSelfChat =
+    participants.length === 1 && participants[0]?.id === user.id;
 
   const emptyStateName =
     [otherUser?.first_name, otherUser?.last_name].filter(Boolean).join(" ") ||
@@ -65,7 +66,7 @@ export function MessagePane({ conversation }: MessagePaneProps) {
   };
 
   return (
-    <section className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
+    <section className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
       <ChatHeader user={otherUser} isSelfChat={isSelfChat} />
 
       <div className="relative flex min-h-0 flex-1 flex-col">

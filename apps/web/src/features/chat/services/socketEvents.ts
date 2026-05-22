@@ -7,11 +7,17 @@ import type { Message } from "@shared/types/message";
 
 // ── Client → Server ────────────────────────────────────────────────────────
 export type OutgoingAction =
-  | { action: "send_message"; data: { content: string } };
+  | { action: "send_message"; data: { content: string } }
+  | { action: "typing"; data: { is_typing: boolean } }
+  | { action: "read"; data: { message_id: number } };
 
 // ── Server → Client ────────────────────────────────────────────────────────
 export type IncomingEvent =
   | { type: "new_message"; data: Message }
+  | { type: "message_edited"; data: Message }
+  | { type: "message_deleted"; data: Message }
+  | { type: "typing"; data: { user_id: number; is_typing: boolean } }
+  | { type: "read_receipt"; data: { user_id: number; message_id: number } }
   // Backend's error frame is asymmetric — message lives at the top level.
   | { type: "error"; message: string };
 

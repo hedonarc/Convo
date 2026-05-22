@@ -21,12 +21,18 @@ export function MessageInput({
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-grow up to MAX_HEIGHT_PX, then overflow internally.
+  // Auto-grow up to MAX_HEIGHT_PX, then overflow internally. Also toggle
+  // overflow-y manually: Chrome shows a ghost vertical scrollbar on textareas
+  // even when content fits (intrinsic UA styles + box-model rounding), which
+  // makes the composer look broken. Keep overflow hidden while we're under
+  // the cap; only switch to auto when the user has actually written past it.
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, MAX_HEIGHT_PX)}px`;
+    const next = Math.min(el.scrollHeight, MAX_HEIGHT_PX);
+    el.style.height = `${next}px`;
+    el.style.overflowY = el.scrollHeight > MAX_HEIGHT_PX ? "auto" : "hidden";
   }, [value]);
 
   const trimmed = value.trim();

@@ -12,11 +12,17 @@ export interface Conversation {
   created_at: string;
   updated_at: string;
   invitation: Invitation | null;
+  /**
+   * Per-participant read pointer keyed by user id (as string, because JSON).
+   * `null` means the participant hasn't read anything yet. Used for the
+   * sidebar's unread dot and the "Seen" indicator on own messages.
+   */
+  read_receipts?: Record<string, number | null>;
 }
 
 // A participant currently carries the same fields as a User. Reserved for
 // future per-membership data (conversation id, joined_at, last_read_message_id).
-export interface Participant extends User { }
+export interface Participant extends User {}
 
 export interface PaginatedResponse<T> {
   next: string | null;
