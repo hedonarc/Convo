@@ -1,6 +1,7 @@
 import { API_ENDPOINTS } from "@shared/constants";
 import type { User } from "@shared/types/user";
-import { apiClient } from "./client";
+
+import { apiClient, refreshClient } from "./client";
 
 interface LoginData {
   username?: string;
@@ -38,5 +39,16 @@ export const authApi = {
 
   logout: async (): Promise<void> => {
     await apiClient.post(API_ENDPOINTS.LOGOUT);
+  },
+
+  /**
+   * Trade the httpOnly refresh cookie for a fresh access cookie. Uses
+   * `refreshClient` so a 401 from this endpoint cannot recursively trigger
+   * the response interceptor's own refresh logic. Resolves on success,
+   * rejects on failure — caller decides how to react (e.g. dispatching
+   * `AUTH_EXPIRED_EVENT`).
+   */
+  refreshAccessToken: async (): Promise<void> => {
+    await refreshClient.post(API_ENDPOINTS.TOKEN_REFRESH);
   },
 };

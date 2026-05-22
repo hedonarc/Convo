@@ -5,6 +5,9 @@ export const ROUTES = {
   REGISTER: "/register",
 } as const;
 
+/** Mirrors apps/conversations/constants.py on the backend. */
+export const MAX_MESSAGE_LENGTH = 4096;
+
 export const API_ENDPOINTS = {
   LOGIN: "/api/login/",
   REGISTER: "/api/register/",

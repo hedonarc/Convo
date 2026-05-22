@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { ConversationList } from "../features/chat/components/ConversationList";
 import { EmptyState } from "../features/chat/components/EmptyState";
+import { MessagePane } from "../features/chat/components/MessagePane";
 import { PendingInvitePanel } from "../features/chat/components/PendingInvitePanel";
 import { useConversations } from "../features/chat/hooks/useConversations";
 
@@ -55,6 +56,10 @@ export default function Chat() {
     );
   }
 
+  const isPendingInvite =
+    activeConversation?.invitation &&
+    !activeConversation.invitation.is_accepted;
+
   // ── Has conversations ────────────────────────────────────────────────────
   return (
     <div className="flex h-screen overflow-hidden">
@@ -65,29 +70,23 @@ export default function Chat() {
         onConversationCreated={handleCreated}
       />
 
-      {/* Right pane placeholder */}
-      <main className="center text-text-secondary flex-1 flex-col gap-3">
+      <main className="flex min-w-0 flex-1 flex-col">
         {activeConversation ? (
-          <div className="flex flex-col items-center gap-2">
-            <div className="flex flex-1 flex-col items-center justify-center p-6">
-              {activeConversation.invitation &&
-              !activeConversation.invitation.is_accepted ? (
-                <PendingInvitePanel
-                  key={activeConversation.id}
-                  conversation={activeConversation}
-                />
-              ) : (
-                <div className="text-text-secondary flex flex-col items-center gap-2">
-                  <p className="text-text-primary text-sm font-medium">
-                    Conversation #{activeConversation.id}
-                  </p>
-                  <p className="text-xs">Message pane coming soon</p>
-                </div>
-              )}
+          isPendingInvite ? (
+            <div className="center flex-1 px-6">
+              <PendingInvitePanel
+                key={activeConversation.id}
+                conversation={activeConversation}
+              />
             </div>
-          </div>
+          ) : (
+            <MessagePane
+              key={activeConversation.id}
+              conversation={activeConversation}
+            />
+          )
         ) : (
-          <div className="text-text-secondary flex flex-1 flex-col items-center justify-center gap-3">
+          <div className="text-text-secondary center flex-1 flex-col gap-3">
             <p className="text-sm font-medium">Select a conversation</p>
             <p className="text-xs">
               Choose from the list on the left to start messaging

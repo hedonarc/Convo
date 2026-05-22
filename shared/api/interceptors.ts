@@ -1,6 +1,4 @@
-import { API_ENDPOINTS } from "@shared/constants";
-import axios from "axios";
-
+import { authApi } from "./auth.api";
 import { apiClient } from "./client";
 
 export const AUTH_EXPIRED_EVENT = "auth:expired";
@@ -16,11 +14,6 @@ const processQueue = (error: unknown) => {
   failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve()));
   failedQueue = [];
 };
-
-const refreshClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000",
-  withCredentials: true,
-});
 
 export function setupInterceptors() {
   apiClient.interceptors.response.use(
@@ -41,11 +34,13 @@ export function setupInterceptors() {
         isRefreshing = true;
 
         try {
-          await refreshClient.post(API_ENDPOINTS.TOKEN_REFRESH);
+          await authApi.refreshAccessToken();
           processQueue(null);
           return apiClient(originalRequest);
         } catch (err) {
           processQueue(err);
+          // Signal session loss; AuthProvider listens and clears React state,
+          // route guards then redirect declaratively via <Navigate>.
           window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
           return Promise.reject(err);
         } finally {
