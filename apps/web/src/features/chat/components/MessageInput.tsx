@@ -9,6 +9,8 @@ interface MessageInputProps {
   /** Disable when the socket isn't open / send is in flight. */
   disabled?: boolean;
   placeholder?: string;
+  /** Fires on each non-trivial keystroke; used to emit throttled typing pings. */
+  onTyping?: () => void;
 }
 
 const MAX_HEIGHT_PX = 128; // ≈ 5 lines of text-sm with default line-height
@@ -17,6 +19,7 @@ export function MessageInput({
   onSend,
   disabled = false,
   placeholder = "Type a message…",
+  onTyping,
 }: MessageInputProps) {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -59,7 +62,10 @@ export function MessageInput({
         <textarea
           ref={textareaRef}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {
+            setValue(e.target.value);
+            if (e.target.value.length > 0) onTyping?.();
+          }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           rows={1}

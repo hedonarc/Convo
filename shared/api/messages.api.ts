@@ -24,4 +24,24 @@ export const messagesApi = {
     );
     return response.data;
   },
+
+  /** Edit own message content. Backend broadcasts `message_edited` to peers. */
+  edit: async (
+    conversationId: number,
+    messageId: number,
+    content: string,
+  ): Promise<Message> => {
+    const response = await apiClient.patch<Message>(
+      `${API_ENDPOINTS.CONVERSATIONS}${conversationId}/messages/${messageId}/`,
+      { content },
+    );
+    return response.data;
+  },
+
+  /** Soft-delete own message. Backend broadcasts `message_deleted` to peers. */
+  remove: async (conversationId: number, messageId: number): Promise<void> => {
+    await apiClient.delete(
+      `${API_ENDPOINTS.CONVERSATIONS}${conversationId}/messages/${messageId}/`,
+    );
+  },
 };

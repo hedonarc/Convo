@@ -13,6 +13,12 @@ interface UseMessagesResult {
   retry: () => void;
   /** Append a live (WebSocket-delivered) message; no-op if id already present. */
   appendIncoming: (message: Message) => void;
+  /**
+   * Replace a known message in place. Used for `message_edited` and
+   * `message_deleted` WS events. No-op if the id isn't currently in the list
+   * (e.g. the edit affected an older page we haven't loaded yet).
+   */
+  applyMessageUpdate: (message: Message) => void;
   /** Outgoing messages awaiting a server echo. */
   pendingMessages: PendingMessage[];
   /** Insert an optimistic outgoing message; returns the generated clientId. */
@@ -110,6 +116,16 @@ export function useMessages(conversationId: number): UseMessagesResult {
     });
   };
 
+  const applyMessageUpdate = (message: Message) => {
+    setMessages((prev) => {
+      const idx = prev.findIndex((m) => m.id === message.id);
+      if (idx === -1) return prev;
+      const next = prev.slice();
+      next[idx] = message;
+      return next;
+    });
+  };
+
   const addPending = (content: string): string => {
     const clientId = generateClientId();
     setPending((prev) => [
@@ -144,6 +160,7 @@ export function useMessages(conversationId: number): UseMessagesResult {
     loadOlder,
     retry,
     appendIncoming,
+    applyMessageUpdate,
     pendingMessages: pending,
     addPending,
     reconcilePending,
