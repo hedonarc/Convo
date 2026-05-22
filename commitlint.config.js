@@ -10,10 +10,5 @@ export default {
       "always",
       ["feat", "fix", "perf", "chore", "refactor", "docs", "test", "ci", "build"],
     ],
-    "subject-case": [
-      2,
-      "always",
-      ["lower-case", "sentence-case"],
-    ],
   },
 };

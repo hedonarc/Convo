@@ -8,11 +8,26 @@ import { EmptyState } from "../features/chat/components/EmptyState";
 import { MessagePane } from "../features/chat/components/MessagePane";
 import { PendingInvitePanel } from "../features/chat/components/PendingInvitePanel";
 import { useConversations } from "../features/chat/hooks/useConversations";
+import { useUserSocket } from "../features/chat/hooks/useUserSocket";
 
 export default function Chat() {
-  const { conversations, isLoading, error, refetch } = useConversations();
+  const { conversations, isLoading, error, refetch, applyUpdate } =
+    useConversations();
   const [activeConversation, setActiveConversation] =
     useState<Conversation | null>(null);
+
+  // Per-user WebSocket: receive cross-conversation pushes so the sidebar
+  // updates in realtime without one socket per conversation. Keeps the
+  // active conversation reference in sync so transient state on it
+  // (e.g. invitation.is_accepted flipping when a peer accepts) is reflected
+  // immediately.
+  useUserSocket((event) => {
+    if (event.type !== "conversation_updated") return;
+    applyUpdate(event.data);
+    setActiveConversation((current) =>
+      current && current.id === event.data.id ? event.data : current,
+    );
+  });
 
   const handleCreated = async (conversation: Conversation) => {
     await refetch();
