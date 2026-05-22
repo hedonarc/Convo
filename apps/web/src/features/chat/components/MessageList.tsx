@@ -31,9 +31,20 @@ interface MessageListProps {
   onEditMessage?: (messageId: number, content: string) => Promise<void>;
   /** Delete handler; receives messageId. */
   onDeleteMessage?: (messageId: number) => Promise<void>;
+  /**
+   * Fired when a peer message becomes visible in the viewport. The list
+   * coalesces intersection events and only calls back with the highest id
+   * it has seen so far (server is idempotent on lower ids).
+   */
+  onMarkAsRead?: (messageId: number) => void;
 }
 
 const NEAR_BOTTOM_THRESHOLD_PX = 100;
+// Debounce intersections so the initial mount (which fires for every visible
+// bubble at once) collapses into a single read-receipt send.
+const READ_FLUSH_DEBOUNCE_MS = 200;
+// Bubble must be at least half-visible to count as "read".
+const READ_VISIBILITY_THRESHOLD = 0.5;
 
 export function MessageList({
   messages,
@@ -50,6 +61,7 @@ export function MessageList({
   lastDeliveredOwnMessageId,
   onEditMessage,
   onDeleteMessage,
+  onMarkAsRead,
 }: MessageListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -60,12 +72,83 @@ export function MessageList({
   // listing it as a dependency (which would re-run on every scroll event).
   const isNearBottomRef = useRef(true);
 
+  // Per-peer-message visibility tracking. The observer is created once on
+  // mount; ref callbacks register/unregister individual bubbles as they
+  // mount and unmount. Ref callbacks fire before useEffect on initial
+  // render, so any bubbles registered before the observer exists are
+  // queued in `pendingObservedRef` and observed when the effect runs.
+  const peerObserverRef = useRef<IntersectionObserver | null>(null);
+  const pendingObservedRef = useRef<Set<Element>>(new Set());
+  // Highest message id we've already told the server about — prevents
+  // re-sending for the same id when the user scrolls within the same range.
+  const highestReadIdSentRef = useRef<number>(0);
+  // Kept fresh so the observer effect (mount-only) calls the current
+  // handler without needing onMarkAsRead in its deps.
+  const onMarkAsReadRef = useRef(onMarkAsRead);
+
   const [isNearBottom, setIsNearBottom] = useState(true);
   const [unreadBelow, setUnreadBelow] = useState(0);
 
   useEffect(() => {
     isNearBottomRef.current = isNearBottom;
   }, [isNearBottom]);
+
+  useEffect(() => {
+    onMarkAsReadRef.current = onMarkAsRead;
+  }, [onMarkAsRead]);
+
+  // Set up the per-message visibility observer once. Each peer bubble's ref
+  // callback (`observePeer` below) attaches itself; we coalesce intersection
+  // events and only emit the highest visible peer id we haven't reported yet.
+  useEffect(() => {
+    const scrollEl = scrollRef.current;
+    if (!scrollEl) return;
+
+    let flushTimer: ReturnType<typeof setTimeout> | null = null;
+    let pendingHighest = 0;
+
+    const flush = () => {
+      flushTimer = null;
+      const id = pendingHighest;
+      pendingHighest = 0;
+      if (id > highestReadIdSentRef.current) {
+        highestReadIdSentRef.current = id;
+        onMarkAsReadRef.current?.(id);
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        let maxFromBatch = 0;
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const idAttr = (entry.target as HTMLElement).dataset.peerMessageId;
+          if (!idAttr) continue;
+          const id = Number(idAttr);
+          if (id > maxFromBatch) maxFromBatch = id;
+        }
+        if (maxFromBatch > pendingHighest) pendingHighest = maxFromBatch;
+        if (pendingHighest > 0 && flushTimer === null) {
+          flushTimer = setTimeout(flush, READ_FLUSH_DEBOUNCE_MS);
+        }
+      },
+      { root: scrollEl, threshold: READ_VISIBILITY_THRESHOLD },
+    );
+
+    peerObserverRef.current = observer;
+    // Catch up: ref callbacks fire before this effect on initial mount, so
+    // any peer bubbles already in the DOM are queued — observe them now.
+    for (const el of pendingObservedRef.current) {
+      observer.observe(el);
+    }
+    pendingObservedRef.current.clear();
+
+    return () => {
+      if (flushTimer !== null) clearTimeout(flushTimer);
+      observer.disconnect();
+      peerObserverRef.current = null;
+    };
+  }, []);
 
   const firstId = messages[0]?.id ?? null;
   const lastId = messages[messages.length - 1]?.id ?? null;
@@ -169,6 +252,23 @@ export function MessageList({
     setUnreadBelow(0);
   };
 
+  // Stable-by-construction ref callback (closes only over refs). React 19
+  // returns the cleanup when the bubble unmounts; we also unobserve from
+  // the pending set in case the observer hasn't been created yet.
+  const observePeer = (node: HTMLDivElement | null) => {
+    if (!node) return;
+    const observer = peerObserverRef.current;
+    if (observer) {
+      observer.observe(node);
+    } else {
+      pendingObservedRef.current.add(node);
+    }
+    return () => {
+      peerObserverRef.current?.unobserve(node);
+      pendingObservedRef.current.delete(node);
+    };
+  };
+
   // Empty state — only when there are no committed AND no pending bubbles.
   if (messages.length === 0 && pendingCount === 0) {
     return (
@@ -213,6 +313,7 @@ export function MessageList({
 
         {messages.map((message) => {
           const isOwn = message.sender === currentUserId;
+          const isPeer = !isOwn && !message.is_deleted;
           const seen =
             isOwn &&
             !message.is_deleted &&
@@ -225,9 +326,8 @@ export function MessageList({
             lastDeliveredOwnMessageId !== null &&
             lastDeliveredOwnMessageId !== undefined &&
             lastDeliveredOwnMessageId >= message.id;
-          return (
+          const bubble = (
             <MessageBubble
-              key={message.id}
               message={message}
               isOwn={isOwn}
               sender={isOwn ? undefined : participantById.get(message.sender)}
@@ -245,6 +345,21 @@ export function MessageList({
                   : undefined
               }
             />
+          );
+          // Peer bubbles get wrapped in an observed row so the
+          // IntersectionObserver can drive "this user has seen up to id X"
+          // once the bubble is actually in view (≥50% visible). Own /
+          // deleted bubbles still need a wrapper so React's keying is
+          // applied to the same element type for all branches (avoids
+          // unmount/remount churn when a message transitions to deleted).
+          return (
+            <div
+              key={message.id}
+              ref={isPeer ? observePeer : undefined}
+              data-peer-message-id={isPeer ? message.id : undefined}
+            >
+              {bubble}
+            </div>
           );
         })}
 

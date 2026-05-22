@@ -17,8 +17,21 @@ interface UseTypingIndicatorResult {
    * hook can be declared before the socket hook that produces it.
    */
   notifyTyping: (send: Send) => void;
+  /**
+   * Call when the user explicitly finishes typing — e.g. just sent a message
+   * or cleared the composer. Cancels the pending deferred stop frame and
+   * emits `is_typing: false` immediately, so peers don't keep seeing the
+   * stale "is typing…" dot for up to 3s after a send.
+   */
+  notifyStopped: (send: Send) => void;
   /** Call when an incoming `typing` frame is received. */
   applyTypingEvent: (userId: number, isTyping: boolean) => void;
+  /**
+   * Mark a peer as no longer typing locally. Used as a safety net when a
+   * message from that peer arrives — the new message implies they pressed
+   * Send, even if the explicit stop frame races / drops.
+   */
+  clearTyping: (userId: number) => void;
 }
 
 const SEND_INTERVAL_MS = 3000;
@@ -52,6 +65,19 @@ export function useTypingIndicator(): UseTypingIndicatorResult {
     }, SEND_INTERVAL_MS);
   };
 
+  const notifyStopped: UseTypingIndicatorResult["notifyStopped"] = (send) => {
+    if (stopTimerRef.current) {
+      clearTimeout(stopTimerRef.current);
+      stopTimerRef.current = null;
+    }
+    // Only emit a stop frame if we'd previously announced typing in this
+    // throttle window — otherwise peers never saw us as typing to begin with.
+    if (lastSentRef.current > 0) {
+      send("typing", { is_typing: false });
+      lastSentRef.current = 0;
+    }
+  };
+
   const applyTypingEvent: UseTypingIndicatorResult["applyTypingEvent"] = (
     userId,
     isTyping,
@@ -62,6 +88,13 @@ export function useTypingIndicator(): UseTypingIndicatorResult {
     } else {
       expirations.delete(userId);
     }
+    setTypingUserIds(Array.from(expirations.keys()));
+  };
+
+  const clearTyping: UseTypingIndicatorResult["clearTyping"] = (userId) => {
+    const expirations = expirationsRef.current;
+    if (!expirations.has(userId)) return;
+    expirations.delete(userId);
     setTypingUserIds(Array.from(expirations.keys()));
   };
 
@@ -89,5 +122,11 @@ export function useTypingIndicator(): UseTypingIndicatorResult {
     };
   }, []);
 
-  return { typingUserIds, notifyTyping, applyTypingEvent };
+  return {
+    typingUserIds,
+    notifyTyping,
+    notifyStopped,
+    applyTypingEvent,
+    clearTyping,
+  };
 }

@@ -2,7 +2,6 @@ import { messagesApi } from "@shared/api";
 import type { Conversation } from "@shared/types/conversation";
 import { Button, ErrorBanner } from "@shared/ui";
 import { cn } from "@shared/utils";
-import { useEffect } from "react";
 
 import { useAuth } from "@/providers";
 
@@ -49,11 +48,16 @@ export function MessagePane({ conversation }: MessagePaneProps) {
     if (event.type === "new_message") {
       if (user && event.data.sender === user.id) {
         reconcilePending(event.data.content);
+      } else {
+        // Safety net: a peer's new message implies they pressed Send. Clear
+        // their typing dot locally in case the explicit `is_typing: false`
+        // frame races with the message (or never arrives — disconnect).
+        typing.clearTyping(event.data.sender);
       }
       appendIncoming(event.data);
-      // Auto-read of peer messages is handled by the effect on
-      // `latestPeerMessageId` below — it fires whenever a peer message
-      // becomes the most recent in the visible list.
+      // Read receipts are driven by the IntersectionObserver inside
+      // MessageList — only bubbles that actually enter the viewport get
+      // marked as read. No-op here.
       return;
     }
     if (event.type === "message_edited" || event.type === "message_deleted") {
@@ -69,20 +73,6 @@ export function MessagePane({ conversation }: MessagePaneProps) {
     // fresh, no-op here.
     // event.type === "error" — surfaced server-side; ignored client-side.
   });
-
-  // Mark the latest peer message as read when the conversation opens / loads.
-  const latestPeerMessageId = (() => {
-    if (!user) return null;
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const m = messages[i];
-      if (!m.is_deleted && m.sender !== user.id) return m.id;
-    }
-    return null;
-  })();
-  useEffect(() => {
-    if (latestPeerMessageId === null || status !== "open") return;
-    send("read", { message_id: latestPeerMessageId });
-  }, [latestPeerMessageId, status, send]);
 
   if (!user) return null;
 
@@ -127,6 +117,10 @@ export function MessagePane({ conversation }: MessagePaneProps) {
   const handleSend = (content: string) => {
     addPending(content);
     send("send_message", { content });
+    // Cancel the deferred stop-timer and tell peers we've stopped typing
+    // right now — otherwise they'd keep seeing the "is typing…" dot until
+    // the 3s throttle window expires.
+    typing.notifyStopped(send);
   };
 
   const handleEdit = async (messageId: number, content: string) => {
@@ -182,6 +176,10 @@ export function MessagePane({ conversation }: MessagePaneProps) {
             lastDeliveredOwnMessageId={lastDeliveredOwnMessageId}
             onEditMessage={handleEdit}
             onDeleteMessage={handleDelete}
+            onMarkAsRead={(messageId) => {
+              if (status !== "open") return;
+              send("read", { message_id: messageId });
+            }}
           />
         )}
 
