@@ -3,6 +3,7 @@ export const ROUTES = {
   LANDING: "/",
   LOGIN: "/login",
   REGISTER: "/register",
+  INVITE: "/invite/:token",
 } as const;
 
 /** Mirrors apps/conversations/constants.py on the backend. */

@@ -4,6 +4,7 @@ import type {
   PaginatedResponse,
   StartConversationResponse,
 } from "@shared/types/conversation";
+import type { InviteResolveResponse } from "@shared/types/invite";
 import { apiClient } from "./client";
 
 export const conversationsApi = {
@@ -28,9 +29,15 @@ export const conversationsApi = {
   },
 
   createInvite: async (email: string): Promise<Conversation> => {
-    const response = await apiClient.post<Conversation>(
-      API_ENDPOINTS.INVITES,
-      { email },
+    const response = await apiClient.post<Conversation>(API_ENDPOINTS.INVITES, {
+      email,
+    });
+    return response.data;
+  },
+
+  resolveInvite: async (token: string): Promise<InviteResolveResponse> => {
+    const response = await apiClient.get<InviteResolveResponse>(
+      `${API_ENDPOINTS.INVITES}${token}/`,
     );
     return response.data;
   },
