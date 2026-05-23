@@ -16,6 +16,8 @@ import { extractApiError } from "@shared/utils";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
+import { useAuth } from "@/providers";
+
 /**
  * Pre-registration "Accept Invite" screen.
  *
@@ -28,10 +30,12 @@ import { useNavigate, useParams } from "react-router";
 export default function Invite() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const [invite, setInvite] = useState<InviteResolveResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(!!token);
+  const [accepting, setAccepting] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -95,9 +99,60 @@ export default function Invite() {
     );
   }
 
-  // ── Default: no-account → Accept → Register ──────────────────────────────
   const inviterName = displayName(invite.inviter);
 
+  // ── Existing account, logged in → one-tap continue ──────────────────────
+  // The backend doesn't enforce email match on accept (it adds the current
+  // user as a participant), so a signed-in user can join from any device.
+  if (invite.has_account && isAuthenticated) {
+    const onContinue = async () => {
+      if (!token) return;
+      setAccepting(true);
+      try {
+        await conversationsApi.acceptInvite(token);
+        navigate(ROUTES.CHAT);
+      } catch (err) {
+        setError(extractApiError(err, inviteText.invalidDescription));
+        setAccepting(false);
+      }
+    };
+    return (
+      <InviteShell
+        title={inviteText.welcomeBackInvitee}
+        description={`${inviteText.welcomeBackDescription} ${inviterName}.`}
+      >
+        <ErrorBanner message={error} />
+        <Button className="w-full" onClick={onContinue} disabled={accepting}>
+          {accepting ? inviteText.joining : inviteText.continueToConversation}
+        </Button>
+      </InviteShell>
+    );
+  }
+
+  // ── Existing account, logged out → route to Login w/ invite state ────────
+  if (invite.has_account) {
+    const onSignIn = () => {
+      navigate(ROUTES.LOGIN, {
+        state: {
+          inviteToken: token,
+          inviteEmail: invite.email,
+          inviterName,
+        },
+      });
+    };
+    return (
+      <InviteShell
+        title={inviteText.welcomeBackInvitee}
+        description={`${inviteText.welcomeBackDescription} ${inviterName}.`}
+      >
+        <Button className="w-full" onClick={onSignIn}>
+          {inviteText.signInToContinue}
+        </Button>
+      </InviteShell>
+    );
+  }
+
+  // ── Default: no-account → Accept → Register ──────────────────────────────
   const onAccept = () => {
     // Pass the resolved token + canonical email to Register via router state.
     // Register no longer reads them from the query string — the token never

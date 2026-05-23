@@ -1,20 +1,30 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { authApi } from "@shared/api";
+import { authApi, conversationsApi } from "@shared/api";
 import { ROUTES } from "@shared/constants";
-import { authText } from "@shared/constants/strings/index.en";
+import { authText, inviteText } from "@shared/constants/strings/index.en";
 import { AuthCard, Button, ErrorBanner, FormField, Link } from "@shared/ui";
 import { extractApiError } from "@shared/utils";
 import { type LoginFormValues, loginSchema } from "@shared/validation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 
 import { useAuth } from "@/providers";
 
+interface InviteState {
+  inviteToken?: string;
+  inviteEmail?: string;
+  inviterName?: string;
+}
+
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [error, setError] = useState<string | null>(null);
   const { setUser } = useAuth();
+
+  const inviteState = (location.state ?? {}) as InviteState;
+  const { inviteToken, inviteEmail, inviterName } = inviteState;
 
   const {
     register,
@@ -22,6 +32,9 @@ export default function Login() {
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      identifier: inviteEmail ?? "",
+    },
   });
 
   const onSubmit = async (data: LoginFormValues) => {
@@ -32,16 +45,35 @@ export default function Login() {
         password: data.password,
       });
       setUser(response.user);
+
+      // Best-effort accept-after-login when the user arrived via an invite.
+      // Failures are swallowed — the user is still logged in and can find
+      // the invite again from their email if anything goes sideways.
+      if (inviteToken) {
+        try {
+          await conversationsApi.acceptInvite(inviteToken);
+        } catch {
+          /* best-effort */
+        }
+      }
+
       navigate(ROUTES.CHAT);
     } catch (err: unknown) {
       setError(extractApiError(err, authText.credentialsError));
     }
   };
 
+  const title = inviterName
+    ? inviteText.welcomeBackInvitee
+    : authText.welcomeBack;
+  const description = inviterName
+    ? `${inviteText.welcomeBackDescription} ${inviterName}. ${inviteText.signInToContinue}.`
+    : authText.enterEmailPassword;
+
   return (
     <AuthCard
-      title={authText.welcomeBack}
-      description={authText.enterEmailPassword}
+      title={title}
+      description={description}
       onSubmit={handleSubmit(onSubmit)}
       footer={
         <>
