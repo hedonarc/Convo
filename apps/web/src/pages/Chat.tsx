@@ -2,7 +2,9 @@ import { inviteText } from "@shared/constants/strings/index.en";
 import type { Conversation } from "@shared/types/conversation";
 import { Spinner, useToast } from "@shared/ui";
 import { AlertCircle } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import { usePresenceContext } from "@/providers";
 
 import { ConversationList } from "../features/chat/components/ConversationList";
 import { EmptyState } from "../features/chat/components/EmptyState";
@@ -17,13 +19,14 @@ export default function Chat() {
   const [activeConversation, setActiveConversation] =
     useState<Conversation | null>(null);
   const { toast } = useToast();
+  const { apply: applyPresence } = usePresenceContext();
 
   // Per-user WebSocket: receive cross-conversation pushes so the sidebar
   // updates in realtime without one socket per conversation. Keeps the
   // active conversation reference in sync so transient state on it
   // (e.g. invitation.is_accepted flipping when a peer accepts) is reflected
   // immediately.
-  useUserSocket((event) => {
+  const { send } = useUserSocket((event) => {
     if (event.type === "conversation_updated") {
       applyUpdate(event.data);
       setActiveConversation((current) =>
@@ -41,8 +44,26 @@ export default function Chat() {
         title: `🎉 ${name}`,
         message: inviteText.joinedToast,
       });
+      return;
+    }
+    if (event.type === "presence_changed") {
+      applyPresence(event.data);
     }
   });
+
+  // Visibility ping: tell the backend whether this tab is focused so it can
+  // flip our presence to away/online. Initial state is sent once on mount;
+  // subsequent transitions piggyback on the document visibilitychange event.
+  useEffect(() => {
+    const fire = () =>
+      send({
+        action: "visibility",
+        data: { visible: document.visibilityState === "visible" },
+      });
+    fire();
+    document.addEventListener("visibilitychange", fire);
+    return () => document.removeEventListener("visibilitychange", fire);
+  }, [send]);
 
   const handleCreated = async (conversation: Conversation) => {
     await refetch();

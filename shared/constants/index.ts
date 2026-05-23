@@ -18,4 +18,5 @@ export const API_ENDPOINTS = {
   USERS: "/api/users/",
   INVITES: "/api/invites/",
   ME: "/api/me/",
+  PRESENCE: "/api/presence/",
 } as const;

@@ -1,19 +1,25 @@
 import { AUTH_EXPIRED_EVENT, authApi } from "@shared/api";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { SocketStatus } from "../services/socketEvents";
 import { UserSocket } from "../services/UserSocket";
-import type { UserSocketEvent } from "../services/userSocketEvents";
+import type {
+  UserSocketEvent,
+  UserSocketOutgoing,
+} from "../services/userSocketEvents";
 
 interface UseUserSocketResult {
   status: SocketStatus;
+  send: (frame: UserSocketOutgoing) => void;
 }
 
 /**
  * One per-user WebSocket while a user is logged in. Surfaces cross-
- * conversation server pushes (today: `conversation_updated`) via the
- * `onEvent` callback — read via a ref so consumers can pass inline arrows
- * without re-running the connect effect.
+ * conversation server pushes via the `onEvent` callback — read via a ref
+ * so consumers can pass inline arrows without re-running the connect effect.
+ *
+ * The returned `send` is a stable reference that forwards to the underlying
+ * socket; safe to depend on or pass to other hooks.
  */
 export function useUserSocket(
   onEvent: (event: UserSocketEvent) => void,
@@ -45,5 +51,9 @@ export function useUserSocket(
     };
   }, []);
 
-  return { status };
+  const send = useCallback((frame: UserSocketOutgoing) => {
+    socketRef.current?.send(frame);
+  }, []);
+
+  return { status, send };
 }

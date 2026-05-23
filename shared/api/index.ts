@@ -3,4 +3,5 @@ export { AUTH_EXPIRED_EVENT, setupInterceptors } from "./interceptors";
 export { authApi } from "./auth.api";
 export { conversationsApi } from "./conversations.api";
 export { messagesApi } from "./messages.api";
+export { presenceApi } from "./presence.api";
 export { usersApi } from "./users.api";
