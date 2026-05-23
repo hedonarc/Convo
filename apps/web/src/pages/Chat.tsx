@@ -1,4 +1,8 @@
-import { inviteText } from "@shared/constants/strings/index.en";
+import {
+  dashboardText,
+  inviteText,
+  sharedText,
+} from "@shared/constants/strings/index.en";
 import type { Conversation } from "@shared/types/conversation";
 import { Spinner, useToast } from "@shared/ui";
 import { AlertCircle } from "lucide-react";
@@ -92,7 +96,7 @@ export default function Chat() {
           onClick={refetch}
           className="text-brand hover:text-brand/80 text-sm underline-offset-4 transition-colors hover:underline"
         >
-          Try again
+          {sharedText.tryAgain}
         </button>
       </div>
     );
@@ -138,10 +142,10 @@ export default function Chat() {
           )
         ) : (
           <div className="text-text-secondary center flex-1 flex-col gap-3">
-            <p className="text-sm font-medium">Select a conversation</p>
-            <p className="text-xs">
-              Choose from the list on the left to start messaging
+            <p className="text-sm font-medium">
+              {dashboardText.selectConversationTitle}
             </p>
+            <p className="text-xs">{dashboardText.selectConversationHint}</p>
           </div>
         )}
       </main>

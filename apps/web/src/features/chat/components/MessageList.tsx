@@ -1,3 +1,4 @@
+import { dashboardText } from "@shared/constants/strings/index.en";
 import type {
   Message,
   MessageStatus,
@@ -277,12 +278,12 @@ export function MessageList({
           <MessageCircle className="text-brand h-8 w-8" />
         </div>
         <h3 className="text-text-primary mb-1 text-base font-semibold">
-          {isSelfChat ? "Notes to self" : "Say hi 👋"}
+          {isSelfChat ? dashboardText.notesToSelfTitle : dashboardText.sayHi}
         </h3>
         <p className="text-text-secondary max-w-xs text-sm">
           {isSelfChat
-            ? "Save thoughts, links, and reminders just for you."
-            : `This is the start of your conversation${
+            ? dashboardText.notesToSelfDescription
+            : `${dashboardText.conversationStartWith}${
                 emptyStateName ? ` with ${emptyStateName}` : ""
               }.`}
         </p>
@@ -306,7 +307,7 @@ export function MessageList({
         ) : (
           messages.length > 0 && (
             <p className="text-text-secondary py-2 text-center text-xs">
-              Beginning of conversation
+              {dashboardText.beginningOfConversation}
             </p>
           )
         )}

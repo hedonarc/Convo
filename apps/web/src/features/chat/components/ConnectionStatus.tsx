@@ -1,3 +1,4 @@
+import { connectionText } from "@shared/constants/strings/index.en";
 import { cn } from "@shared/utils";
 
 import type { SocketStatus } from "../services/socketEvents";
@@ -16,10 +17,10 @@ export function ConnectionStatus({ status }: ConnectionStatusProps) {
 
   const isTerminal = status === "closed";
   const label = isTerminal
-    ? "Disconnected — reload to retry"
+    ? connectionText.disconnected
     : status === "reconnecting"
-      ? "Reconnecting…"
-      : "Connecting…";
+      ? connectionText.reconnecting
+      : connectionText.connecting;
 
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-2 flex justify-center">

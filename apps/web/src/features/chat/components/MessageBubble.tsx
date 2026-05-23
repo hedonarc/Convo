@@ -1,4 +1,5 @@
 import { MAX_MESSAGE_LENGTH } from "@shared/constants";
+import { dashboardText, sharedText } from "@shared/constants/strings/index.en";
 import type { Message, MessageStatus } from "@shared/types/message";
 import type { User } from "@shared/types/user";
 import { Avatar, Button } from "@shared/ui";
@@ -87,7 +88,9 @@ export function MessageBubble({
             size="sm"
           />
         )}
-        <p className="text-text-secondary text-sm italic">Message deleted</p>
+        <p className="text-text-secondary text-sm italic">
+          {dashboardText.messageDeleted}
+        </p>
       </div>
     );
   }
@@ -125,7 +128,7 @@ export function MessageBubble({
 
   const handleDelete = async () => {
     if (!onDelete || working) return;
-    if (!window.confirm("Delete this message?")) return;
+    if (!window.confirm(sharedText.deleteMessagePrompt)) return;
     setWorking(true);
     try {
       await onDelete();
@@ -158,7 +161,7 @@ export function MessageBubble({
                 <button
                   type="button"
                   onClick={() => setEditing(true)}
-                  aria-label="Edit message"
+                  aria-label={sharedText.editMessageAriaLabel}
                   className="text-text-secondary hover:text-text-primary hover:bg-brand/5 focus-visible:ring-ring rounded-md p-1 focus-visible:ring-1 focus-visible:outline-none"
                 >
                   <Pencil className="h-3.5 w-3.5" />
@@ -168,7 +171,7 @@ export function MessageBubble({
                 <button
                   type="button"
                   onClick={handleDelete}
-                  aria-label="Delete message"
+                  aria-label={sharedText.deleteMessageAriaLabel}
                   className="text-text-secondary rounded-md p-1 hover:bg-red-50 hover:text-red-500 focus-visible:ring-1 focus-visible:ring-red-500 focus-visible:outline-none dark:hover:bg-red-900/10"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -195,7 +198,7 @@ export function MessageBubble({
                   }
                   if (e.key === "Escape") cancelEdit();
                 }}
-                aria-label="Edit message"
+                aria-label={sharedText.editMessageAriaLabel}
                 aria-invalid={draftTooLong || undefined}
                 className={cn(
                   "text-text-primary placeholder:text-text-secondary focus-visible:ring-ring min-h-[2.25rem] w-full resize-none rounded-md bg-transparent px-2 py-1 text-sm focus-visible:ring-1 focus-visible:outline-none",
@@ -210,7 +213,7 @@ export function MessageBubble({
                   onClick={cancelEdit}
                   disabled={working}
                 >
-                  Cancel
+                  {sharedText.cancel}
                 </Button>
                 <Button
                   type="button"
@@ -218,7 +221,7 @@ export function MessageBubble({
                   onClick={commitEdit}
                   disabled={!canSaveEdit}
                 >
-                  Save
+                  {sharedText.save}
                 </Button>
               </div>
             </div>
@@ -245,12 +248,15 @@ export function MessageBubble({
         >
           <span>{formatTime(message.created_at)}</span>
           {isOwn && status === "sending" && (
-            <Loader2 className="h-3 w-3 animate-spin" aria-label="Sending" />
+            <Loader2
+              className="h-3 w-3 animate-spin"
+              aria-label={sharedText.sendingAriaLabel}
+            />
           )}
           {isOwn && status === "failed" && (
             <AlertCircle
               className="h-3 w-3 text-red-500"
-              aria-label="Failed to send"
+              aria-label={sharedText.failedToSendAriaLabel}
             />
           )}
           {/*
@@ -263,15 +269,24 @@ export function MessageBubble({
           {isOwn && status !== "sending" && status !== "failed" && (
             <>
               {seen ? (
-                <CheckCheck className="text-brand h-3 w-3" aria-label="Seen" />
+                <CheckCheck
+                  className="text-brand h-3 w-3"
+                  aria-label={sharedText.seenAriaLabel}
+                />
               ) : delivered ? (
-                <CheckCheck className="h-3 w-3" aria-label="Delivered" />
+                <CheckCheck
+                  className="h-3 w-3"
+                  aria-label={sharedText.deliveredAriaLabel}
+                />
               ) : (
-                <Check className="h-3 w-3" aria-label="Sent" />
+                <Check
+                  className="h-3 w-3"
+                  aria-label={sharedText.sentAriaLabel}
+                />
               )}
             </>
           )}
-          {message.edited_at && <span>(edited)</span>}
+          {message.edited_at && <span>{sharedText.editedSuffix}</span>}
         </div>
       </div>
     </div>

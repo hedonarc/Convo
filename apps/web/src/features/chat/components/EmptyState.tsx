@@ -1,3 +1,4 @@
+import { dashboardText } from "@shared/constants/strings/index.en";
 import type { Conversation } from "@shared/types/conversation";
 import { MessageSquarePlus } from "lucide-react";
 
@@ -18,10 +19,10 @@ export function EmptyState({ onConversationCreated }: EmptyStateProps) {
       {/* Copy */}
       <div className="max-w-xs space-y-2 text-center">
         <h1 className="text-text-primary text-2xl font-bold tracking-tight">
-          Start a conversation
+          {dashboardText.startConversationTitle}
         </h1>
         <p className="text-text-secondary text-sm leading-relaxed">
-          Search for someone by their username or email to send them a message.
+          {dashboardText.startConversationDescription}
         </p>
       </div>
 

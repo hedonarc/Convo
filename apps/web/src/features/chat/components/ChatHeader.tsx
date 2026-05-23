@@ -1,4 +1,8 @@
-import { presenceText } from "@shared/constants/strings/index.en";
+import {
+  dashboardText,
+  presenceText,
+  sharedText,
+} from "@shared/constants/strings/index.en";
 import type { User } from "@shared/types/user";
 import { Avatar } from "@shared/ui";
 
@@ -15,7 +19,9 @@ export function ChatHeader({ user, isSelfChat }: ChatHeaderProps) {
     [user?.first_name, user?.last_name].filter(Boolean).join(" ") ||
     user?.username;
 
-  const displayName = isSelfChat ? `${fullName ?? "You"} (You)` : fullName;
+  const displayName = isSelfChat
+    ? `${fullName ?? sharedText.youFallback} ${dashboardText.meSuffix}`
+    : fullName;
 
   // Show the presence dot only for real peers — the notes-to-self view has
   // no one else to show a status for. Hook runs unconditionally so the
@@ -34,7 +40,7 @@ export function ChatHeader({ user, isSelfChat }: ChatHeaderProps) {
       />
       <div className="min-w-0">
         <p className="text-text-primary truncate text-sm font-semibold">
-          {displayName ?? "Conversation"}
+          {displayName ?? sharedText.conversationFallback}
         </p>
         {user?.username && (
           <p className="text-text-secondary truncate text-xs">

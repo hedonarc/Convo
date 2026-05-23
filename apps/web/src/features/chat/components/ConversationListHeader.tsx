@@ -1,4 +1,9 @@
 import { usersApi } from "@shared/api";
+import {
+  dashboardText,
+  errorText,
+  sharedText,
+} from "@shared/constants/strings/index.en";
 import type { User } from "@shared/types/user";
 import { Avatar, AvatarCropModal, Spinner } from "@shared/ui";
 import { extractApiError } from "@shared/utils";
@@ -52,7 +57,7 @@ export function ConversationListHeader({
       setUser(updated);
       closeCropModal();
     } catch (err) {
-      setUploadError(extractApiError(err, "Failed to upload avatar."));
+      setUploadError(extractApiError(err, errorText.uploadAvatarFailed));
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -74,7 +79,7 @@ export function ConversationListHeader({
             type="button"
             onClick={handleAvatarClick}
             disabled={isUploadingAvatar}
-            aria-label="Edit avatar"
+            aria-label={sharedText.editAvatarAriaLabel}
             className="group focus-visible:ring-ring relative shrink-0 rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none"
           >
             <Avatar name={fullName} url={user?.avatar} size="default" />
@@ -108,7 +113,7 @@ export function ConversationListHeader({
 
           <div className="min-w-0">
             <h2 className="text-text-primary text-base font-semibold">
-              Messages
+              {dashboardText.messagesHeading}
             </h2>
             {user && (
               <p className="text-text-secondary mt-0.5 truncate text-xs">
@@ -120,7 +125,7 @@ export function ConversationListHeader({
 
         <button
           type="button"
-          aria-label="New conversation"
+          aria-label={sharedText.newConversationAriaLabel}
           onClick={onNewChat}
           className="text-text-secondary hover:text-brand hover:bg-brand/10 focus-visible:ring-ring flex h-8 w-8 items-center justify-center rounded-lg transition-colors focus-visible:ring-1 focus-visible:outline-none"
         >

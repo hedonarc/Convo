@@ -29,7 +29,7 @@ export function LogoutButton() {
       size="icon"
       onClick={handleLogout}
       loading={isLoading}
-      aria-label="Log out"
+      aria-label={sharedText.logoutAriaLabel}
       title={sharedText.logout}
     >
       <LogOut

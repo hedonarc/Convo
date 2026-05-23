@@ -41,6 +41,28 @@ export const inviteText = {
   welcomeBackInvitee: "Welcome back",
   welcomeBackDescription: "You were invited by",
   joinedToast: "joined the conversation",
+  pendingTitle: "Pending Invitation",
+  youInvited: "You invited",
+  waitingToJoin: "Waiting for them to join",
+  waitingFor: "Waiting for",
+  reminderSent: "Reminder sent successfully!",
+  rateLimitDefault: "You can only send one invite every 24 hours.",
+  rateLimitFallback: "Rate limit exceeded.",
+  resendFailed: "Failed to resend invite.",
+  sentBadge: "Sent!",
+  resendInvite: "Resend Invite",
+  resendIn: "Resend in",
+  invitationSent: "Invitation sent!",
+  sendingInvite: "Sending invite...",
+  inviteSentBadge: "Invite Sent",
+  sendInvite: "Send Invite",
+  availableIn: "Available in",
+  noUserFound: "No user found",
+  startConversationWith: "Start conversation with",
+  tryDifferentSearch: "Try a different username or email",
+  typeAtLeastNChars: "Type at least 2 characters to search",
+  startConversationFailed: "Couldn't start a conversation. Please try again.",
+  sendInviteFailed: "Couldn't send invite. Please try again.",
 };
 
 export const landingText = {
@@ -51,16 +73,76 @@ export const landingText = {
 
 export const dashboardText = {
   chatDashboard: "Chat Dashboard",
+  messagesHeading: "Messages",
+  startConversationTitle: "Start a conversation",
+  startConversationDescription:
+    "Search for someone by their username or email to send them a message.",
+  notesToSelfTitle: "Notes to self",
+  sayHi: "Say hi 👋",
+  notesToSelfDescription: "Save thoughts, links, and reminders just for you.",
+  conversationStartWith: "This is the start of your conversation",
+  beginningOfConversation: "Beginning of conversation",
+  selectConversationTitle: "Select a conversation",
+  selectConversationHint: "Choose from the list on the left to start messaging",
+  noMessagesYet: "No messages yet",
+  messageDeleted: "Message deleted",
+  meSuffix: "(Me)",
+  pendingBadge: "Pending",
+  youPrefix: "You",
+  justNow: "just now",
 };
 
 export const sharedText = {
   requiredSymbol: "*",
   logout: "Logout",
+  logoutAriaLabel: "Log out",
   themeToggle: "Toggle theme",
+  themeToggleAriaLabel: "Theme Toggle",
+  cancel: "Cancel",
+  save: "Save",
+  tryAgain: "Try again",
+  searching: "Searching…",
+  conversationFallback: "Conversation",
+  youFallback: "You",
+  // Message composer
+  messageInputLabel: "Message",
+  messageInputPlaceholder: "Type a message…",
+  sendMessageAriaLabel: "Send message",
+  // Search
+  searchPlaceholder: "Search by username or email…",
+  clearSearchAriaLabel: "Clear search",
+  // Sidebar
+  newConversationAriaLabel: "New conversation",
+  newConversationTitle: "New conversation",
+  newConversationDialogLabel: "Start a new conversation",
+  editAvatarAriaLabel: "Edit avatar",
+  // Message bubble
+  editMessageAriaLabel: "Edit message",
+  deleteMessageAriaLabel: "Delete message",
+  deleteMessagePrompt: "Delete this message?",
+  sendingAriaLabel: "Sending",
+  failedToSendAriaLabel: "Failed to send",
+  seenAriaLabel: "Seen",
+  deliveredAriaLabel: "Delivered",
+  sentAriaLabel: "Sent",
+  editedSuffix: "(edited)",
+  unreadAriaLabel: "Unread",
 };
 
 export const presenceText = {
   online: "Online",
   away: "Away",
   offline: "Offline",
+};
+
+export const errorText = {
+  loadConversationsFailed: "Failed to load conversations. Please try again.",
+  loadMessagesFailed: "Failed to load messages. Please try again.",
+  uploadAvatarFailed: "Failed to upload avatar.",
+};
+
+export const connectionText = {
+  disconnected: "Disconnected — reload to retry",
+  reconnecting: "Reconnecting…",
+  connecting: "Connecting…",
 };
