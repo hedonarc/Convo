@@ -11,3 +11,4 @@ export * from "./src/Spinner";
 export * from "./src/Slider";
 export * from "./src/Modal";
 export * from "./src/AvatarCropModal";
+export * from "./src/Toast";

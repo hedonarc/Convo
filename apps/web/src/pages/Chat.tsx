@@ -1,5 +1,6 @@
+import { inviteText } from "@shared/constants/strings/index.en";
 import type { Conversation } from "@shared/types/conversation";
-import { Spinner } from "@shared/ui";
+import { Spinner, useToast } from "@shared/ui";
 import { AlertCircle } from "lucide-react";
 import { useState } from "react";
 
@@ -15,6 +16,7 @@ export default function Chat() {
     useConversations();
   const [activeConversation, setActiveConversation] =
     useState<Conversation | null>(null);
+  const { toast } = useToast();
 
   // Per-user WebSocket: receive cross-conversation pushes so the sidebar
   // updates in realtime without one socket per conversation. Keeps the
@@ -22,11 +24,24 @@ export default function Chat() {
   // (e.g. invitation.is_accepted flipping when a peer accepts) is reflected
   // immediately.
   useUserSocket((event) => {
-    if (event.type !== "conversation_updated") return;
-    applyUpdate(event.data);
-    setActiveConversation((current) =>
-      current && current.id === event.data.id ? event.data : current,
-    );
+    if (event.type === "conversation_updated") {
+      applyUpdate(event.data);
+      setActiveConversation((current) =>
+        current && current.id === event.data.id ? event.data : current,
+      );
+      return;
+    }
+    if (event.type === "invite_accepted") {
+      const name =
+        [event.data.acceptor.first_name, event.data.acceptor.last_name]
+          .filter(Boolean)
+          .join(" ")
+          .trim() || event.data.acceptor.username;
+      toast({
+        title: `🎉 ${name}`,
+        message: inviteText.joinedToast,
+      });
+    }
   });
 
   const handleCreated = async (conversation: Conversation) => {
