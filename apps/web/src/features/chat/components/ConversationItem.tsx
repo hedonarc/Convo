@@ -2,7 +2,7 @@ import type { Conversation, Participant } from "@shared/types/conversation";
 import { Avatar } from "@shared/ui";
 import { cn } from "@shared/utils";
 
-import { useAuth, usePresence } from "@/providers";
+import { useAuth } from "@/providers";
 
 interface ConversationItemProps {
   conversation: Conversation;
@@ -44,13 +44,6 @@ export function ConversationItem({
   const invitation = conversation.invitation;
 
   const isPendingInvitation = !!invitation && !invitation.is_accepted;
-
-  // Only show a dot for real peers — a notes-to-self row and pending invites
-  // have no peer to show presence for. The hook always runs (rules of hooks);
-  // we just discard the result for non-peer cases.
-  const presenceForDisplayUser = usePresence(displayUser?.id);
-  const peerPresence =
-    !isPendingInvitation && !isMe ? presenceForDisplayUser : undefined;
 
   const lastMessageText = (() => {
     if (isPendingInvitation && invitation?.email) {
@@ -97,7 +90,6 @@ export function ConversationItem({
         name={isPendingInvitation ? invitation?.email : displayName}
         url={isPendingInvitation ? undefined : displayUser?.avatar}
         size="default"
-        presence={peerPresence}
       />
 
       <div className="min-w-0 flex-1">

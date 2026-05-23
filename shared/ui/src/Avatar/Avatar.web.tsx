@@ -32,11 +32,11 @@ const dotSizeClasses = {
 
 const dotColorClasses: Record<AvatarPresenceStatus, string> = {
   // Semantic feedback exceptions per DESIGN.md — green for online, yellow
-  // for away, gray for offline. Using the bg-surface ring so the dot reads
-  // cleanly on top of the avatar in both light and dark mode.
-  online: "bg-green-500",
-  away: "bg-yellow-500",
-  offline: "",
+  // for away, gray for offline. The bg-surface ring (set on the dot element)
+  // separates the dot from the avatar in both themes.
+  online: "bg-green-500 dark:bg-green-400",
+  away: "bg-yellow-500 dark:bg-yellow-400",
+  offline: "bg-gray-400 dark:bg-gray-500",
 };
 
 function getInitials(name?: string): string {
@@ -88,15 +88,26 @@ export function Avatar({
         )}
       </div>
       {presence && (
-        <span
-          role="status"
-          aria-label={presenceLabel ?? presence}
-          className={cn(
-            "ring-surface absolute right-0 bottom-0 rounded-full ring-2",
-            dotSizeClasses[size],
-            dotColorClasses[presence],
-          )}
-        />
+        <span className="group/presence absolute right-0 bottom-0 block">
+          <span
+            role="status"
+            aria-label={presenceLabel ?? presence}
+            className={cn(
+              "ring-surface block rounded-full ring-2",
+              dotSizeClasses[size],
+              dotColorClasses[presence],
+            )}
+          />
+          <span
+            role="tooltip"
+            className={cn(
+              "border-border bg-surface text-text-primary pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 rounded border px-2 py-0.5 text-xs font-medium whitespace-nowrap opacity-0 shadow-md transition-opacity",
+              "group-hover/presence:opacity-100",
+            )}
+          >
+            {presenceLabel ?? presence}
+          </span>
+        </span>
       )}
     </div>
   );

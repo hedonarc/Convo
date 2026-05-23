@@ -1,5 +1,8 @@
+import { presenceText } from "@shared/constants/strings/index.en";
 import type { User } from "@shared/types/user";
 import { Avatar } from "@shared/ui";
+
+import { usePresence } from "@/providers";
 
 interface ChatHeaderProps {
   user: User | null;
@@ -14,9 +17,21 @@ export function ChatHeader({ user, isSelfChat }: ChatHeaderProps) {
 
   const displayName = isSelfChat ? `${fullName ?? "You"} (You)` : fullName;
 
+  // Show the presence dot only for real peers — the notes-to-self view has
+  // no one else to show a status for. Hook runs unconditionally so the
+  // rules of hooks are preserved.
+  const peerPresence = usePresence(user?.id);
+  const presence = isSelfChat ? undefined : peerPresence;
+
   return (
     <header className="border-border bg-surface flex shrink-0 items-center gap-3 border-b px-4 py-3">
-      <Avatar name={fullName} url={user?.avatar} size="default" />
+      <Avatar
+        name={fullName}
+        url={user?.avatar}
+        size="default"
+        presence={presence}
+        presenceLabel={presence ? presenceText[presence] : undefined}
+      />
       <div className="min-w-0">
         <p className="text-text-primary truncate text-sm font-semibold">
           {displayName ?? "Conversation"}

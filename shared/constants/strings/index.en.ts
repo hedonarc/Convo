@@ -58,3 +58,9 @@ export const sharedText = {
   logout: "Logout",
   themeToggle: "Toggle theme",
 };
+
+export const presenceText = {
+  online: "Online",
+  away: "Away",
+  offline: "Offline",
+};
