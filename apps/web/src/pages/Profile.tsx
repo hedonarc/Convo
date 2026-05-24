@@ -9,6 +9,7 @@ import {
 import {
   Avatar,
   AvatarCropModal,
+  AvatarZoomModal,
   Button,
   Card,
   CardContent,
@@ -18,7 +19,7 @@ import {
   Spinner,
 } from "@shared/ui";
 import { extractApiError } from "@shared/utils";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -45,6 +46,7 @@ export default function Profile() {
   const [isCropOpen, setIsCropOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isZoomOpen, setIsZoomOpen] = useState(false);
 
   const fullName =
     [user?.first_name, user?.last_name].filter(Boolean).join(" ").trim() ||
@@ -114,10 +116,10 @@ export default function Profile() {
           <CardContent className="flex items-center gap-6">
             <button
               type="button"
-              onClick={handlePickFile}
-              disabled={isUploading}
-              aria-label={sharedText.changePicture}
-              className="group focus-visible:ring-ring relative shrink-0 rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none"
+              onClick={() => user?.avatar && setIsZoomOpen(true)}
+              disabled={!user?.avatar || isUploading}
+              aria-label={sharedText.zoomAvatarAriaLabel}
+              className="focus-visible:ring-ring relative shrink-0 rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-default"
             >
               <Avatar
                 name={fullName}
@@ -126,12 +128,6 @@ export default function Profile() {
                 presence={presence}
                 presenceLabel={presenceText[presence]}
               />
-              <span
-                aria-hidden
-                className="bg-brand text-brand-foreground ring-surface absolute -right-0.5 -bottom-0.5 flex h-5 w-5 items-center justify-center rounded-full opacity-0 ring-2 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
-              >
-                <Pencil className="h-3 w-3" />
-              </span>
               {isUploading && (
                 <span
                   aria-hidden
@@ -191,6 +187,14 @@ export default function Profile() {
         error={uploadError}
         onClose={closeCrop}
         onSave={handleUpload}
+      />
+
+      <AvatarZoomModal
+        open={isZoomOpen}
+        onClose={() => setIsZoomOpen(false)}
+        url={user?.avatar}
+        name={fullName}
+        ariaLabel={sharedText.avatarZoomDialogLabel}
       />
     </div>
   );

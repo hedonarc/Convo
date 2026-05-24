@@ -126,6 +126,8 @@ export const sharedText = {
   newConversationTitle: "New conversation",
   newConversationDialogLabel: "Start a new conversation",
   editAvatarAriaLabel: "Edit avatar",
+  zoomAvatarAriaLabel: "Zoom avatar",
+  avatarZoomDialogLabel: "Profile picture preview",
   // Message bubble
   editMessageAriaLabel: "Edit message",
   deleteMessageAriaLabel: "Delete message",
