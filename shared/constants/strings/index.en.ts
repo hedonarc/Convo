@@ -143,9 +143,7 @@ export const presenceText = {
   online: "Online",
   away: "Away",
   offline: "Offline",
-  statusHeading: "Status",
-  setOnline: "Set as Online",
-  setAway: "Set as Away",
+  setStatus: "Set Status",
 };
 
 export const errorText = {

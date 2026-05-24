@@ -1,14 +1,15 @@
 import { ROUTES } from "@shared/constants";
 import { presenceText, sharedText } from "@shared/constants/strings/index.en";
 import type { PresenceStatus } from "@shared/types/presence";
-import type { User } from "@shared/types/user";
 import {
-  Avatar,
   Dropdown,
   DropdownContent,
   DropdownItem,
-  DropdownLabel,
+  DropdownPortal,
   DropdownSeparator,
+  DropdownSub,
+  DropdownSubContent,
+  DropdownSubTrigger,
   DropdownTrigger,
 } from "@shared/ui";
 import { cn } from "@shared/utils";
@@ -23,24 +24,34 @@ import {
 } from "@/providers";
 
 interface UserMenuProps {
-  user: User | null;
-  fullName?: string;
+  /**
+   * The element that opens the menu — typically the sidebar identity tile
+   * (avatar + name + chevron). Passed as a child so the caller owns its
+   * visual presentation while the menu owns the dropdown logic.
+   */
+  children: React.ReactNode;
+  /** Current user id, used to read own status for the active-state check. */
+  userId?: number;
 }
 
 /**
- * Account menu rooted on the sidebar avatar. Hosts the actions that used to
- * be scattered across the floating top-right chrome and the sidebar footer:
- * View profile, theme toggle, sign out. Replaces both surfaces.
+ * Account menu hung off whatever the caller provides as a trigger.
+ *
+ * Identity (name, @handle, status) lives in the sidebar header tile, not
+ * inside the menu — so the dropdown is purely actions:
+ *
+ *   - Set Status submenu (Online / Away)
+ *   - View profile
+ *   - Theme toggle
+ *   - Sign out
  */
-export function UserMenu({ user, fullName }: UserMenuProps) {
+export function UserMenu({ children, userId }: UserMenuProps) {
   const { logout } = useAuth();
   const { theme, toggle: toggleTheme } = useTheme();
   const { setManualPresence } = usePresenceContext();
   const navigate = useNavigate();
 
-  // Own status — drives both the header subtext and the colored dot beside
-  // the Status section's selected option.
-  const ownStatus = usePresence(user?.id);
+  const ownStatus = usePresence(userId);
 
   const handleLogout = async () => {
     await logout();
@@ -49,43 +60,30 @@ export function UserMenu({ user, fullName }: UserMenuProps) {
 
   return (
     <Dropdown>
-      <DropdownTrigger asChild>
-        <button
-          type="button"
-          aria-label={sharedText.userMenuAriaLabel}
-          className="focus-visible:ring-ring rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-        >
-          <Avatar name={fullName} url={user?.avatar} size="default" />
-        </button>
-      </DropdownTrigger>
+      <DropdownTrigger asChild>{children}</DropdownTrigger>
       <DropdownContent align="start" sideOffset={8} className="min-w-[14rem]">
-        {/* Identity header — name + username, non-interactive. */}
-        <DropdownLabel className="tracking-normal normal-case">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-text-primary text-sm font-semibold">
-              {fullName ?? user?.username ?? sharedText.youFallback}
+        <DropdownSub>
+          <DropdownSubTrigger>
+            <span className="flex items-center gap-2">
+              <StatusDot status={ownStatus} />
+              {presenceText.setStatus}
             </span>
-            {user?.username && (
-              <span className="text-text-secondary text-xs font-normal">
-                @{user.username} · {presenceText[ownStatus]}
-              </span>
-            )}
-          </div>
-        </DropdownLabel>
-
-        <DropdownSeparator />
-
-        <DropdownLabel>{presenceText.statusHeading}</DropdownLabel>
-        <DropdownItem onSelect={() => setManualPresence("online")}>
-          <StatusDot status="online" />
-          {presenceText.setOnline}
-          {ownStatus === "online" && <ActiveCheck />}
-        </DropdownItem>
-        <DropdownItem onSelect={() => setManualPresence("away")}>
-          <StatusDot status="away" />
-          {presenceText.setAway}
-          {ownStatus === "away" && <ActiveCheck />}
-        </DropdownItem>
+          </DropdownSubTrigger>
+          <DropdownPortal>
+            <DropdownSubContent className="min-w-[10rem]">
+              <DropdownItem onSelect={() => setManualPresence("online")}>
+                <StatusDot status="online" />
+                {presenceText.online}
+                {ownStatus === "online" && <ActiveCheck />}
+              </DropdownItem>
+              <DropdownItem onSelect={() => setManualPresence("away")}>
+                <StatusDot status="away" />
+                {presenceText.away}
+                {ownStatus === "away" && <ActiveCheck />}
+              </DropdownItem>
+            </DropdownSubContent>
+          </DropdownPortal>
+        </DropdownSub>
 
         <DropdownSeparator />
 

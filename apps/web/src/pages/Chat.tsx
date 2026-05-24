@@ -56,18 +56,23 @@ export default function Chat() {
     }
   });
 
-  // Visibility ping: tell the backend whether this tab is focused so it can
-  // flip our presence to away/online. Initial state is sent once on mount;
-  // subsequent transitions piggyback on the document visibilitychange event.
-  // Also exposes the sender on the presence context so the UserMenu can
-  // manually override the status — see PresenceProvider.setManualPresence.
+  // Visibility ping: tell the backend whenever this tab focuses or blurs
+  // so peers see us flip between online and away. Also exposes the sender
+  // on the presence context so the UserMenu can manually override the
+  // status — see PresenceProvider.setManualPresence.
+  //
+  // We deliberately do NOT fire on mount. UserConsumer.connect already
+  // calls mark_online when the socket opens, so the initial state is
+  // correct without a client-side ping. Firing here would race with
+  // manual overrides: in strict mode / hot-reload the effect can re-run,
+  // and an unwanted visible=true would immediately clobber a fresh
+  // "Set as Away" before the user could see it take effect.
   useEffect(() => {
     const sendVisibility = (visible: boolean) =>
       send({ action: "visibility", data: { visible } });
     const fireFromDocument = () =>
       sendVisibility(document.visibilityState === "visible");
 
-    fireFromDocument();
     registerVisibilitySender(sendVisibility);
     document.addEventListener("visibilitychange", fireFromDocument);
     return () => {
