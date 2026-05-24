@@ -8,6 +8,7 @@ import Chat from "../pages/Chat";
 import Invite from "../pages/Invite";
 import Landing from "../pages/Landing";
 import Login from "../pages/Login";
+import Profile from "../pages/Profile";
 import Register from "../pages/Register";
 
 export function AppRouter() {
@@ -27,6 +28,7 @@ export function AppRouter() {
           {/* Protected routes */}
           <Route element={<AuthLayout />}>
             <Route path={ROUTES.CHAT} element={<Chat />} />
+            <Route path={ROUTES.PROFILE} element={<Profile />} />
           </Route>
         </Route>
       </Routes>
