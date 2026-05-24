@@ -1,7 +1,11 @@
 import { presenceApi } from "@shared/api";
-import type { PresenceEntry, PresenceMap } from "@shared/types/presence";
+import type {
+  PresenceEntry,
+  PresenceMap,
+  PresenceStatus,
+} from "@shared/types/presence";
 import axios from "axios";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { PresenceContext } from "./presence.context";
 
@@ -41,9 +45,32 @@ export function PresenceProvider({ children }: { children: React.ReactNode }) {
     setPresence((current) => ({ ...current, [String(entry.user_id)]: entry }));
   }, []);
 
+  // Stable ref so re-mounting the menu (or hot-reloading Chat) doesn't
+  // detach the sender. Chat plugs its socket send fn in here and clears it
+  // on unmount.
+  const visibilitySenderRef = useRef<((visible: boolean) => void) | null>(null);
+
+  const registerVisibilitySender = useCallback(
+    (send: ((visible: boolean) => void) | null) => {
+      visibilitySenderRef.current = send;
+    },
+    [],
+  );
+
+  const setManualPresence = useCallback((status: PresenceStatus) => {
+    if (status === "offline") return; // server-owned; can't be set by client.
+    visibilitySenderRef.current?.(status === "online");
+  }, []);
+
   const value = useMemo(
-    () => ({ presence, hydrate, apply }),
-    [presence, hydrate, apply],
+    () => ({
+      presence,
+      hydrate,
+      apply,
+      setManualPresence,
+      registerVisibilitySender,
+    }),
+    [presence, hydrate, apply, setManualPresence, registerVisibilitySender],
   );
 
   return (

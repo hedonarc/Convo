@@ -1,5 +1,6 @@
 import { ROUTES } from "@shared/constants";
 import { presenceText, sharedText } from "@shared/constants/strings/index.en";
+import type { PresenceStatus } from "@shared/types/presence";
 import type { User } from "@shared/types/user";
 import {
   Avatar,
@@ -10,10 +11,16 @@ import {
   DropdownSeparator,
   DropdownTrigger,
 } from "@shared/ui";
-import { LogOut, Moon, Sun, User as UserIcon } from "lucide-react";
+import { cn } from "@shared/utils";
+import { Check, LogOut, Moon, Sun, User as UserIcon } from "lucide-react";
 import { useNavigate } from "react-router";
 
-import { useAuth, usePresence, useTheme } from "@/providers";
+import {
+  useAuth,
+  usePresence,
+  usePresenceContext,
+  useTheme,
+} from "@/providers";
 
 interface UserMenuProps {
   user: User | null;
@@ -28,11 +35,11 @@ interface UserMenuProps {
 export function UserMenu({ user, fullName }: UserMenuProps) {
   const { logout } = useAuth();
   const { theme, toggle: toggleTheme } = useTheme();
+  const { setManualPresence } = usePresenceContext();
   const navigate = useNavigate();
 
-  // Own status — only used to label the menu header. We still don't render
-  // a presence dot on the user's own avatar in the sidebar, but knowing the
-  // status here makes the upcoming manual-override section feel grounded.
+  // Own status — drives both the header subtext and the colored dot beside
+  // the Status section's selected option.
   const ownStatus = usePresence(user?.id);
 
   const handleLogout = async () => {
@@ -68,6 +75,20 @@ export function UserMenu({ user, fullName }: UserMenuProps) {
 
         <DropdownSeparator />
 
+        <DropdownLabel>{presenceText.statusHeading}</DropdownLabel>
+        <DropdownItem onSelect={() => setManualPresence("online")}>
+          <StatusDot status="online" />
+          {presenceText.setOnline}
+          {ownStatus === "online" && <ActiveCheck />}
+        </DropdownItem>
+        <DropdownItem onSelect={() => setManualPresence("away")}>
+          <StatusDot status="away" />
+          {presenceText.setAway}
+          {ownStatus === "away" && <ActiveCheck />}
+        </DropdownItem>
+
+        <DropdownSeparator />
+
         <DropdownItem onSelect={() => navigate(ROUTES.PROFILE)}>
           <UserIcon className="h-4 w-4" />
           {sharedText.viewProfile}
@@ -96,4 +117,23 @@ export function UserMenu({ user, fullName }: UserMenuProps) {
       </DropdownContent>
     </Dropdown>
   );
+}
+
+const STATUS_DOT_CLASS: Record<PresenceStatus, string> = {
+  online: "bg-green-500 dark:bg-green-400",
+  away: "bg-yellow-500 dark:bg-yellow-400",
+  offline: "bg-gray-400 dark:bg-gray-500",
+};
+
+function StatusDot({ status }: { status: PresenceStatus }) {
+  return (
+    <span
+      aria-hidden
+      className={cn("h-2.5 w-2.5 rounded-full", STATUS_DOT_CLASS[status])}
+    />
+  );
+}
+
+function ActiveCheck() {
+  return <Check className="text-text-secondary ml-auto h-3.5 w-3.5" />;
 }

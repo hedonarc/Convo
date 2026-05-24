@@ -23,7 +23,8 @@ export default function Chat() {
   const [activeConversation, setActiveConversation] =
     useState<Conversation | null>(null);
   const { toast } = useToast();
-  const { apply: applyPresence } = usePresenceContext();
+  const { apply: applyPresence, registerVisibilitySender } =
+    usePresenceContext();
 
   // Per-user WebSocket: receive cross-conversation pushes so the sidebar
   // updates in realtime without one socket per conversation. Keeps the
@@ -58,16 +59,22 @@ export default function Chat() {
   // Visibility ping: tell the backend whether this tab is focused so it can
   // flip our presence to away/online. Initial state is sent once on mount;
   // subsequent transitions piggyback on the document visibilitychange event.
+  // Also exposes the sender on the presence context so the UserMenu can
+  // manually override the status — see PresenceProvider.setManualPresence.
   useEffect(() => {
-    const fire = () =>
-      send({
-        action: "visibility",
-        data: { visible: document.visibilityState === "visible" },
-      });
-    fire();
-    document.addEventListener("visibilitychange", fire);
-    return () => document.removeEventListener("visibilitychange", fire);
-  }, [send]);
+    const sendVisibility = (visible: boolean) =>
+      send({ action: "visibility", data: { visible } });
+    const fireFromDocument = () =>
+      sendVisibility(document.visibilityState === "visible");
+
+    fireFromDocument();
+    registerVisibilitySender(sendVisibility);
+    document.addEventListener("visibilitychange", fireFromDocument);
+    return () => {
+      registerVisibilitySender(null);
+      document.removeEventListener("visibilitychange", fireFromDocument);
+    };
+  }, [send, registerVisibilitySender]);
 
   const handleCreated = async (conversation: Conversation) => {
     await refetch();
