@@ -42,5 +42,8 @@ web-fix:
 web-dev:
 	$(CD_FE) pnpm dev
 
+web-host:
+	$(CD_FE) pnpm dev -- --host
+
 web-preview:
 	$(CD_FE) pnpm preview

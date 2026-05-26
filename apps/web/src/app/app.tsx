@@ -1,4 +1,5 @@
-import { AuthProvider } from "../providers/auth.provider";
+import { AuthProvider } from "@/providers";
+
 import { AppRouter } from "./router";
 
 export function App() {

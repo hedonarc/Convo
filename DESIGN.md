@@ -186,14 +186,19 @@ Components already in `shared/ui/src/`:
 | `Card`    | ✅ In use | Uses `border-border bg-surface`                                |
 | `Input`   | ✅ In use | Default state uses `border-border`                             |
 | `Label`   | ✅ In use | Inherits `text-text-primary`; required `*` uses `text-red-500` |
+| `FormField` | ✅ In use | Composes `Label` + `Input` + error text; `error` message drives the input error state |
+| `ErrorBanner` | ✅ In use | Form-level error notice; `role="alert"`, semantic-exception red; renders null when no message |
+| `AuthCard` | ✅ In use | Auth page shell — centered `Card` with title/description, `form`, and `footer` slot |
+| `Modal` | ✅ In use | Standard dialog chrome — backdrop, ESC + click-outside to close, ARIA; compose with `ModalHeader` / `ModalFooter` |
+| `Slider` | ✅ In use | Brand-styled native range input — visible thumb on WebKit/Firefox, hover/active scale feedback |
 
 Add new components here as they're copied in.
 
 ---
 
-## Styling Approach (Current Phase)
+## Styling Approach
 
-We are in **Phase 1** of the design system. Semantic CSS variables are already live in `index.css` and wired into `tailwind.config.ts`. All components use semantic tokens — never raw Tailwind grays or hex values (see the theming section above).
+Semantic CSS variables are live in `index.css` and wired into `tailwind.config.ts`. All components use semantic tokens — never raw Tailwind grays or hex values (see the theming section above).
 
 ### Color Palette Reference
 
@@ -470,12 +475,9 @@ When copying a shadcn component, its `dark:` variants are included for hardcoded
 | CSS variables (source of truth for colors) | `apps/web/src/index.css`                    |
 | Tailwind token wiring                      | `apps/web/tailwind.config.ts`               |
 | Theme provider                             | `apps/web/src/providers/theme.provider.tsx` |
-| Design tokens (Phase 3)                    | `shared/tokens/src/`                        |
-| Phased rollout plan                        | `DESIGN_SYSTEM_PLAN.md`                     |
 
 ---
 
 ## Related Documents
 
-- [`DESIGN_SYSTEM_PLAN.md`](./DESIGN_SYSTEM_PLAN.md) — what to build and when
 - [`docs/frontend/architecture.md`](./docs/frontend/architecture.md) — frontend architecture overview
