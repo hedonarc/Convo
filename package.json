@@ -6,11 +6,15 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
+    "lint:fix": "turbo run lint -- --fix",
     "format": "turbo run format",
     "test": "turbo run test",
     "setup": "turbo run setup"
   },
   "devDependencies": {
     "turbo": "^2.9.12"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1"
   }
 }

@@ -1,12 +1,37 @@
 @import "tailwindcss";
-@source "../../../packages";
+@config "../tailwind.config.ts";
+@source "../../../shared";
 
 /* Global base styles for the app */
 @layer base {
+  :root {
+    --color-background: var(--color-gray-50);
+    --color-surface: var(--color-white);
+    --color-text-primary: var(--color-gray-950);
+    --color-text-secondary: var(--color-gray-500);
+    --color-border: var(--color-gray-200);
+    --color-input: transparent;
+    --color-brand: oklch(68% 0.2 22.5);
+    --color-brand-foreground: oklch(100% 0 0);
+    --color-ring: oklch(68% 0.2 22.5);
+  }
+
+  .dark {
+    --color-background: var(--color-gray-950);
+    --color-surface: var(--color-gray-950);
+    --color-text-primary: var(--color-gray-50);
+    --color-text-secondary: var(--color-gray-400);
+    --color-border: var(--color-gray-800);
+    --color-input: transparent;
+    --color-brand: oklch(68% 0.2 22.5);
+    --color-brand-foreground: oklch(100% 0 0);
+    --color-ring: oklch(68% 0.2 22.5);
+  }
+
   html,
   body,
   #root {
-    @apply m-0 min-h-dvh bg-gray-950 text-gray-50 font-sans;
+    @apply bg-background text-text-primary m-0 min-h-dvh font-sans;
   }
 
   /* Optional: improve text rendering */
@@ -19,5 +44,11 @@
   html,
   body {
     overflow-x: hidden;
+  }
+}
+
+@layer utilities {
+  .full-center {
+    @apply flex min-h-screen items-center justify-center;
   }
 }

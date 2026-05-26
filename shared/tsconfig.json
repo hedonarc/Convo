@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "es2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["./*"],
+      "react": ["../apps/web/node_modules/@types/react", "../apps/web/node_modules/react"],
+      "react/*": ["../apps/web/node_modules/@types/react/*", "../apps/web/node_modules/react/*"],
+      "react-dom": ["../apps/web/node_modules/@types/react-dom", "../apps/web/node_modules/react-dom"],
+      "react-dom/*": ["../apps/web/node_modules/@types/react-dom/*", "../apps/web/node_modules/react-dom/*"],
+      "axios": ["../apps/web/node_modules/axios"],
+      "clsx": ["../apps/web/node_modules/clsx"],
+      "tailwind-merge": ["../apps/web/node_modules/tailwind-merge"],
+      "lucide-react": ["../apps/web/node_modules/lucide-react"],
+      "zod": ["../apps/web/node_modules/zod"],
+      "react-router": ["../apps/web/node_modules/react-router"],
+      "react-router/*": ["../apps/web/node_modules/react-router/*"]
+    }
+  },
+  "include": ["**/*"]
+}

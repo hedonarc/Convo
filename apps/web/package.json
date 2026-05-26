@@ -9,8 +9,8 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "react-router dev",
-    "build": "react-router build",
+    "dev": "vite",
+    "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -18,13 +18,8 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@convo/api": "workspace:*",
-    "@convo/constants": "workspace:*",
-    "@convo/ui": "workspace:*",
-    "@convo/utils": "workspace:*",
     "@fontsource/inter": "^5.2.8",
     "@hookform/resolvers": "5.2.2",
-    "@react-router/node": "^7.15.0",
     "axios": "1.16.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "2.1.1",
@@ -40,7 +35,6 @@
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@eslint/js": "^10.0.1",
-    "@react-router/dev": "^7.15.0",
     "@rolldown/plugin-babel": "^0.2.3",
     "@tailwindcss/vite": "^4.3.0",
     "@types/node": "^24.12.3",
@@ -56,6 +50,7 @@
     "globals": "^17.6.0",
     "lightningcss": "^1.32.0",
     "prettier": "^3.8.3",
+    "prettier-plugin-tailwindcss": "^0.8.0",
     "tailwindcss": "^4.3.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
