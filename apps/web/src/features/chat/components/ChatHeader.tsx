@@ -1,5 +1,13 @@
+import {
+  dashboardText,
+  presenceText,
+  sharedText,
+} from "@shared/constants/strings/index.en";
 import type { User } from "@shared/types/user";
-import { Avatar } from "@shared/ui";
+import { Avatar, AvatarZoomModal } from "@shared/ui";
+import { useState } from "react";
+
+import { usePresence } from "@/providers";
 
 interface ChatHeaderProps {
   user: User | null;
@@ -8,18 +16,44 @@ interface ChatHeaderProps {
 }
 
 export function ChatHeader({ user, isSelfChat }: ChatHeaderProps) {
+  const [isZoomOpen, setIsZoomOpen] = useState(false);
+
   const fullName =
     [user?.first_name, user?.last_name].filter(Boolean).join(" ") ||
     user?.username;
 
-  const displayName = isSelfChat ? `${fullName ?? "You"} (You)` : fullName;
+  const displayName = isSelfChat
+    ? `${fullName ?? sharedText.youFallback} ${dashboardText.meSuffix}`
+    : fullName;
+
+  // Show the presence dot only for real peers — the notes-to-self view has
+  // no one else to show a status for. Hook runs unconditionally so the
+  // rules of hooks are preserved.
+  const peerPresence = usePresence(user?.id);
+  const presence = isSelfChat ? undefined : peerPresence;
+
+  const canZoom = !!user?.avatar;
 
   return (
     <header className="border-border bg-surface flex shrink-0 items-center gap-3 border-b px-4 py-3">
-      <Avatar name={fullName} url={user?.avatar} size="default" />
+      <button
+        type="button"
+        onClick={() => canZoom && setIsZoomOpen(true)}
+        disabled={!canZoom}
+        aria-label={sharedText.zoomAvatarAriaLabel}
+        className="focus-visible:ring-ring shrink-0 rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-default"
+      >
+        <Avatar
+          name={fullName}
+          url={user?.avatar}
+          size="default"
+          presence={presence}
+          presenceLabel={presence ? presenceText[presence] : undefined}
+        />
+      </button>
       <div className="min-w-0">
         <p className="text-text-primary truncate text-sm font-semibold">
-          {displayName ?? "Conversation"}
+          {displayName ?? sharedText.conversationFallback}
         </p>
         {user?.username && (
           <p className="text-text-secondary truncate text-xs">
@@ -27,6 +61,14 @@ export function ChatHeader({ user, isSelfChat }: ChatHeaderProps) {
           </p>
         )}
       </div>
+
+      <AvatarZoomModal
+        open={isZoomOpen}
+        onClose={() => setIsZoomOpen(false)}
+        url={user?.avatar}
+        name={fullName}
+        ariaLabel={sharedText.avatarZoomDialogLabel}
+      />
     </header>
   );
 }

@@ -1,4 +1,5 @@
 import { MAX_MESSAGE_LENGTH } from "@shared/constants";
+import { sharedText } from "@shared/constants/strings/index.en";
 import { Button } from "@shared/ui";
 import { cn } from "@shared/utils";
 import { SendHorizontal } from "lucide-react";
@@ -18,7 +19,7 @@ const MAX_HEIGHT_PX = 128; // ≈ 5 lines of text-sm with default line-height
 export function MessageInput({
   onSend,
   disabled = false,
-  placeholder = "Type a message…",
+  placeholder = sharedText.messageInputPlaceholder,
   onTyping,
 }: MessageInputProps) {
   const [value, setValue] = useState("");
@@ -69,7 +70,7 @@ export function MessageInput({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           rows={1}
-          aria-label="Message"
+          aria-label={sharedText.messageInputLabel}
           aria-invalid={isTooLong || undefined}
           autoFocus
           className={cn(
@@ -82,7 +83,7 @@ export function MessageInput({
           size="icon"
           onClick={submit}
           disabled={!canSend}
-          aria-label="Send message"
+          aria-label={sharedText.sendMessageAriaLabel}
         >
           <SendHorizontal className="h-4 w-4" />
         </Button>

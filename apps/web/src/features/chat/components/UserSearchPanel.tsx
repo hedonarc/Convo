@@ -1,4 +1,5 @@
 import { conversationsApi } from "@shared/api";
+import { inviteText, sharedText } from "@shared/constants/strings/index.en";
 import type { Conversation } from "@shared/types/conversation";
 import type { User } from "@shared/types/user";
 import { Spinner } from "@shared/ui";
@@ -53,7 +54,7 @@ export function UserSearchPanel({
       handleClearSearch();
       onConversationCreated(response.conversation);
     } catch {
-      resolveError("Couldn't start a conversation. Please try again.");
+      resolveError(inviteText.startConversationFailed);
     }
   };
 
@@ -73,13 +74,13 @@ export function UserSearchPanel({
       if (axios.isAxiosError(error) && error.response?.status === 429) {
         const errorData = error.response.data;
         resolveError(
-          errorData.error || "You can only send one invite every 24 hours.",
+          errorData.error || inviteText.rateLimitDefault,
           errorData.available_after
             ? new Date(errorData.available_after).getTime()
             : undefined,
         );
       } else {
-        resolveError("Couldn't send invite. Please try again.");
+        resolveError(inviteText.sendInviteFailed);
       }
     }
   };
@@ -105,7 +106,7 @@ export function UserSearchPanel({
           {isSearching && (
             <div className="text-text-secondary flex items-center justify-center gap-2 py-6 text-sm">
               <Spinner size="sm" />
-              <span>Searching…</span>
+              <span>{sharedText.searching}</span>
             </div>
           )}
 
@@ -121,7 +122,9 @@ export function UserSearchPanel({
 
           {inviteSent && (
             <div className="bg-brand/5 border-border border-b px-4 py-3">
-              <p className="text-brand text-sm font-medium">Invitation sent!</p>
+              <p className="text-brand text-sm font-medium">
+                {inviteText.invitationSent}
+              </p>
             </div>
           )}
 
@@ -148,7 +151,7 @@ export function UserSearchPanel({
 
       {!showResults && (
         <p className="text-text-secondary text-center text-xs">
-          Type at least 2 characters to search
+          {inviteText.typeAtLeastNChars}
         </p>
       )}
     </div>

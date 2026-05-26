@@ -1,4 +1,5 @@
 import { messagesApi } from "@shared/api";
+import { errorText } from "@shared/constants/strings/index.en";
 import type { Message, PendingMessage } from "@shared/types/message";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
@@ -66,7 +67,7 @@ export function useMessages(conversationId: number): UseMessagesResult {
       } catch (err) {
         if (axios.isCancel(err)) return;
         if (!controller.signal.aborted) {
-          setError("Failed to load messages. Please try again.");
+          setError(errorText.loadMessagesFailed);
         }
       } finally {
         if (!controller.signal.aborted) setIsLoading(false);
