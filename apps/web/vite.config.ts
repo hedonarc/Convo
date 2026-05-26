@@ -27,6 +27,10 @@ export default defineConfig({
         "./node_modules/class-variance-authority",
       ),
       zod: path.resolve(__dirname, "./node_modules/zod"),
+      "@radix-ui/react-dropdown-menu": path.resolve(
+        __dirname,
+        "./node_modules/@radix-ui/react-dropdown-menu",
+      ),
     },
   },
   publicDir: "public",

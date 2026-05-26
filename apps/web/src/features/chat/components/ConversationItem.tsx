@@ -1,3 +1,8 @@
+import {
+  dashboardText,
+  inviteText,
+  sharedText,
+} from "@shared/constants/strings/index.en";
 import type { Conversation, Participant } from "@shared/types/conversation";
 import { Avatar } from "@shared/ui";
 import { cn } from "@shared/utils";
@@ -13,7 +18,7 @@ interface ConversationItemProps {
 function formatRelativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const minutes = Math.floor(diff / 60_000);
-  if (minutes < 1) return "just now";
+  if (minutes < 1) return dashboardText.justNow;
   if (minutes < 60) return `${minutes}m`;
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h`;
@@ -47,14 +52,14 @@ export function ConversationItem({
 
   const lastMessageText = (() => {
     if (isPendingInvitation && invitation?.email) {
-      return `Waiting for ${invitation.email}`;
+      return `${inviteText.waitingFor} ${invitation.email}`;
     }
 
     const lastMessage = conversation.last_message;
 
-    if (!lastMessage) return "No messages yet";
+    if (!lastMessage) return dashboardText.noMessagesYet;
 
-    if (lastMessage.is_deleted) return "Message deleted";
+    if (lastMessage.is_deleted) return dashboardText.messageDeleted;
 
     return lastMessage.content;
   })();
@@ -99,12 +104,12 @@ export function ConversationItem({
               {isPendingInvitation
                 ? invitation?.email
                 : isMe
-                  ? displayName + " (Me)"
+                  ? `${displayName} ${dashboardText.meSuffix}`
                   : displayName}
             </p>
             {isPendingInvitation && (
               <span className="bg-brand/10 text-brand ring-brand/20 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ring-1 ring-inset">
-                Pending
+                {dashboardText.pendingBadge}
               </span>
             )}
           </div>
@@ -116,7 +121,7 @@ export function ConversationItem({
             )}
             {hasUnread && (
               <span
-                aria-label="Unread"
+                aria-label={sharedText.unreadAriaLabel}
                 className="bg-brand h-2 w-2 shrink-0 rounded-full"
               />
             )}
@@ -130,7 +135,9 @@ export function ConversationItem({
               : "text-text-secondary",
           )}
         >
-          {isCurrentUserSender ? `You: ${lastMessageText}` : lastMessageText}
+          {isCurrentUserSender
+            ? `${dashboardText.youPrefix}: ${lastMessageText}`
+            : lastMessageText}
         </p>
       </div>
     </button>

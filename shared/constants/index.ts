@@ -3,6 +3,8 @@ export const ROUTES = {
   LANDING: "/",
   LOGIN: "/login",
   REGISTER: "/register",
+  INVITE: "/invite/:token",
+  PROFILE: "/profile",
 } as const;
 
 /** Mirrors apps/conversations/constants.py on the backend. */
@@ -17,4 +19,5 @@ export const API_ENDPOINTS = {
   USERS: "/api/users/",
   INVITES: "/api/invites/",
   ME: "/api/me/",
+  PRESENCE: "/api/presence/",
 } as const;

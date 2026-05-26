@@ -5,17 +5,38 @@ import { authText } from "@shared/constants/strings/index.en";
 import { AuthCard, Button, ErrorBanner, FormField, Link } from "@shared/ui";
 import { extractApiError } from "@shared/utils";
 import { type RegisterFormValues, registerSchema } from "@shared/validation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate, useSearchParams } from "react-router";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 
 import { useAuth } from "@/providers";
 
+interface InviteState {
+  inviteToken?: string;
+  inviteEmail?: string;
+  inviterName?: string;
+}
+
 export default function Register() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
-  const inviteToken = searchParams.get("invite");
-  const emailFromUrl = searchParams.get("email");
+  // Preferred path: invite is in router state (forwarded by the Invite page).
+  // Legacy fallback: support the old /register?invite=...&email=... emails
+  // still in inboxes — we scrub the query string from the URL on mount so
+  // the raw token doesn't sit in history/bookmarks.
+  const inviteState = (location.state ?? {}) as InviteState;
+  const inviteToken =
+    inviteState.inviteToken || searchParams.get("invite") || null;
+  const initialEmail =
+    inviteState.inviteEmail || searchParams.get("email") || "";
+
+  useEffect(() => {
+    if (searchParams.get("invite") || searchParams.get("email")) {
+      window.history.replaceState(null, "", ROUTES.REGISTER);
+    }
+  }, [searchParams]);
+
   const [error, setError] = useState<string | null>(null);
   const { setUser } = useAuth();
 
@@ -26,7 +47,7 @@ export default function Register() {
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      email: emailFromUrl || "",
+      email: initialEmail,
     },
   });
 

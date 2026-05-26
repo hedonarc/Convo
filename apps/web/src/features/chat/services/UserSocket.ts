@@ -1,5 +1,5 @@
 import { SOCKET_CLOSE_CODES, type SocketStatus } from "./socketEvents";
-import type { UserSocketEvent } from "./userSocketEvents";
+import type { UserSocketEvent, UserSocketOutgoing } from "./userSocketEvents";
 
 interface UserSocketOptions {
   baseUrl: string;
@@ -67,6 +67,16 @@ export class UserSocket {
     }
     this.ws = null;
     this.opts.onStatusChange("closed");
+  }
+
+  /**
+   * Push an outgoing frame to the server. No-ops silently if the socket
+   * isn't open yet — caller is expected to be fire-and-forget (e.g. the
+   * visibility ping).
+   */
+  send(frame: UserSocketOutgoing): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+    this.ws.send(JSON.stringify(frame));
   }
 
   // ── Handlers ────────────────────────────────────────────────────────────

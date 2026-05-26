@@ -1,3 +1,4 @@
+import { sharedText } from "@shared/constants/strings/index.en";
 import { Input } from "@shared/ui";
 import { Search, X } from "lucide-react";
 
@@ -14,7 +15,7 @@ export function SearchField({ value, onChange, onClear }: SearchFieldProps) {
       <Input
         id="user-search-input"
         type="text"
-        placeholder="Search by username or email…"
+        placeholder={sharedText.searchPlaceholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="pr-9 pl-9"
@@ -25,7 +26,7 @@ export function SearchField({ value, onChange, onClear }: SearchFieldProps) {
         <button
           type="button"
           onClick={onClear}
-          aria-label="Clear search"
+          aria-label={sharedText.clearSearchAriaLabel}
           className="text-text-secondary hover:text-text-primary absolute top-1/2 right-3 -translate-y-1/2 transition-colors"
         >
           <X className="h-4 w-4" />

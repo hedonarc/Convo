@@ -1,3 +1,5 @@
+import { ToastProvider } from "@shared/ui";
+
 import { AuthProvider } from "@/providers";
 
 import { AppRouter } from "./router";
@@ -5,7 +7,9 @@ import { AppRouter } from "./router";
 export function App() {
   return (
     <AuthProvider>
-      <AppRouter />
+      <ToastProvider>
+        <AppRouter />
+      </ToastProvider>
     </AuthProvider>
   );
 }

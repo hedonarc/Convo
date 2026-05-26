@@ -1,3 +1,4 @@
+import { sharedText } from "@shared/constants/strings/index.en";
 import type { Conversation } from "@shared/types/conversation";
 import { Modal, ModalHeader } from "@shared/ui";
 
@@ -20,8 +21,14 @@ export function NewChatDialog({
   };
 
   return (
-    <Modal open={open} onClose={onClose} ariaLabel="Start a new conversation">
-      <ModalHeader onClose={onClose}>New conversation</ModalHeader>
+    <Modal
+      open={open}
+      onClose={onClose}
+      ariaLabel={sharedText.newConversationDialogLabel}
+    >
+      <ModalHeader onClose={onClose}>
+        {sharedText.newConversationTitle}
+      </ModalHeader>
       <div className="p-6">
         <UserSearchPanel onConversationCreated={handleCreated} compact />
       </div>

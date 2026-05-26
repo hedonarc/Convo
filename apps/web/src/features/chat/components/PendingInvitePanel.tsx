@@ -1,4 +1,5 @@
 import { conversationsApi } from "@shared/api";
+import { inviteText } from "@shared/constants/strings/index.en";
 import type { Conversation } from "@shared/types/conversation";
 import { Button, Spinner } from "@shared/ui";
 import axios from "axios";
@@ -41,13 +42,13 @@ export function PendingInvitePanel({ conversation }: PendingInvitePanelProps) {
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 429) {
         const errorData = error.response.data;
-        setResendError(errorData.error || "Rate limit exceeded.");
+        setResendError(errorData.error || inviteText.rateLimitFallback);
 
         if (errorData.available_after) {
           setCooldownUntilMs(new Date(errorData.available_after).getTime());
         }
       } else {
-        setResendError("Failed to resend invite.");
+        setResendError(inviteText.resendFailed);
       }
     } finally {
       setResending(false);
@@ -61,15 +62,15 @@ export function PendingInvitePanel({ conversation }: PendingInvitePanelProps) {
       </div>
 
       <h3 className="text-text-primary mb-2 text-lg font-semibold">
-        Pending Invitation
+        {inviteText.pendingTitle}
       </h3>
 
       <p className="text-text-secondary mb-1 text-sm">
-        You invited {invitation.email}
+        {inviteText.youInvited} {invitation.email}
       </p>
 
       <p className="text-text-secondary mb-6 text-xs italic">
-        Waiting for them to join
+        {inviteText.waitingToJoin}
       </p>
 
       {resendError && (
@@ -80,7 +81,7 @@ export function PendingInvitePanel({ conversation }: PendingInvitePanelProps) {
 
       {resendSuccess && (
         <p className="text-brand animate-in fade-in slide-in-from-top-1 mb-4 text-xs">
-          Reminder sent successfully!
+          {inviteText.reminderSent}
         </p>
       )}
 
@@ -93,10 +94,10 @@ export function PendingInvitePanel({ conversation }: PendingInvitePanelProps) {
       >
         {resending ? <Spinner size="sm" /> : <Repeat className="h-4 w-4" />}
         {remainingTime
-          ? `Resend in ${remainingTime}`
+          ? `${inviteText.resendIn} ${remainingTime}`
           : resendSuccess
-            ? "Sent!"
-            : "Resend Invite"}
+            ? inviteText.sentBadge
+            : inviteText.resendInvite}
       </Button>
     </div>
   );

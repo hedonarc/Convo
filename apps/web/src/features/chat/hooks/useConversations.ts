@@ -1,4 +1,5 @@
 import { conversationsApi } from "@shared/api";
+import { errorText } from "@shared/constants/strings/index.en";
 import type { Conversation } from "@shared/types/conversation";
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -45,7 +46,7 @@ export function useConversations(): UseConversationsResult {
       } catch (err) {
         if (axios.isCancel(err)) return;
         if (!controller.signal.aborted) {
-          setError("Failed to load conversations. Please try again.");
+          setError(errorText.loadConversationsFailed);
         }
       } finally {
         if (!controller.signal.aborted) setIsLoading(false);

@@ -1,6 +1,4 @@
 import type { Conversation } from "@shared/types/conversation";
-import { Button } from "@shared/ui";
-import { LogOut } from "lucide-react";
 import { useState } from "react";
 
 import { useAuth } from "@/providers";
@@ -22,7 +20,7 @@ export function ConversationList({
   onSelect,
   onConversationCreated,
 }: ConversationListProps) {
-  const { user, setUser, logout } = useAuth();
+  const { user } = useAuth();
 
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -41,7 +39,6 @@ export function ConversationList({
         {/* Header */}
         <ConversationListHeader
           user={user}
-          setUser={setUser}
           fullName={fullName}
           onNewChat={() => setDialogOpen(true)}
         />
@@ -60,20 +57,6 @@ export function ConversationList({
             ))}
           </ul>
         </nav>
-
-        {/* Footer */}
-        <div className="border-border border-t p-3">
-          <Button
-            id="sidebar-logout-button"
-            variant="ghost"
-            size="sm"
-            onClick={logout}
-            className="text-text-secondary hover:text-text-primary w-full justify-start gap-2"
-          >
-            <LogOut className="h-4 w-4" />
-            Sign out
-          </Button>
-        </div>
       </aside>
 
       <NewChatDialog
