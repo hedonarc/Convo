@@ -1,31 +1,30 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { authApi } from "@shared/api";
+import { authApi, conversationsApi } from "@shared/api";
 import { ROUTES } from "@shared/constants";
-import { authText } from "@shared/constants/strings/index.en";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label,
-  Link,
-} from "@shared/ui";
+import { authText, inviteText } from "@shared/constants/strings/index.en";
+import { AuthCard, Button, ErrorBanner, FormField, Link } from "@shared/ui";
 import { extractApiError } from "@shared/utils";
 import { type LoginFormValues, loginSchema } from "@shared/validation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 
 import { useAuth } from "@/providers";
 
+interface InviteState {
+  inviteToken?: string;
+  inviteEmail?: string;
+  inviterName?: string;
+}
+
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [error, setError] = useState<string | null>(null);
   const { setUser } = useAuth();
+
+  const inviteState = (location.state ?? {}) as InviteState;
+  const { inviteToken, inviteEmail, inviterName } = inviteState;
 
   const {
     register,
@@ -33,6 +32,9 @@ export default function Login() {
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      identifier: inviteEmail ?? "",
+    },
   });
 
   const onSubmit = async (data: LoginFormValues) => {
@@ -43,71 +45,64 @@ export default function Login() {
         password: data.password,
       });
       setUser(response.user);
+
+      // Best-effort accept-after-login when the user arrived via an invite.
+      // Failures are swallowed — the user is still logged in and can find
+      // the invite again from their email if anything goes sideways.
+      if (inviteToken) {
+        try {
+          await conversationsApi.acceptInvite(inviteToken);
+        } catch {
+          /* best-effort */
+        }
+      }
+
       navigate(ROUTES.CHAT);
     } catch (err: unknown) {
       setError(extractApiError(err, authText.credentialsError));
     }
   };
 
+  const title = inviterName
+    ? inviteText.welcomeBackInvitee
+    : authText.welcomeBack;
+  const description = inviterName
+    ? `${inviteText.welcomeBackDescription} ${inviterName}. ${inviteText.signInToContinue}.`
+    : authText.enterEmailPassword;
+
   return (
-    <div className="full-center px-4 py-12 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold tracking-tight">
-            {authText.welcomeBack}
-          </CardTitle>
-          <CardDescription>{authText.enterEmailPassword}</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="rounded-md bg-red-50 p-3 text-sm text-red-500 dark:bg-red-900/10 dark:text-red-400">
-                {error}
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="identifier">{authText.emailOrUsername}</Label>
-              <Input
-                id="identifier"
-                type="text"
-                placeholder={authText.usernamePlaceholder}
-                error={!!errors.identifier}
-                {...register("identifier")}
-              />
-              {errors.identifier && (
-                <p className="text-sm font-medium text-red-500">
-                  {errors.identifier.message}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">{authText.password}</Label>
-              </div>
-              <Input
-                id="password"
-                type="password"
-                error={!!errors.password}
-                {...register("password")}
-              />
-              {errors.password && (
-                <p className="text-sm font-medium text-red-500">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button className="w-full" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? authText.loggingIn : authText.login}
-            </Button>
-            <div className="text-text-secondary text-center text-sm">
-              {authText.dontHaveAccount}
-              <Link to={ROUTES.REGISTER}>{authText.register}</Link>
-            </div>
-          </CardFooter>
-        </form>
-      </Card>
-    </div>
+    <AuthCard
+      title={title}
+      description={description}
+      onSubmit={handleSubmit(onSubmit)}
+      footer={
+        <>
+          <Button className="w-full" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? authText.loggingIn : authText.login}
+          </Button>
+          <div className="text-text-secondary text-center text-sm">
+            {authText.dontHaveAccount}
+            <Link to={ROUTES.REGISTER}>{authText.register}</Link>
+          </div>
+        </>
+      }
+    >
+      <ErrorBanner message={error} />
+      <FormField
+        id="identifier"
+        type="text"
+        label={authText.emailOrUsername}
+        placeholder={authText.emailOrUsernamePlaceholder}
+        error={errors.identifier?.message}
+        {...register("identifier")}
+      />
+      <FormField
+        id="password"
+        type="password"
+        label={authText.password}
+        error={errors.password?.message}
+        {...register("password")}
+      />
+    </AuthCard>
   );
 }
