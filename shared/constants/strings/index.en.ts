@@ -104,6 +104,7 @@ export const sharedText = {
   userMenuAriaLabel: "Account menu",
   viewProfile: "View profile",
   backToChat: "Back to chat",
+  backToConversations: "Back to conversations",
   profileHeading: "Profile",
   profilePicture: "Profile picture",
   changePicture: "Change picture",

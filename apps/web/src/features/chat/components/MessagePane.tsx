@@ -16,9 +16,11 @@ import { TypingIndicator } from "./TypingIndicator";
 
 interface MessagePaneProps {
   conversation: Conversation;
+  /** Mobile-only back affordance — returns to the conversation list. */
+  onBack?: () => void;
 }
 
-export function MessagePane({ conversation }: MessagePaneProps) {
+export function MessagePane({ conversation, onBack }: MessagePaneProps) {
   const { user } = useAuth();
   const {
     messages,
@@ -149,7 +151,7 @@ export function MessagePane({ conversation }: MessagePaneProps) {
 
   return (
     <section className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-      <ChatHeader user={otherUser} isSelfChat={isSelfChat} />
+      <ChatHeader user={otherUser} isSelfChat={isSelfChat} onBack={onBack} />
 
       <div className="relative flex min-h-0 flex-1 flex-col">
         {isLoading && !knownEmpty ? (

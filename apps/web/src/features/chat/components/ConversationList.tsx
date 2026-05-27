@@ -35,7 +35,7 @@ export function ConversationList({
 
   return (
     <>
-      <aside className="border-border bg-surface flex h-full w-72 shrink-0 flex-col border-r">
+      <aside className="border-border bg-surface flex h-full w-full shrink-0 flex-col border-r md:w-72">
         {/* Header */}
         <ConversationListHeader
           user={user}
