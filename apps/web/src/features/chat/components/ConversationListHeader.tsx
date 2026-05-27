@@ -18,11 +18,12 @@ interface ConversationListHeaderProps {
 /**
  * Sidebar header: the user's identity tile (avatar + name + @handle) on the
  * left and a new-chat button on the right. Clicking the identity tile
- * expands the header in-place to reveal the account menu (status, profile,
- * theme, sign out) — no floating popover, the header surface itself grows.
+ * expands the header in-place to reveal the account menu — no floating
+ * popover, the header surface itself grows.
  *
  * Open state lives here (not inside UserMenu) so the wrapping `<div>` —
- * the surface the user perceives as expanding — can lay out around it.
+ * the surface the user perceives as expanding — can tint and lay out
+ * around it.
  */
 export function ConversationListHeader({
   user,
@@ -36,10 +37,16 @@ export function ConversationListHeader({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Dismiss the panel when the user interacts outside it. Mousedown (not
-  // click) so the panel closes before any click handler runs on the target
-  // — e.g. clicking a conversation immediately switches view without a
-  // perceptible "menu collapses, then nav happens" sequence.
+  // Close paths fall into two buckets:
+  //  - Programmatic (Escape, item select) — focus should return to the
+  //    trigger so keyboard / screen-reader users don't lose their place.
+  //  - User-initiated focus shift (click outside, click trigger again) —
+  //    leave focus wherever the user moved it.
+  const closeMenu = (returnFocus: boolean) => {
+    setMenuOpen(false);
+    if (returnFocus) triggerRef.current?.focus();
+  };
+
   useEffect(() => {
     if (!menuOpen) return;
     const handlePointer = (e: MouseEvent) => {
@@ -49,7 +56,7 @@ export function ConversationListHeader({
       setMenuOpen(false);
     };
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
+      if (e.key === "Escape") closeMenu(true);
     };
     document.addEventListener("mousedown", handlePointer);
     document.addEventListener("keydown", handleKey);
@@ -59,8 +66,40 @@ export function ConversationListHeader({
     };
   }, [menuOpen]);
 
+  // Roving ↑/↓ navigation across panel buttons. Tab still works to enter
+  // the panel; once focus is on any menu item, arrow keys cycle without
+  // leaving the disclosure.
+  const handlePanelKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+    if (!panelRef.current) return;
+    const buttons = Array.from(
+      panelRef.current.querySelectorAll<HTMLButtonElement>(
+        "button:not([disabled])",
+      ),
+    );
+    if (buttons.length === 0) return;
+    e.preventDefault();
+    const current = document.activeElement;
+    const idx =
+      current instanceof HTMLButtonElement ? buttons.indexOf(current) : -1;
+    const next =
+      e.key === "ArrowDown"
+        ? idx >= buttons.length - 1
+          ? 0
+          : idx + 1
+        : idx <= 0
+          ? buttons.length - 1
+          : idx - 1;
+    buttons[next]?.focus();
+  };
+
   return (
-    <div className="border-border flex flex-col border-b">
+    <div
+      className={cn(
+        "border-border flex flex-col border-b transition-colors duration-200",
+        menuOpen && "bg-brand/5",
+      )}
+    >
       <div className="flex items-center justify-between px-3 py-3">
         <button
           id="user-menu-trigger"
@@ -70,7 +109,7 @@ export function ConversationListHeader({
           aria-expanded={menuOpen}
           aria-controls="user-menu-panel"
           onClick={() => setMenuOpen((o) => !o)}
-          className="hover:bg-brand/5 focus-visible:ring-ring aria-expanded:bg-brand/5 -mx-1 flex min-w-0 flex-1 items-center gap-3 rounded-md px-2 py-1.5 text-left transition-colors focus-visible:ring-1 focus-visible:outline-none"
+          className="hover:bg-brand/5 focus-visible:ring-ring -mx-1 flex min-w-0 flex-1 items-center gap-3 rounded-md px-2 py-1.5 text-left transition-colors focus-visible:ring-1 focus-visible:outline-none"
         >
           <Avatar
             name={fullName}
@@ -108,11 +147,11 @@ export function ConversationListHeader({
         </button>
       </div>
 
-      <div id="user-menu-panel" ref={panelRef} className="px-4">
+      <div id="user-menu-panel" ref={panelRef} onKeyDown={handlePanelKeyDown}>
         <UserMenu
           userId={user?.id}
           open={menuOpen}
-          onClose={() => setMenuOpen(false)}
+          onClose={() => closeMenu(true)}
         />
       </div>
     </div>

@@ -16,7 +16,8 @@ interface UserMenuProps {
   /** Controlled open state — owned by the parent so the surrounding
    *  surface (the sidebar header) can grow with us. */
   open: boolean;
-  /** Fired after an item is selected — parent collapses the panel. */
+  /** Fired after a navigation/destructive item is selected — parent
+   *  collapses the panel. NOT fired for sticky items (status, theme). */
   onClose: () => void;
   /** Current user id, used to read own status for the active-state check. */
   userId?: number;
@@ -25,12 +26,13 @@ interface UserMenuProps {
 /**
  * Inline-collapsible account panel. Lives in-flow inside the sidebar
  * header — when open, the parent surface grows taller to reveal these
- * actions instead of a floating popover appearing below it.
+ * actions instead of a floating popover.
  *
- * Animation uses the grid-template-rows: 0fr → 1fr trick: the outer grid
- * row animates between zero and intrinsic size, the inner div clips the
- * overflow during the transition. No JS measurement, no `auto` height
- * fallbacks.
+ * Sticky vs auto-close:
+ *  - Status (Online/Away) and theme toggle keep the panel open so the
+ *    user sees the ✓ / icon change land before deciding to dismiss.
+ *  - View profile and Sign out close the panel (they navigate away
+ *    anyway, but explicit close keeps things consistent).
  */
 export function UserMenu({ open, onClose, userId }: UserMenuProps) {
   const { logout } = useAuth();
@@ -39,9 +41,9 @@ export function UserMenu({ open, onClose, userId }: UserMenuProps) {
   const navigate = useNavigate();
   const ownStatus = usePresence(userId);
 
-  const select = (action: () => void) => () => {
-    action();
+  const goProfile = () => {
     onClose();
+    navigate(ROUTES.PROFILE);
   };
 
   const handleLogout = async () => {
@@ -66,13 +68,12 @@ export function UserMenu({ open, onClose, userId }: UserMenuProps) {
             open ? "opacity-100" : "opacity-0",
           )}
         >
-          <SectionLabel>{presenceText.setStatus}</SectionLabel>
-          <MenuItem onClick={select(() => setManualPresence("online"))}>
+          <MenuItem onClick={() => setManualPresence("online")}>
             <StatusDot status="online" />
             {presenceText.online}
             {ownStatus === "online" && <ActiveCheck />}
           </MenuItem>
-          <MenuItem onClick={select(() => setManualPresence("away"))}>
+          <MenuItem onClick={() => setManualPresence("away")}>
             <StatusDot status="away" />
             {presenceText.away}
             {ownStatus === "away" && <ActiveCheck />}
@@ -80,12 +81,12 @@ export function UserMenu({ open, onClose, userId }: UserMenuProps) {
 
           <Separator />
 
-          <MenuItem onClick={select(() => navigate(ROUTES.PROFILE))}>
+          <MenuItem onClick={goProfile}>
             <UserIcon className="h-4 w-4" />
             {sharedText.viewProfile}
           </MenuItem>
 
-          <MenuItem onClick={select(toggleTheme)}>
+          <MenuItem onClick={toggleTheme}>
             {theme === "light" ? (
               <Moon className="h-4 w-4" />
             ) : (
@@ -100,7 +101,7 @@ export function UserMenu({ open, onClose, userId }: UserMenuProps) {
 
           <MenuItem
             onClick={handleLogout}
-            className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10"
+            className="hover:bg-red-50 hover:text-red-500 focus-visible:bg-red-50 focus-visible:text-red-500 dark:hover:bg-red-900/10 dark:focus-visible:bg-red-900/10"
           >
             <LogOut className="h-4 w-4" />
             {sharedText.signOut}
@@ -125,7 +126,7 @@ function MenuItem({
       type="button"
       onClick={onClick}
       className={cn(
-        "hover:bg-brand/10 focus-visible:bg-brand/10 focus-visible:ring-ring -mx-1 flex w-[calc(100%+0.5rem)] items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors focus-visible:ring-1 focus-visible:outline-none",
+        "text-text-primary hover:bg-brand/10 focus-visible:bg-brand/10 focus-visible:ring-ring flex w-full items-center gap-3 px-4 py-1.5 text-sm transition-colors focus-visible:ring-1 focus-visible:outline-none focus-visible:ring-inset",
         className,
       )}
     >
@@ -134,16 +135,8 @@ function MenuItem({
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-text-secondary px-2 pt-2 pb-1 text-xs font-semibold tracking-wide uppercase">
-      {children}
-    </p>
-  );
-}
-
 function Separator() {
-  return <div className="bg-border -mx-1 my-1 h-px" />;
+  return <div aria-hidden className="bg-border h-px" />;
 }
 
 const STATUS_DOT_CLASS: Record<PresenceStatus, string> = {
@@ -156,7 +149,7 @@ function StatusDot({ status }: { status: PresenceStatus }) {
   return (
     <span
       aria-hidden
-      className={cn("h-2.5 w-2.5 rounded-full", STATUS_DOT_CLASS[status])}
+      className={cn("h-4 w-4 rounded-full", STATUS_DOT_CLASS[status])}
     />
   );
 }
