@@ -23,6 +23,14 @@ interface MessageInputProps {
 
 const MAX_HEIGHT_PX = 128; // ≈ 5 lines of text-sm with default line-height
 
+// Per-conversation draft storage. Lifetime = tab session. Keyed by
+// whatever `focusKey` callers pass (typically the conversation id). When
+// the user switches conversations the current draft is stashed under the
+// outgoing key and the incoming key's draft is restored — so an
+// abandoned half-typed message stays with the conversation it was meant
+// for, not the next one the user opens.
+const draftCache = new Map<string, string>();
+
 export function MessageInput({
   onSend,
   disabled = false,
@@ -30,8 +38,28 @@ export function MessageInput({
   onTyping,
   focusKey,
 }: MessageInputProps) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(() =>
+    focusKey !== undefined ? (draftCache.get(String(focusKey)) ?? "") : "",
+  );
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Swap drafts when the conversation changes. Done at render time
+  // (React's "store previous prop" pattern) so the textarea never paints
+  // the previous conversation's text — by the time the parent commits
+  // the new focusKey, `value` already reflects the new conversation's
+  // draft.
+  const [trackedDraftKey, setTrackedDraftKey] = useState(focusKey);
+  if (trackedDraftKey !== focusKey) {
+    if (trackedDraftKey !== undefined) {
+      const trimmed = value.trim();
+      if (trimmed) draftCache.set(String(trackedDraftKey), value);
+      else draftCache.delete(String(trackedDraftKey));
+    }
+    setValue(
+      focusKey !== undefined ? (draftCache.get(String(focusKey)) ?? "") : "",
+    );
+    setTrackedDraftKey(focusKey);
+  }
 
   // Auto-grow up to MAX_HEIGHT_PX, then overflow internally. Also toggle
   // overflow-y manually: Chrome shows a ghost vertical scrollbar on textareas
@@ -65,6 +93,10 @@ export function MessageInput({
     if (!canSend) return;
     onSend(trimmed);
     setValue("");
+    // Drop the cached draft for this conversation — the message is on its
+    // way, the draft has fulfilled its purpose. Otherwise it'd be
+    // re-hydrated next time the user opens this conversation.
+    if (focusKey !== undefined) draftCache.delete(String(focusKey));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
