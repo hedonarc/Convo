@@ -45,10 +45,18 @@ export function PresenceProvider({ children }: { children: React.ReactNode }) {
     setPresence((current) => ({ ...current, [String(entry.user_id)]: entry }));
   }, []);
 
-  // Stable ref so re-mounting the menu (or hot-reloading Chat) doesn't
-  // detach the sender. Chat plugs its socket send fn in here and clears it
-  // on unmount.
+  // Stable refs so re-mounting the menu (or hot-reloading Chat) doesn't
+  // detach the senders. Chat plugs the socket send fn in via these and
+  // clears them on unmount.
+  //
+  // Two distinct refs because the backend distinguishes between auto
+  // visibility hints (tab focus/blur) and explicit user intent
+  // (account-menu choices). Same socket, different actions, different
+  // server-side semantics — see UserConsumer.handle_set_status.
   const visibilitySenderRef = useRef<((visible: boolean) => void) | null>(null);
+  const statusSenderRef = useRef<((status: "online" | "away") => void) | null>(
+    null,
+  );
 
   const registerVisibilitySender = useCallback(
     (send: ((visible: boolean) => void) | null) => {
@@ -57,9 +65,16 @@ export function PresenceProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const registerStatusSender = useCallback(
+    (send: ((status: "online" | "away") => void) | null) => {
+      statusSenderRef.current = send;
+    },
+    [],
+  );
+
   const setManualPresence = useCallback((status: PresenceStatus) => {
     if (status === "offline") return; // server-owned; can't be set by client.
-    visibilitySenderRef.current?.(status === "online");
+    statusSenderRef.current?.(status);
   }, []);
 
   const value = useMemo(
@@ -69,8 +84,16 @@ export function PresenceProvider({ children }: { children: React.ReactNode }) {
       apply,
       setManualPresence,
       registerVisibilitySender,
+      registerStatusSender,
     }),
-    [presence, hydrate, apply, setManualPresence, registerVisibilitySender],
+    [
+      presence,
+      hydrate,
+      apply,
+      setManualPresence,
+      registerVisibilitySender,
+      registerStatusSender,
+    ],
   );
 
   return (

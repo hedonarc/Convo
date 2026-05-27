@@ -24,8 +24,11 @@ export default function Chat() {
   const [activeConversation, setActiveConversation] =
     useState<Conversation | null>(null);
   const { toast } = useToast();
-  const { apply: applyPresence, registerVisibilitySender } =
-    usePresenceContext();
+  const {
+    apply: applyPresence,
+    registerVisibilitySender,
+    registerStatusSender,
+  } = usePresenceContext();
 
   // Per-user WebSocket: receive cross-conversation pushes so the sidebar
   // updates in realtime without one socket per conversation. Keeps the
@@ -71,16 +74,20 @@ export default function Chat() {
   useEffect(() => {
     const sendVisibility = (visible: boolean) =>
       send({ action: "visibility", data: { visible } });
+    const sendStatus = (status: "online" | "away") =>
+      send({ action: "set_status", data: { status } });
     const fireFromDocument = () =>
       sendVisibility(document.visibilityState === "visible");
 
     registerVisibilitySender(sendVisibility);
+    registerStatusSender(sendStatus);
     document.addEventListener("visibilitychange", fireFromDocument);
     return () => {
       registerVisibilitySender(null);
+      registerStatusSender(null);
       document.removeEventListener("visibilitychange", fireFromDocument);
     };
-  }, [send, registerVisibilitySender]);
+  }, [send, registerVisibilitySender, registerStatusSender]);
 
   const handleCreated = async (conversation: Conversation) => {
     await refetch();
