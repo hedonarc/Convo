@@ -5,6 +5,7 @@ import {
 } from "@shared/constants/strings/index.en";
 import type { User } from "@shared/types/user";
 import { Avatar, AvatarZoomModal } from "@shared/ui";
+import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 
 import { usePresence } from "@/providers";
@@ -13,9 +14,11 @@ interface ChatHeaderProps {
   user: User | null;
   /** When true the chat is the "notes to self" conversation. */
   isSelfChat?: boolean;
+  /** Mobile-only back affordance — returns to the conversation list. */
+  onBack?: () => void;
 }
 
-export function ChatHeader({ user, isSelfChat }: ChatHeaderProps) {
+export function ChatHeader({ user, isSelfChat, onBack }: ChatHeaderProps) {
   const [isZoomOpen, setIsZoomOpen] = useState(false);
 
   const fullName =
@@ -36,6 +39,16 @@ export function ChatHeader({ user, isSelfChat }: ChatHeaderProps) {
 
   return (
     <header className="border-border bg-surface flex shrink-0 items-center gap-3 border-b px-4 py-3">
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label={sharedText.backToConversations}
+          className="text-text-secondary hover:text-text-primary hover:bg-brand/5 focus-visible:ring-ring -ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-md transition-colors focus-visible:ring-1 focus-visible:outline-none md:hidden"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+      )}
       <button
         type="button"
         onClick={() => canZoom && setIsZoomOpen(true)}

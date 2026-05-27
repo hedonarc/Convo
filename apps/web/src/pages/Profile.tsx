@@ -13,28 +13,34 @@ import {
   Button,
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
   ErrorBanner,
   Spinner,
 } from "@shared/ui";
-import { extractApiError } from "@shared/utils";
-import { ArrowLeft } from "lucide-react";
+import { cn, extractApiError } from "@shared/utils";
+import { ArrowLeft, Camera } from "lucide-react";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 
 import { useAuth, usePresence } from "@/providers";
 
+const PRESENCE_PILL_STYLES = {
+  online: "bg-green-500/10 text-green-700 dark:text-green-400",
+  away: "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400",
+  offline: "bg-gray-400/10 text-text-secondary",
+} as const;
+
+const PRESENCE_DOT_STYLES = {
+  online: "bg-green-500 dark:bg-green-400",
+  away: "bg-yellow-500 dark:bg-yellow-400",
+  offline: "bg-gray-400 dark:bg-gray-500",
+} as const;
+
 /**
- * Profile page — the home for identity-related actions that used to be
- * scattered around the chat shell. Hosts avatar editing (cropper modal),
- * shows the user's identity (name, username, email), and exposes a
- * back-to-chat affordance.
- *
- * Read-only for now. Editing name / username / email is a separate task
- * (the backend allows it via PATCH /api/me/ but the form work hasn't
- * landed yet — keeping the surface minimal until we know exactly which
- * fields make the cut).
+ * Profile page — the home for identity. Reorganized to lead with the user
+ * (avatar + name + presence) and demote details to a supporting section,
+ * rather than treating the page as a settings form. Field editing isn't
+ * shipped yet; we surface that explicitly via a disabled "Edit profile"
+ * affordance so the read-only state is intentional, not mysterious.
  */
 export default function Profile() {
   const navigate = useNavigate();
@@ -88,9 +94,25 @@ export default function Profile() {
     setUploadError(null);
   };
 
+  // "Member since" — relies on the new `date_joined` field added to
+  // UserSerializer. Format as month + year (e.g. "May 2026") since the
+  // exact day rarely matters at the profile-page glance.
+  const memberSinceLabel = formatMemberSince(user?.date_joined);
+
+  // Decide which fields belong in the details section. Username and email
+  // are always required (backend invariants), so they always render with a
+  // value. First/last name are optional — we show them with a soft
+  // "Not set" placeholder so the user knows they exist as fields.
+  const fields: Array<{ label: string; value?: string | null }> = [
+    { label: authText.firstName, value: user?.first_name },
+    { label: authText.lastName, value: user?.last_name },
+    { label: authText.username, value: user?.username },
+    { label: authText.email, value: user?.email },
+  ];
+
   return (
     <div className="bg-background min-h-screen">
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-10">
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-8 sm:py-10">
         <Button
           variant="ghost"
           size="sm"
@@ -101,52 +123,76 @@ export default function Profile() {
           {sharedText.backToChat}
         </Button>
 
-        <h1 className="text-text-primary text-2xl font-bold tracking-tight">
-          {sharedText.profileHeading}
-        </h1>
-
         <ErrorBanner message={uploadError} />
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              {sharedText.profilePicture}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center gap-6">
-            <button
-              type="button"
-              onClick={() => user?.avatar && setIsZoomOpen(true)}
-              disabled={!user?.avatar || isUploading}
-              aria-label={sharedText.zoomAvatarAriaLabel}
-              className="focus-visible:ring-ring relative shrink-0 rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-default"
-            >
-              <Avatar
-                name={fullName}
-                url={user?.avatar}
-                size="lg"
-                presence={presence}
-                presenceLabel={presenceText[presence]}
-              />
-              {isUploading && (
-                <span
-                  aria-hidden
-                  className="bg-surface/70 absolute inset-0 flex items-center justify-center rounded-full"
-                >
-                  <Spinner size="sm" />
-                </span>
-              )}
-            </button>
-            <div className="flex flex-col gap-1">
-              <Button
-                variant="outline"
-                size="sm"
+          <CardContent className="flex flex-col items-center gap-5 pt-8 pb-6">
+            {/* ── Hero: avatar with hover-to-change overlay ──────────────── */}
+            <div className="group/avatar relative">
+              <button
+                type="button"
+                onClick={() => user?.avatar && setIsZoomOpen(true)}
+                disabled={!user?.avatar || isUploading}
+                aria-label={sharedText.zoomAvatarAriaLabel}
+                className={cn(
+                  "focus-visible:ring-ring rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
+                  user?.avatar && !isUploading && "cursor-zoom-in",
+                  !user?.avatar && "cursor-default",
+                )}
+              >
+                <Avatar name={fullName} url={user?.avatar} size="xl" />
+                {isUploading && (
+                  <span
+                    role="status"
+                    aria-label={sharedText.changePictureAriaLabel}
+                    className="bg-surface/70 absolute inset-0 flex items-center justify-center rounded-full"
+                  >
+                    <Spinner size="sm" />
+                  </span>
+                )}
+              </button>
+
+              {/* Camera overlay button — lives on top of the avatar. On
+                  hover/focus it fades in; on mobile (no hover) it stays
+                  visible at reduced opacity so the affordance isn't
+                  hidden behind a state that touch devices can't trigger. */}
+              <button
+                type="button"
                 onClick={handlePickFile}
                 disabled={isUploading}
+                aria-label={sharedText.changePictureAriaLabel}
+                className={cn(
+                  "border-border bg-surface text-text-primary hover:bg-brand hover:text-brand-foreground focus-visible:ring-ring absolute right-0 bottom-0 flex h-10 w-10 items-center justify-center rounded-full border shadow-md transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+                  "opacity-100 sm:opacity-0 sm:group-hover/avatar:opacity-100 sm:focus-within:opacity-100",
+                )}
               >
-                {sharedText.changePicture}
-              </Button>
+                <Camera className="h-4 w-4" />
+              </button>
             </div>
+
+            {/* ── Identity block ─────────────────────────────────────────── */}
+            <div className="flex flex-col items-center gap-2 text-center">
+              <h1 className="text-text-primary text-2xl font-bold tracking-tight sm:text-3xl">
+                {fullName}
+              </h1>
+              <div className="flex items-center gap-2">
+                {user?.username && (
+                  <p className="text-text-secondary text-sm">
+                    @{user.username}
+                  </p>
+                )}
+                <PresencePill
+                  status={presence}
+                  label={presenceText[presence]}
+                />
+              </div>
+              {memberSinceLabel && (
+                <p className="text-text-secondary text-xs">
+                  {sharedText.memberSince} {memberSinceLabel}
+                </p>
+              )}
+            </div>
+
             <input
               ref={fileInputRef}
               type="file"
@@ -155,28 +201,41 @@ export default function Profile() {
               onChange={handleFileChange}
             />
           </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              {fullName}
-              {user?.username && (
-                <span className="text-text-secondary ml-2 text-sm font-normal">
-                  @{user.username}
-                </span>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <ReadonlyField
-              label={authText.firstName}
-              value={user?.first_name}
-            />
-            <ReadonlyField label={authText.lastName} value={user?.last_name} />
-            <ReadonlyField label={authText.username} value={user?.username} />
-            <ReadonlyField label={authText.email} value={user?.email} />
-          </CardContent>
+          {/* ── Details section ──────────────────────────────────────────── */}
+          <div className="border-border border-t">
+            <CardContent className="flex flex-col gap-5 py-6">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
+                {fields.map((field) => (
+                  <ReadonlyField
+                    key={field.label}
+                    label={field.label}
+                    value={field.value}
+                  />
+                ))}
+              </div>
+
+              {/* Disabled edit affordance — signals "this isn't broken,
+                  it's intentionally locked, and editing is coming." */}
+              <div className="border-border flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+                <p className="text-text-secondary text-xs">
+                  {sharedText.editProfileComingSoon}
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled
+                  className="gap-2"
+                >
+                  {sharedText.editProfile}
+                  <span className="bg-brand/10 text-brand rounded-full px-1.5 py-0.5 text-[10px] font-medium tracking-wide uppercase">
+                    {sharedText.comingSoon}
+                  </span>
+                </Button>
+              </div>
+            </CardContent>
+          </div>
         </Card>
       </div>
 
@@ -200,6 +259,30 @@ export default function Profile() {
   );
 }
 
+function PresencePill({
+  status,
+  label,
+}: {
+  status: keyof typeof PRESENCE_PILL_STYLES;
+  label: string;
+}) {
+  return (
+    <span
+      role="status"
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium",
+        PRESENCE_PILL_STYLES[status],
+      )}
+    >
+      <span
+        aria-hidden
+        className={cn("h-1.5 w-1.5 rounded-full", PRESENCE_DOT_STYLES[status])}
+      />
+      {label}
+    </span>
+  );
+}
+
 function ReadonlyField({
   label,
   value,
@@ -207,12 +290,30 @@ function ReadonlyField({
   label: string;
   value?: string | null;
 }) {
+  const isEmpty = !value;
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-text-secondary text-xs font-medium tracking-wide uppercase">
+      <span className="text-text-secondary text-[11px] font-medium tracking-wider uppercase">
         {label}
       </span>
-      <span className="text-text-primary text-sm">{value || "—"}</span>
+      <span
+        className={cn(
+          "text-sm",
+          isEmpty ? "text-text-secondary italic" : "text-text-primary",
+        )}
+      >
+        {value || sharedText.notSet}
+      </span>
     </div>
   );
+}
+
+function formatMemberSince(isoDate: string | undefined): string | null {
+  if (!isoDate) return null;
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString(undefined, {
+    month: "long",
+    year: "numeric",
+  });
 }
