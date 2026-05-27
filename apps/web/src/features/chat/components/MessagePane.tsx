@@ -275,6 +275,7 @@ export function MessagePane({ conversation, onBack }: MessagePaneProps) {
         onSend={handleSend}
         disabled={status !== "open"}
         onTyping={() => typing.notifyTyping(send)}
+        focusKey={conversation.id}
       />
     </section>
   );
