@@ -180,8 +180,11 @@ export default function Chat() {
               </div>
             </>
           ) : (
+            // Deliberately *not* keyed by conversation.id. useMessages
+            // already swaps state internally when conversationId changes,
+            // and keeping the DOM stable across switches lets the in-pane
+            // cross-fade in MessagePane actually have something to animate.
             <MessagePane
-              key={activeConversation.id}
               conversation={activeConversation}
               onBack={handleBack}
             />
