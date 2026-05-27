@@ -84,7 +84,14 @@ export function ConversationItem({
       id={`conversation-item-${conversation.id}`}
       onClick={onClick}
       className={cn(
-        "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors",
+        "flex w-full items-center gap-3 px-4 py-3 text-left",
+        // `transition` (not `transition-colors`) so the bg, border-color
+        // AND transform all animate in lockstep — needed for the press
+        // scale below to feel premium rather than snappy.
+        "motion-safe:transition motion-safe:duration-200 motion-safe:ease-out",
+        // Tactile press feedback: row shrinks ~2% while held. Reduced-
+        // motion users skip the scale entirely.
+        "motion-safe:active:scale-[0.97]",
         "focus-visible:ring-ring focus-visible:ring-1 focus-visible:outline-none",
         isActive
           ? "bg-brand/10 border-brand border-r-2"

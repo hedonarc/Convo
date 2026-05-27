@@ -111,6 +111,26 @@ export function MessagePane({ conversation, onBack }: MessagePaneProps) {
     return () => clearTimeout(timer);
   }, [wantsSkeleton]);
 
+  // ── Pane slide-in on conversation change ────────────────────────────────
+  // The whole MessagePane (chrome + content) slides in from a small
+  // right-offset on every conversation switch and on first mount. We snap
+  // to the offset state with no transition (so the eye doesn't see a
+  // "slide-out" of the previous pane), then animate back to rest on the
+  // next frame. Reduced-motion users get no slide.
+  const [paneAtRest, setPaneAtRest] = useState(false);
+  const [trackedConversationId, setTrackedConversationId] = useState(
+    conversation.id,
+  );
+  if (trackedConversationId !== conversation.id) {
+    setTrackedConversationId(conversation.id);
+    setPaneAtRest(false);
+  }
+  useEffect(() => {
+    if (paneAtRest) return;
+    const raf = requestAnimationFrame(() => setPaneAtRest(true));
+    return () => cancelAnimationFrame(raf);
+  }, [paneAtRest]);
+
   if (!user) return null;
 
   const participants = conversation.participants ?? [];
@@ -186,7 +206,21 @@ export function MessagePane({ conversation, onBack }: MessagePaneProps) {
   const inPreSkeletonWindow = wantsSkeleton && !showSkeleton;
 
   return (
-    <section className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+    <section
+      className={cn(
+        "flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden",
+        paneAtRest
+          ? // At-rest state carries the transition so the slide-in plays
+            // when we flip back from the offset position. Pure
+            // `transition-transform` — no opacity, no colour churn on the
+            // chrome.
+            "translate-x-0 motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out"
+          : // Pre-rest snap: jump to the right by 16px with no
+            // transition so the eye reads it as the *start* of the
+            // slide-in, not as the previous pane sliding out.
+            "motion-safe:translate-x-4",
+      )}
+    >
       {/* Chrome — renders unconditionally so the header populates the
           instant the conversation prop changes, no waiting on the fetch. */}
       <ChatHeader user={otherUser} isSelfChat={isSelfChat} onBack={onBack} />
