@@ -15,10 +15,15 @@ export type UserSocketEvent =
   | { type: "error"; message: string };
 
 /**
- * Frames the client can push to the UserConsumer. Today: a visibility ping
- * so the server can mark this tab as away (hidden) or online (visible).
+ * Frames the client can push to the UserConsumer.
+ *
+ *  - `visibility` — automatic per-tab signal driven by the browser's
+ *    `visibilitychange` event. Server treats it as a tab-level hint and
+ *    will NOT override an explicit user intent.
+ *  - `set_status` — explicit user choice from the account menu. Records
+ *    (or clears) a user-level manual override on the server that
+ *    survives tab focus events and WS reconnects.
  */
-export type UserSocketOutgoing = {
-  action: "visibility";
-  data: { visible: boolean };
-};
+export type UserSocketOutgoing =
+  | { action: "visibility"; data: { visible: boolean } }
+  | { action: "set_status"; data: { status: "online" | "away" } };
