@@ -6,7 +6,7 @@ export type AvatarPresenceStatus = "online" | "away" | "offline";
 interface AvatarProps {
   name?: string;
   className?: string;
-  size?: "sm" | "default" | "lg";
+  size?: "sm" | "default" | "lg" | "xl";
   url?: string;
   /**
    * Optional presence indicator rendered as a colored dot in the bottom-right
@@ -22,12 +22,17 @@ const sizeClasses = {
   sm: "h-7 w-7 text-xs",
   default: "h-9 w-9 text-sm",
   lg: "h-12 w-12 text-base",
+  // Hero size for the Profile page. 128px matches the rough size most
+  // premium profile pages use (LinkedIn, Slack, Notion) — large enough to
+  // anchor the page but not so large it dominates on smaller viewports.
+  xl: "h-32 w-32 text-3xl",
 };
 
 const dotSizeClasses = {
   sm: "h-2 w-2",
   default: "h-2.5 w-2.5",
   lg: "h-3 w-3",
+  xl: "h-5 w-5",
 };
 
 const dotColorClasses: Record<AvatarPresenceStatus, string> = {

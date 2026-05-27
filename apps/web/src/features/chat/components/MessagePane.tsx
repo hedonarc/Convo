@@ -2,6 +2,7 @@ import { messagesApi } from "@shared/api";
 import type { Conversation } from "@shared/types/conversation";
 import { Button, ErrorBanner } from "@shared/ui";
 import { cn } from "@shared/utils";
+import { useEffect, useState } from "react";
 
 import { useAuth } from "@/providers";
 
@@ -14,11 +15,19 @@ import { MessageInput } from "./MessageInput";
 import { MessageList } from "./MessageList";
 import { TypingIndicator } from "./TypingIndicator";
 
+// Wait this long before showing the loading skeleton. Cached / fast loads
+// (the common case) resolve well within this window and never trigger the
+// skeleton at all — eliminates the "flash of skeleton" jolt that used to
+// happen on every conversation switch.
+const SKELETON_DELAY_MS = 150;
+
 interface MessagePaneProps {
   conversation: Conversation;
+  /** Mobile-only back affordance — returns to the conversation list. */
+  onBack?: () => void;
 }
 
-export function MessagePane({ conversation }: MessagePaneProps) {
+export function MessagePane({ conversation, onBack }: MessagePaneProps) {
   const { user } = useAuth();
   const {
     messages,
@@ -74,6 +83,54 @@ export function MessagePane({ conversation }: MessagePaneProps) {
     // event.type === "error" — surfaced server-side; ignored client-side.
   });
 
+  // The sidebar already knows whether the conversation has any messages — if
+  // `last_message` is null we can skip the loading skeleton entirely and go
+  // straight to the empty state.
+  const knownEmpty = !conversation.last_message;
+
+  // ── Skeleton debounce ────────────────────────────────────────────────────
+  // Hold off on the skeleton until a load has been pending long enough that
+  // we *know* it's not just a fast cache hit. Saves the user a 50–150ms
+  // flash of grey rectangles on every conversation switch.
+  //
+  // Implementation note: `setShowSkeleton(false)` is driven by a render-time
+  // comparison rather than from inside the effect, per React's
+  // "store-previous-value" recipe — keeps `react-hooks/set-state-in-effect`
+  // happy and avoids the cascading-render pattern.
+  const wantsSkeleton = isLoading && !knownEmpty;
+  const [showSkeleton, setShowSkeleton] = useState(false);
+  const [trackedWantsSkeleton, setTrackedWantsSkeleton] =
+    useState(wantsSkeleton);
+  if (trackedWantsSkeleton !== wantsSkeleton) {
+    setTrackedWantsSkeleton(wantsSkeleton);
+    if (!wantsSkeleton) setShowSkeleton(false);
+  }
+  useEffect(() => {
+    if (!wantsSkeleton) return;
+    const timer = setTimeout(() => setShowSkeleton(true), SKELETON_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [wantsSkeleton]);
+
+  // ── Pane slide-in on conversation change ────────────────────────────────
+  // The whole MessagePane (chrome + content) slides in from a small
+  // right-offset on every conversation switch and on first mount. We snap
+  // to the offset state with no transition (so the eye doesn't see a
+  // "slide-out" of the previous pane), then animate back to rest on the
+  // next frame. Reduced-motion users get no slide.
+  const [paneAtRest, setPaneAtRest] = useState(false);
+  const [trackedConversationId, setTrackedConversationId] = useState(
+    conversation.id,
+  );
+  if (trackedConversationId !== conversation.id) {
+    setTrackedConversationId(conversation.id);
+    setPaneAtRest(false);
+  }
+  useEffect(() => {
+    if (paneAtRest) return;
+    const raf = requestAnimationFrame(() => setPaneAtRest(true));
+    return () => cancelAnimationFrame(raf);
+  }, [paneAtRest]);
+
   if (!user) return null;
 
   const participants = conversation.participants ?? [];
@@ -85,11 +142,6 @@ export function MessagePane({ conversation }: MessagePaneProps) {
   const emptyStateName =
     [otherUser?.first_name, otherUser?.last_name].filter(Boolean).join(" ") ||
     otherUser?.username;
-
-  // The sidebar already knows whether the conversation has any messages — if
-  // `last_message` is null we can skip the loading skeleton entirely and go
-  // straight to the empty state.
-  const knownEmpty = !conversation.last_message;
 
   // Highest own message id that's been read by any peer → "Seen" tick anchor.
   const lastSeenOwnMessageId = (() => {
@@ -147,14 +199,36 @@ export function MessagePane({ conversation }: MessagePaneProps) {
   // echoing them to us, but defensive in case backend semantics drift.
   const peerTypingUserIds = typing.typingUserIds.filter((id) => id !== user.id);
 
+  // While in the pre-skeleton debounce window (load is in flight but we
+  // haven't committed to showing the skeleton yet), render nothing in the
+  // content slot. The fade-in covers this so the user just sees the chrome
+  // populated + a brief moment of empty space, not an empty-state flash.
+  const inPreSkeletonWindow = wantsSkeleton && !showSkeleton;
+
   return (
-    <section className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-      <ChatHeader user={otherUser} isSelfChat={isSelfChat} />
+    <section
+      className={cn(
+        "flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden",
+        paneAtRest
+          ? // At-rest state carries the transition so the slide-in plays
+            // when we flip back from the offset position. Pure
+            // `transition-transform` — no opacity, no colour churn on the
+            // chrome.
+            "translate-x-0 motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out"
+          : // Pre-rest snap: jump to the right by 16px with no
+            // transition so the eye reads it as the *start* of the
+            // slide-in, not as the previous pane sliding out.
+            "motion-safe:translate-x-4",
+      )}
+    >
+      {/* Chrome — renders unconditionally so the header populates the
+          instant the conversation prop changes, no waiting on the fetch. */}
+      <ChatHeader user={otherUser} isSelfChat={isSelfChat} onBack={onBack} />
 
       <div className="relative flex min-h-0 flex-1 flex-col">
-        {isLoading && !knownEmpty ? (
+        {showSkeleton ? (
           <MessageListSkeleton />
-        ) : error ? (
+        ) : inPreSkeletonWindow ? null : error ? (
           <div className="bg-background flex flex-1 flex-col items-center justify-center gap-3 px-6">
             <ErrorBanner message={error} className="max-w-md" />
             <Button variant="outline" size="sm" onClick={retry}>
@@ -162,7 +236,14 @@ export function MessagePane({ conversation }: MessagePaneProps) {
             </Button>
           </div>
         ) : (
+          // Keyed by conversation id so MessageList remounts on switch and
+          // its initial-mount scroll-to-bottom logic re-runs — otherwise
+          // the container holds the previous conversation's scrollTop
+          // (often somewhere mid-history) when the new messages render.
+          // MessagePane itself stays mounted; only the scroll container
+          // resets.
           <MessageList
+            key={conversation.id}
             messages={messages}
             currentUserId={user.id}
             participants={participants}
@@ -194,6 +275,7 @@ export function MessagePane({ conversation }: MessagePaneProps) {
         onSend={handleSend}
         disabled={status !== "open"}
         onTyping={() => typing.notifyTyping(send)}
+        focusKey={conversation.id}
       />
     </section>
   );

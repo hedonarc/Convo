@@ -4,6 +4,15 @@ import type { Message, PendingMessage } from "@shared/types/message";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 
+// Module-level cache of the most recently observed message list per
+// conversation. Lifetime = tab session (no persistence, no eviction —
+// typical users have dozens of conversations, not thousands). The point is
+// to skip the loading state on conversation revisits: we populate `messages`
+// from this map synchronously, then refresh in the background. WS events,
+// edits, deletes, and successful loads all flow back into the cache via
+// the mirror effect below.
+const messageCache = new Map<number, Message[]>();
+
 interface UseMessagesResult {
   messages: Message[];
   isLoading: boolean;
@@ -50,11 +59,44 @@ export function useMessages(conversationId: number): UseMessagesResult {
 
   const loadOlderController = useRef<AbortController | null>(null);
 
+  // Reset state when the fetch dependencies change — done *during render*
+  // rather than in an effect, per React's "storing information from
+  // previous renders" recipe. Avoids the cascading-render anti-pattern
+  // that an effect-based reset would trigger.
+  // (Previously this reset came for free via the MessagePane remount;
+  // MessagePane is now stable across switches — see Chat.tsx.)
+  const [trackedKey, setTrackedKey] = useState({ conversationId, version });
+  const conversationChanged = trackedKey.conversationId !== conversationId;
+  const retryRequested = trackedKey.version !== version;
+  if (conversationChanged || retryRequested) {
+    setTrackedKey({ conversationId, version });
+    setError(null);
+    if (conversationChanged) {
+      // Cache hit → populate immediately, skip the loading state. Fresh
+      // fetch still runs below and overwrites with authoritative data.
+      // Cache miss → empty + loading, normal first-load path.
+      const cached = messageCache.get(conversationId);
+      setMessages(cached ?? []);
+      setIsLoading(!cached);
+      setPending([]);
+      setNextCursor(null);
+    } else {
+      // Retry — keep messages as-is, just re-enter the loading state.
+      setIsLoading(true);
+    }
+  }
+
+  // Mirror committed message state back into the cache so the next
+  // revisit shows up-to-date content. Skipped while a fresh load is
+  // pending so we don't cache the empty placeholder.
+  useEffect(() => {
+    if (isLoading) return;
+    messageCache.set(conversationId, messages);
+  }, [conversationId, messages, isLoading]);
+
   useEffect(() => {
     const controller = new AbortController();
     const load = async () => {
-      setIsLoading(true);
-      setError(null);
       try {
         const data = await messagesApi.list(
           conversationId,

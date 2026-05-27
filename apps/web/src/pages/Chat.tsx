@@ -5,7 +5,8 @@ import {
 } from "@shared/constants/strings/index.en";
 import type { Conversation } from "@shared/types/conversation";
 import { Spinner, useToast } from "@shared/ui";
-import { AlertCircle } from "lucide-react";
+import { cn } from "@shared/utils";
+import { AlertCircle, ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { usePresenceContext } from "@/providers";
@@ -127,29 +128,65 @@ export default function Chat() {
     activeConversation?.invitation &&
     !activeConversation.invitation.is_accepted;
 
+  const handleBack = () => setActiveConversation(null);
+
+  // On mobile we show a single pane at a time: the conversation list takes
+  // the full viewport, and selecting a conversation swaps in the message
+  // pane. A header back button returns to the list. On md+ both panes are
+  // visible side-by-side.
+  const hasActive = !!activeConversation;
+
   // ── Has conversations ────────────────────────────────────────────────────
   return (
     <div className="flex h-screen overflow-hidden">
-      <ConversationList
-        conversations={conversations}
-        activeId={activeConversation?.id ?? null}
-        onSelect={setActiveConversation}
-        onConversationCreated={handleCreated}
-      />
+      <div
+        className={cn(
+          "h-full md:flex md:w-72 md:shrink-0",
+          hasActive ? "hidden" : "flex w-full",
+        )}
+      >
+        <ConversationList
+          conversations={conversations}
+          activeId={activeConversation?.id ?? null}
+          onSelect={setActiveConversation}
+          onConversationCreated={handleCreated}
+        />
+      </div>
 
-      <main className="flex min-w-0 flex-1 flex-col">
+      <main
+        className={cn(
+          "min-w-0 flex-1 flex-col md:flex",
+          hasActive ? "flex" : "hidden",
+        )}
+      >
         {activeConversation ? (
           isPendingInvite ? (
-            <div className="center flex-1 px-6">
-              <PendingInvitePanel
-                key={activeConversation.id}
-                conversation={activeConversation}
-              />
-            </div>
+            <>
+              <div className="border-border bg-surface flex shrink-0 items-center gap-2 border-b px-2 py-2 md:hidden">
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  aria-label={sharedText.backToConversations}
+                  className="text-text-secondary hover:text-text-primary hover:bg-brand/5 focus-visible:ring-ring flex h-9 w-9 items-center justify-center rounded-md transition-colors focus-visible:ring-1 focus-visible:outline-none"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="center flex-1 px-6">
+                <PendingInvitePanel
+                  key={activeConversation.id}
+                  conversation={activeConversation}
+                />
+              </div>
+            </>
           ) : (
+            // Deliberately *not* keyed by conversation.id. useMessages
+            // already swaps state internally when conversationId changes,
+            // and keeping the DOM stable across switches lets the in-pane
+            // cross-fade in MessagePane actually have something to animate.
             <MessagePane
-              key={activeConversation.id}
               conversation={activeConversation}
+              onBack={handleBack}
             />
           )
         ) : (

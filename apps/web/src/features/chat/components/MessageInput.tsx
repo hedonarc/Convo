@@ -12,18 +12,54 @@ interface MessageInputProps {
   placeholder?: string;
   /** Fires on each non-trivial keystroke; used to emit throttled typing pings. */
   onTyping?: () => void;
+  /**
+   * Refocus the textarea whenever this value changes. Pass the active
+   * conversation id from the parent so the composer auto-focuses on
+   * conversation switch — `autoFocus` alone only fires on mount, and the
+   * MessagePane is mounted once across the whole session now.
+   */
+  focusKey?: number | string;
 }
 
 const MAX_HEIGHT_PX = 128; // ≈ 5 lines of text-sm with default line-height
+
+// Per-conversation draft storage. Lifetime = tab session. Keyed by
+// whatever `focusKey` callers pass (typically the conversation id). When
+// the user switches conversations the current draft is stashed under the
+// outgoing key and the incoming key's draft is restored — so an
+// abandoned half-typed message stays with the conversation it was meant
+// for, not the next one the user opens.
+const draftCache = new Map<string, string>();
 
 export function MessageInput({
   onSend,
   disabled = false,
   placeholder = sharedText.messageInputPlaceholder,
   onTyping,
+  focusKey,
 }: MessageInputProps) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(() =>
+    focusKey !== undefined ? (draftCache.get(String(focusKey)) ?? "") : "",
+  );
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Swap drafts when the conversation changes. Done at render time
+  // (React's "store previous prop" pattern) so the textarea never paints
+  // the previous conversation's text — by the time the parent commits
+  // the new focusKey, `value` already reflects the new conversation's
+  // draft.
+  const [trackedDraftKey, setTrackedDraftKey] = useState(focusKey);
+  if (trackedDraftKey !== focusKey) {
+    if (trackedDraftKey !== undefined) {
+      const trimmed = value.trim();
+      if (trimmed) draftCache.set(String(trackedDraftKey), value);
+      else draftCache.delete(String(trackedDraftKey));
+    }
+    setValue(
+      focusKey !== undefined ? (draftCache.get(String(focusKey)) ?? "") : "",
+    );
+    setTrackedDraftKey(focusKey);
+  }
 
   // Auto-grow up to MAX_HEIGHT_PX, then overflow internally. Also toggle
   // overflow-y manually: Chrome shows a ghost vertical scrollbar on textareas
@@ -39,6 +75,15 @@ export function MessageInput({
     el.style.overflowY = el.scrollHeight > MAX_HEIGHT_PX ? "auto" : "hidden";
   }, [value]);
 
+  // Auto-focus on mount and on every conversation switch. Replaces the
+  // `autoFocus` attribute — that only fires on mount, which used to be
+  // "once per conversation" but now (with MessagePane held mounted across
+  // switches) is "once per session". Pure ref method, not setState, so it
+  // can live in the effect body.
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, [focusKey]);
+
   const trimmed = value.trim();
   const isTooLong = trimmed.length > MAX_MESSAGE_LENGTH;
   const showCounter = trimmed.length > MAX_MESSAGE_LENGTH * 0.8;
@@ -48,6 +93,10 @@ export function MessageInput({
     if (!canSend) return;
     onSend(trimmed);
     setValue("");
+    // Drop the cached draft for this conversation — the message is on its
+    // way, the draft has fulfilled its purpose. Otherwise it'd be
+    // re-hydrated next time the user opens this conversation.
+    if (focusKey !== undefined) draftCache.delete(String(focusKey));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -72,7 +121,6 @@ export function MessageInput({
           rows={1}
           aria-label={sharedText.messageInputLabel}
           aria-invalid={isTooLong || undefined}
-          autoFocus
           className={cn(
             "border-border bg-input text-text-primary placeholder:text-text-secondary focus-visible:ring-ring no-scrollbar flex-1 resize-none rounded-lg border px-3 py-2 text-sm focus-visible:ring-1 focus-visible:outline-none",
             isTooLong && "border-red-500 focus-visible:ring-red-500",

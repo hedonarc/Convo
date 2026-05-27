@@ -1,17 +1,6 @@
 import { ROUTES } from "@shared/constants";
 import { presenceText, sharedText } from "@shared/constants/strings/index.en";
 import type { PresenceStatus } from "@shared/types/presence";
-import {
-  Dropdown,
-  DropdownContent,
-  DropdownItem,
-  DropdownPortal,
-  DropdownSeparator,
-  DropdownSub,
-  DropdownSubContent,
-  DropdownSubTrigger,
-  DropdownTrigger,
-} from "@shared/ui";
 import { cn } from "@shared/utils";
 import { Check, LogOut, Moon, Sun, User as UserIcon } from "lucide-react";
 import { useNavigate } from "react-router";
@@ -24,97 +13,130 @@ import {
 } from "@/providers";
 
 interface UserMenuProps {
-  /**
-   * The element that opens the menu — typically the sidebar identity tile
-   * (avatar + name + chevron). Passed as a child so the caller owns its
-   * visual presentation while the menu owns the dropdown logic.
-   */
-  children: React.ReactNode;
+  /** Controlled open state — owned by the parent so the surrounding
+   *  surface (the sidebar header) can grow with us. */
+  open: boolean;
+  /** Fired after a navigation/destructive item is selected — parent
+   *  collapses the panel. NOT fired for sticky items (status, theme). */
+  onClose: () => void;
   /** Current user id, used to read own status for the active-state check. */
   userId?: number;
 }
 
 /**
- * Account menu hung off whatever the caller provides as a trigger.
+ * Inline-collapsible account panel. Lives in-flow inside the sidebar
+ * header — when open, the parent surface grows taller to reveal these
+ * actions instead of a floating popover.
  *
- * Identity (name, @handle, status) lives in the sidebar header tile, not
- * inside the menu — so the dropdown is purely actions:
- *
- *   - Set Status submenu (Online / Away)
- *   - View profile
- *   - Theme toggle
- *   - Sign out
+ * Sticky vs auto-close:
+ *  - Status (Online/Away) and theme toggle keep the panel open so the
+ *    user sees the ✓ / icon change land before deciding to dismiss.
+ *  - View profile and Sign out close the panel (they navigate away
+ *    anyway, but explicit close keeps things consistent).
  */
-export function UserMenu({ children, userId }: UserMenuProps) {
+export function UserMenu({ open, onClose, userId }: UserMenuProps) {
   const { logout } = useAuth();
   const { theme, toggle: toggleTheme } = useTheme();
   const { setManualPresence } = usePresenceContext();
   const navigate = useNavigate();
-
   const ownStatus = usePresence(userId);
 
+  const goProfile = () => {
+    onClose();
+    navigate(ROUTES.PROFILE);
+  };
+
   const handleLogout = async () => {
+    onClose();
     await logout();
     navigate(ROUTES.LOGIN, { replace: true });
   };
 
   return (
-    <Dropdown>
-      <DropdownTrigger asChild>{children}</DropdownTrigger>
-      <DropdownContent align="start" sideOffset={8} className="min-w-[14rem]">
-        <DropdownSub>
-          <DropdownSubTrigger>
-            <span className="flex items-center gap-2">
-              <StatusDot status={ownStatus} />
-              {presenceText.setStatus}
-            </span>
-          </DropdownSubTrigger>
-          <DropdownPortal>
-            <DropdownSubContent className="min-w-[10rem]">
-              <DropdownItem onSelect={() => setManualPresence("online")}>
-                <StatusDot status="online" />
-                {presenceText.online}
-                {ownStatus === "online" && <ActiveCheck />}
-              </DropdownItem>
-              <DropdownItem onSelect={() => setManualPresence("away")}>
-                <StatusDot status="away" />
-                {presenceText.away}
-                {ownStatus === "away" && <ActiveCheck />}
-              </DropdownItem>
-            </DropdownSubContent>
-          </DropdownPortal>
-        </DropdownSub>
-
-        <DropdownSeparator />
-
-        <DropdownItem onSelect={() => navigate(ROUTES.PROFILE)}>
-          <UserIcon className="h-4 w-4" />
-          {sharedText.viewProfile}
-        </DropdownItem>
-
-        <DropdownItem onSelect={toggleTheme}>
-          {theme === "light" ? (
-            <Moon className="h-4 w-4" />
-          ) : (
-            <Sun className="h-4 w-4" />
+    <div
+      data-state={open ? "open" : "closed"}
+      className={cn(
+        "grid transition-[grid-template-rows] duration-200 ease-out",
+        open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+      )}
+    >
+      <div className="overflow-hidden">
+        <div
+          inert={!open}
+          className={cn(
+            "pb-2 transition-opacity duration-200",
+            open ? "opacity-100" : "opacity-0",
           )}
-          {theme === "light"
-            ? sharedText.switchToDark
-            : sharedText.switchToLight}
-        </DropdownItem>
-
-        <DropdownSeparator />
-
-        <DropdownItem
-          onSelect={handleLogout}
-          className="text-red-500 focus:bg-red-50 focus:text-red-500 dark:focus:bg-red-900/10 dark:focus:text-red-400"
         >
-          <LogOut className="h-4 w-4" />
-          {sharedText.signOut}
-        </DropdownItem>
-      </DropdownContent>
-    </Dropdown>
+          <MenuItem onClick={() => setManualPresence("online")}>
+            <StatusDot status="online" />
+            {presenceText.online}
+            {ownStatus === "online" && <ActiveCheck />}
+          </MenuItem>
+          <MenuItem onClick={() => setManualPresence("away")}>
+            <StatusDot status="away" />
+            {presenceText.away}
+            {ownStatus === "away" && <ActiveCheck />}
+          </MenuItem>
+
+          <Separator />
+
+          <MenuItem onClick={goProfile}>
+            <UserIcon className="h-4 w-4" />
+            {sharedText.viewProfile}
+          </MenuItem>
+
+          <MenuItem onClick={toggleTheme}>
+            {theme === "light" ? (
+              <Moon className="h-4 w-4" />
+            ) : (
+              <Sun className="h-4 w-4" />
+            )}
+            {theme === "light"
+              ? sharedText.switchToDark
+              : sharedText.switchToLight}
+          </MenuItem>
+
+          <Separator />
+
+          <MenuItem
+            onClick={handleLogout}
+            className="hover:bg-red-50 hover:text-red-500 focus-visible:bg-red-50 focus-visible:text-red-500 dark:hover:bg-red-900/10 dark:focus-visible:bg-red-900/10"
+          >
+            <LogOut className="h-4 w-4" />
+            {sharedText.signOut}
+          </MenuItem>
+        </div>
+      </div>
+    </div>
   );
+}
+
+function MenuItem({
+  children,
+  onClick,
+  className,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "text-text-primary hover:bg-brand/10 focus-visible:bg-brand/10 focus-visible:ring-ring flex w-full items-center gap-3 px-4 py-1.5 text-sm transition-colors focus-visible:ring-1 focus-visible:outline-none focus-visible:ring-inset",
+        className,
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Separator() {
+  return <div aria-hidden className="bg-border h-px" />;
 }
 
 const STATUS_DOT_CLASS: Record<PresenceStatus, string> = {
@@ -127,7 +149,7 @@ function StatusDot({ status }: { status: PresenceStatus }) {
   return (
     <span
       aria-hidden
-      className={cn("h-2.5 w-2.5 rounded-full", STATUS_DOT_CLASS[status])}
+      className={cn("h-4 w-4 rounded-full", STATUS_DOT_CLASS[status])}
     />
   );
 }
