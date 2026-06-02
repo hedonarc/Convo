@@ -10,5 +10,7 @@ export default {
       "always",
       ["feat", "fix", "perf", "chore", "refactor", "docs", "test", "ci", "build"],
     ],
+    "body-max-line-length": [0, "always"],
+    "footer-max-line-length": [0, "always"],
   },
 };
