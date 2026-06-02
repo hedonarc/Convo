@@ -1,11 +1,10 @@
 # Convo
 
-Convo is a monorepo for a real-time chat platform with frontend, and mobile applications.
+Convo is a repository for a real-time chat platform frontend.
 
-## Monorepo Architecture
+## Architecture
 
-- `apps/web/`: React frontend using Vite and Tailwind CSS.
-- `mobile/`: Mobile app (planned).
+- `src/`: React frontend using Vite and Tailwind CSS.
 
 ## Documentation Map
 
@@ -21,20 +20,20 @@ Convo is a monorepo for a real-time chat platform with frontend, and mobile appl
   ## Release & Versioning
 
   This project follows [Semantic Versioning](https://semver.org/) and [Conventional Commits](https://www.conventionalcommits.org/).
-  - **Versioning Strategy:** Independent (each application maintains its own version).
   - **Automation:**
-    - **Frontend/Mobile:** Automated via `changesets` (planned).
-  - **Commit Format:** `type(scope): description` (e.g., `feat(frontend): add jwt integration`). Enforcement is handled via `pre-commit`.
+    - **Frontend:** Automated via `semantic-release`.
+  - **Commit Format:** `type(scope): description` (e.g., `feat(ui): add jwt integration`). Enforcement is handled via `pre-commit`.
 
   ## Quick Start
 
   For local setup, you can now use Turborepo to run everything concurrently:
 
-1. Install all dependencies: `pnpm install` and `pnpm run setup`
+1. Install all dependencies: `pnpm install`
 2. Run development servers: `pnpm run dev`
 3. Frontend docs: [`docs/frontend/setup.md`](./docs/frontend/setup.md)
 
 ## Development and Contributing
+
 - Global contribution standards: [`CONTRIBUTING.md`](./CONTRIBUTING.md)
 
 ## 🤝 Contributors
