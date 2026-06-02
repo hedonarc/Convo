@@ -1,49 +1,33 @@
-# TODO: Remove this file as now Turbo and pnpm are used
 # -------------------------
-# Project Config
-# -------------------------
-
-FRONTEND := apps/web
-
-# Detect current context (root vs web)
-ifeq ($(notdir $(CURDIR)),web)
-	FRONTEND_DIR := ../$(FRONTEND)
-else
-	FRONTEND_DIR := $(FRONTEND)
-endif
-
-# Smart cd wrappers
-CD_FE := cd $(FRONTEND_DIR) &&
-
-# -------------------------
-# Install / Setup
+# Convo web — single-package layout.
+# (Was a turbo+pnpm monorepo; collapsed to root after deciding to keep
+# the mobile project in a separate repo.)
 # -------------------------
 
-web-install:
-	$(CD_FE) pnpm install
+install:
+	pnpm install
 
-fe-setup: web-install pc-install
+setup: install
 
-setup: web-install
+dev:
+	pnpm dev
 
-# -------------------------
-# Testing & Checks
-# -------------------------
+host:
+	pnpm dev -- --host
 
-web-lint:
-	$(CD_FE) pnpm lint
+build:
+	pnpm build
 
-web-format:
-	$(CD_FE) pnpm format
+preview:
+	pnpm preview
 
-web-fix:
-	web-lint && web-format
+lint:
+	pnpm lint
 
-web-dev:
-	$(CD_FE) pnpm dev
+lint-fix:
+	pnpm lint:fix
 
-web-host:
-	$(CD_FE) pnpm dev -- --host
+format:
+	pnpm format
 
-web-preview:
-	$(CD_FE) pnpm preview
+fix: lint-fix format
