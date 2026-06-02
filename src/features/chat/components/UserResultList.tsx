@@ -25,7 +25,11 @@ function UserResultItem({ user, isCreating, onSelect }: UserResultItemProps) {
           "border-border border-b last:border-0",
         )}
       >
-        <Avatar name={fullName || user.username} size="default" />
+        <Avatar
+          name={fullName || user.username}
+          size="default"
+          url={user.avatar}
+        />
         <div className="min-w-0 flex-1">
           <p className="text-text-primary truncate text-sm font-medium">
             {fullName || user.username}
