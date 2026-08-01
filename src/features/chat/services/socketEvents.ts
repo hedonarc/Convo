@@ -40,3 +40,12 @@ export const SOCKET_CLOSE_CODES = {
   INVALID_TOKEN: 4002,
   NOT_PARTICIPANT: 4003,
 } as const;
+
+/**
+ * How long a socket must stay open before it counts as a real connection.
+ *
+ * The server accepts the handshake even when it intends to reject, because a
+ * close code only reaches the browser on an accepted socket. Those sockets
+ * live for milliseconds, so `open` alone is not proof the connection works.
+ */
+export const STABLE_CONNECTION_MS = 1000;

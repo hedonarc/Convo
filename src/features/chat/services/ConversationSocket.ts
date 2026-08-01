@@ -3,6 +3,7 @@ import {
   type OutgoingAction,
   SOCKET_CLOSE_CODES,
   type SocketStatus,
+  STABLE_CONNECTION_MS,
 } from "./socketEvents";
 
 interface ConversationSocketOptions {
@@ -45,6 +46,7 @@ export class ConversationSocket {
   private reconnectAttempts = 0;
   private authRefreshAttempted = false;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private openedAt = 0;
 
   private readonly maxReconnectAttempts: number;
   private readonly reconnectDelayMs: number;
@@ -89,14 +91,14 @@ export class ConversationSocket {
       this.ws.close(SOCKET_CLOSE_CODES.NORMAL);
     }
     this.ws = null;
+    this.openedAt = 0;
     this.opts.onStatusChange("closed");
   }
 
   // ── Handlers ────────────────────────────────────────────────────────────
 
   private handleOpen = (): void => {
-    this.reconnectAttempts = 0;
-    this.authRefreshAttempted = false;
+    this.openedAt = Date.now();
     this.opts.onStatusChange("open");
   };
 
@@ -113,6 +115,11 @@ export class ConversationSocket {
 
   private handleClose = (event: CloseEvent): void => {
     this.ws = null;
+    if (this.wasStable()) {
+      this.reconnectAttempts = 0;
+      this.authRefreshAttempted = false;
+    }
+    this.openedAt = 0;
     if (this.intentionalClose) return;
 
     // Expired access token — the refresh cookie may still be valid. Try once
@@ -166,6 +173,13 @@ export class ConversationSocket {
   };
 
   // ── Utilities ───────────────────────────────────────────────────────────
+
+  /** Did this connection outlive an accept-then-reject handshake? */
+  private wasStable(): boolean {
+    return (
+      this.openedAt > 0 && Date.now() - this.openedAt >= STABLE_CONNECTION_MS
+    );
+  }
 
   private buildUrl(): string {
     // Translate the HTTP baseUrl into its WS equivalent so cookies and origin
