@@ -1,4 +1,8 @@
-import { SOCKET_CLOSE_CODES, type SocketStatus } from "./socketEvents";
+import {
+  SOCKET_CLOSE_CODES,
+  type SocketStatus,
+  STABLE_CONNECTION_MS,
+} from "./socketEvents";
 import type { UserSocketEvent, UserSocketOutgoing } from "./userSocketEvents";
 
 interface UserSocketOptions {
@@ -29,6 +33,7 @@ export class UserSocket {
   private reconnectAttempts = 0;
   private authRefreshAttempted = false;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private openedAt = 0;
 
   private readonly maxReconnectAttempts: number;
   private readonly reconnectDelayMs: number;
@@ -66,6 +71,7 @@ export class UserSocket {
       this.ws.close(SOCKET_CLOSE_CODES.NORMAL);
     }
     this.ws = null;
+    this.openedAt = 0;
     this.opts.onStatusChange("closed");
   }
 
@@ -82,8 +88,7 @@ export class UserSocket {
   // ── Handlers ────────────────────────────────────────────────────────────
 
   private handleOpen = (): void => {
-    this.reconnectAttempts = 0;
-    this.authRefreshAttempted = false;
+    this.openedAt = Date.now();
     this.opts.onStatusChange("open");
   };
 
@@ -99,6 +104,11 @@ export class UserSocket {
 
   private handleClose = (event: CloseEvent): void => {
     this.ws = null;
+    if (this.wasStable()) {
+      this.reconnectAttempts = 0;
+      this.authRefreshAttempted = false;
+    }
+    this.openedAt = 0;
     if (this.intentionalClose) return;
 
     if (
@@ -144,6 +154,13 @@ export class UserSocket {
       this.connect();
     }, this.reconnectDelayMs);
   };
+
+  /** Did this connection outlive an accept-then-reject handshake? */
+  private wasStable(): boolean {
+    return (
+      this.openedAt > 0 && Date.now() - this.openedAt >= STABLE_CONNECTION_MS
+    );
+  }
 
   private buildUrl(): string {
     const base = new URL(this.opts.baseUrl);
