@@ -12,7 +12,8 @@ export type UserSocketEvent =
       data: { acceptor: User; conversation_id: number };
     }
   | { type: "presence_changed"; data: PresenceEntry }
-  | { type: "error"; message: string };
+  | { type: "connected"; data: Record<string, never> }
+  | { type: "error"; message: string; code?: number };
 
 /**
  * Frames the client can push to the UserConsumer.

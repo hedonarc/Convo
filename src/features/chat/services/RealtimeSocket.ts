@@ -1,7 +1,7 @@
 import {
+  REJECTION_CODES,
   SOCKET_CLOSE_CODES,
   type SocketStatus,
-  STABLE_CONNECTION_MS,
 } from "./socketEvents";
 
 export interface RealtimeSocketOptions<TIncoming> {
@@ -40,7 +40,10 @@ export class RealtimeSocket<TIncoming, TOutgoing> {
   private reconnectAttempts = 0;
   private authRefreshAttempted = false;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  private openedAt = 0;
+  /** Set by the server's `connected` frame — the only proof a socket is real. */
+  private confirmed = false;
+  /** A rejection code seen as data, in case the close frame never arrives. */
+  private rejectedWith: number | null = null;
 
   private readonly maxReconnectAttempts: number;
   private readonly reconnectDelayMs: number;
@@ -86,12 +89,15 @@ export class RealtimeSocket<TIncoming, TOutgoing> {
       this.ws.close(SOCKET_CLOSE_CODES.NORMAL);
     }
     this.ws = null;
-    this.openedAt = 0;
+    this.confirmed = false;
+    this.rejectedWith = null;
     this.opts.onStatusChange("closed");
   }
 
   private handleOpen = (): void => {
-    this.openedAt = Date.now();
+    // Deliberately not a stability signal: the server also accepts sockets it
+    // is about to reject, because a close code cannot reach a browser that
+    // never completed the upgrade.
     this.opts.onStatusChange("open");
   };
 
@@ -103,22 +109,42 @@ export class RealtimeSocket<TIncoming, TOutgoing> {
       // A malformed frame should not take the consumer down with it.
       return;
     }
+
+    const frame = parsed as { type?: string; code?: number };
+    if (frame.type === "connected") {
+      this.confirmed = true;
+      return;
+    }
+    if (frame.type === "error" && REJECTION_CODES.includes(frame.code ?? -1)) {
+      // The close carrying this code may never arrive; remember it.
+      this.rejectedWith = frame.code ?? null;
+    }
+
     this.opts.onEvent(parsed);
   };
 
   private handleClose = (event: CloseEvent): void => {
     this.ws = null;
-    if (this.wasStable()) {
+    if (this.confirmed) {
       this.reconnectAttempts = 0;
       this.authRefreshAttempted = false;
     }
-    this.openedAt = 0;
+    this.confirmed = false;
+
+    // Proxies in front of the server drop a close frame sent immediately
+    // after the handshake, leaving a bare 1006 behind. Fall back to the code
+    // the server sent as data.
+    const code = REJECTION_CODES.includes(event.code)
+      ? event.code
+      : (this.rejectedWith ?? event.code);
+    this.rejectedWith = null;
+
     if (this.intentionalClose) return;
 
     // Expired access token, but the refresh cookie may still be good. Try
     // once, then reconnect with the newly-set access cookie.
     if (
-      event.code === SOCKET_CLOSE_CODES.INVALID_TOKEN &&
+      code === SOCKET_CLOSE_CODES.INVALID_TOKEN &&
       this.opts.refreshAuth &&
       !this.authRefreshAttempted
     ) {
@@ -136,8 +162,8 @@ export class RealtimeSocket<TIncoming, TOutgoing> {
 
     // No token, or the refresh above already failed. The session is over.
     if (
-      event.code === SOCKET_CLOSE_CODES.NO_TOKEN ||
-      event.code === SOCKET_CLOSE_CODES.INVALID_TOKEN
+      code === SOCKET_CLOSE_CODES.NO_TOKEN ||
+      code === SOCKET_CLOSE_CODES.INVALID_TOKEN
     ) {
       this.opts.onAuthExpired?.();
       this.opts.onStatusChange("closed");
@@ -145,7 +171,7 @@ export class RealtimeSocket<TIncoming, TOutgoing> {
     }
 
     // Not a participant. Still logged in, so nothing to refresh.
-    if (event.code === SOCKET_CLOSE_CODES.NOT_PARTICIPANT) {
+    if (code === SOCKET_CLOSE_CODES.NOT_PARTICIPANT) {
       this.opts.onStatusChange("closed");
       return;
     }
@@ -161,13 +187,6 @@ export class RealtimeSocket<TIncoming, TOutgoing> {
       this.connect();
     }, this.reconnectDelayMs);
   };
-
-  /** Did this connection outlive an accept-then-reject handshake? */
-  private wasStable(): boolean {
-    return (
-      this.openedAt > 0 && Date.now() - this.openedAt >= STABLE_CONNECTION_MS
-    );
-  }
 
   private buildUrl(): string {
     // Same host as the REST API, so the auth cookie and origin line up.
