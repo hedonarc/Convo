@@ -22,8 +22,12 @@ export type IncomingEvent =
       type: "delivered_receipt";
       data: { user_id: number; message_id: number };
     }
+  // Sent the moment the server accepts. Proof the connection is real, as
+  // opposed to one accepted only to deliver a rejection.
+  | { type: "connected"; data: Record<string, never> }
   // Backend's error frame is asymmetric — message lives at the top level.
-  | { type: "error"; message: string };
+  // `code` is present on rejections; see utils/ws.py.
+  | { type: "error"; message: string; code?: number };
 
 // ── Connection state ───────────────────────────────────────────────────────
 export type SocketStatus =
@@ -40,3 +44,10 @@ export const SOCKET_CLOSE_CODES = {
   INVALID_TOKEN: 4002,
   NOT_PARTICIPANT: 4003,
 } as const;
+
+/** Rejection codes, which arrive as data as well as in the close frame. */
+export const REJECTION_CODES: readonly number[] = [
+  SOCKET_CLOSE_CODES.NO_TOKEN,
+  SOCKET_CLOSE_CODES.INVALID_TOKEN,
+  SOCKET_CLOSE_CODES.NOT_PARTICIPANT,
+];
