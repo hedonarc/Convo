@@ -116,8 +116,14 @@ export class RealtimeSocket<TIncoming, TOutgoing> {
       return;
     }
     if (frame.type === "error" && REJECTION_CODES.includes(frame.code ?? -1)) {
-      // The close carrying this code may never arrive; remember it.
       this.rejectedWith = frame.code ?? null;
+      // The close carrying this code may never arrive — the proxy drops one
+      // sent this soon after the handshake. Tear down now rather than wait
+      // out its idle timeout; `handleClose` reads the code back off
+      // `rejectedWith`. Not `this.close()`, which would mark the teardown
+      // intentional and skip the auth handling entirely.
+      this.ws?.close();
+      return;
     }
 
     this.opts.onEvent(parsed);
