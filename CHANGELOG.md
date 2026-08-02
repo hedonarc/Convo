@@ -1,3 +1,9 @@
+## [1.1.2](https://github.com/hedonarc/Convo/compare/web-v1.1.1...web-v1.1.2) (2026-08-02)
+
+### Bug Fixes
+
+- **socket:** act on a rejection frame without waiting for the close ([#101](https://github.com/hedonarc/Convo/issues/101)) ([3aaf822](https://github.com/hedonarc/Convo/commit/3aaf8224d8036adc080b614392e5a8c0c7abba0f))
+
 ## [1.1.1](https://github.com/hedonarc/Convo/compare/web-v1.1.0...web-v1.1.1) (2026-08-02)
 
 ### Bug Fixes
