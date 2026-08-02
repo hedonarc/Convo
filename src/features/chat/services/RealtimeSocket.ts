@@ -1,46 +1,40 @@
 import {
-  type IncomingEvent,
-  type OutgoingAction,
   SOCKET_CLOSE_CODES,
   type SocketStatus,
   STABLE_CONNECTION_MS,
 } from "./socketEvents";
 
-interface ConversationSocketOptions {
-  conversationId: number;
+export interface RealtimeSocketOptions<TIncoming> {
+  /** Absolute path on the API host, e.g. `/ws/user/`. */
+  path: string;
+  /** HTTP base URL; the scheme is translated to ws/wss. */
   baseUrl: string;
-  onEvent: (event: IncomingEvent) => void;
+  onEvent: (event: TIncoming) => void;
   onStatusChange: (status: SocketStatus) => void;
   /**
-   * Called once per session when the server closes with `INVALID_TOKEN`. If
-   * the promise resolves, the socket reconnects with the freshly-set cookie.
-   * If it rejects, the close is treated as terminal and `onAuthExpired` fires.
+   * Called once per connection attempt when the server closes with
+   * `INVALID_TOKEN`. Resolving reconnects with the freshly-set cookie;
+   * rejecting is terminal and fires `onAuthExpired`.
    */
   refreshAuth?: () => Promise<void>;
   /**
-   * Called when the connection is closed for an authentication-terminal
-   * reason (no token, or refresh failed). Consumer should clear the session
-   * state — typically by dispatching the app-wide `auth:expired` event.
+   * Called when the connection ends for an authentication-terminal reason.
+   * Consumers typically dispatch the app-wide `auth:expired` event.
    */
   onAuthExpired?: () => void;
-  /** Override reconnect tuning if needed; defaults match the Phase-2 plan. */
   maxReconnectAttempts?: number;
   reconnectDelayMs?: number;
 }
 
 /**
- * Thin wrapper around a single WebSocket connection to one conversation room.
+ * One WebSocket connection, with the reconnect and auth-refresh policy the
+ * app expects.
  *
- * Responsibilities:
- *  - open / send / close
- *  - parse incoming frames into typed `IncomingEvent`s
- *  - bounded auto-reconnect (default: 3 attempts, 2s gap) on abnormal close
- *  - skip reconnect on authentication / authorization close codes
- *
- * Does NOT handle: token refresh, presence, cross-conversation events. Those
- * belong above this layer.
+ * `TIncoming` and `TOutgoing` are the only things that differ between the
+ * conversation socket and the per-user socket, so they are type parameters
+ * rather than separate classes.
  */
-export class ConversationSocket {
+export class RealtimeSocket<TIncoming, TOutgoing> {
   private ws: WebSocket | null = null;
   private intentionalClose = false;
   private reconnectAttempts = 0;
@@ -51,7 +45,7 @@ export class ConversationSocket {
   private readonly maxReconnectAttempts: number;
   private readonly reconnectDelayMs: number;
 
-  constructor(private readonly opts: ConversationSocketOptions) {
+  constructor(private readonly opts: RealtimeSocketOptions<TIncoming>) {
     this.maxReconnectAttempts = opts.maxReconnectAttempts ?? 3;
     this.reconnectDelayMs = opts.reconnectDelayMs ?? 2000;
   }
@@ -65,7 +59,7 @@ export class ConversationSocket {
     try {
       this.ws = new WebSocket(this.buildUrl());
     } catch {
-      // URL construction failed (e.g. malformed baseUrl). Treat as terminal.
+      // A malformed baseUrl will not fix itself on a retry.
       this.opts.onStatusChange("closed");
       return;
     }
@@ -73,12 +67,13 @@ export class ConversationSocket {
     this.ws.addEventListener("open", this.handleOpen);
     this.ws.addEventListener("message", this.handleMessage);
     this.ws.addEventListener("close", this.handleClose);
-    // `error` events are always followed by `close`; we react there.
+    // `error` is always followed by `close`; we react there.
   }
 
-  send(action: OutgoingAction["action"], data: OutgoingAction["data"]): void {
+  /** Fire-and-forget: silently dropped if the socket is not open. */
+  send(frame: TOutgoing): void {
     if (this.ws?.readyState !== WebSocket.OPEN) return;
-    this.ws.send(JSON.stringify({ action, data }));
+    this.ws.send(JSON.stringify(frame));
   }
 
   close(): void {
@@ -95,19 +90,17 @@ export class ConversationSocket {
     this.opts.onStatusChange("closed");
   }
 
-  // ── Handlers ────────────────────────────────────────────────────────────
-
   private handleOpen = (): void => {
     this.openedAt = Date.now();
     this.opts.onStatusChange("open");
   };
 
   private handleMessage = (event: MessageEvent<string>): void => {
-    let parsed: IncomingEvent;
+    let parsed: TIncoming;
     try {
-      parsed = JSON.parse(event.data) as IncomingEvent;
+      parsed = JSON.parse(event.data) as TIncoming;
     } catch {
-      // Malformed frame — ignore silently rather than crash the consumer.
+      // A malformed frame should not take the consumer down with it.
       return;
     }
     this.opts.onEvent(parsed);
@@ -122,8 +115,8 @@ export class ConversationSocket {
     this.openedAt = 0;
     if (this.intentionalClose) return;
 
-    // Expired access token — the refresh cookie may still be valid. Try once
-    // per session: refresh, then reconnect with the freshly-set access cookie.
+    // Expired access token, but the refresh cookie may still be good. Try
+    // once, then reconnect with the newly-set access cookie.
     if (
       event.code === SOCKET_CLOSE_CODES.INVALID_TOKEN &&
       this.opts.refreshAuth &&
@@ -141,9 +134,7 @@ export class ConversationSocket {
       return;
     }
 
-    // Terminal auth failures: no token, refresh already attempted and failed,
-    // or no refresh handler injected. Dispatch the session-ended signal so
-    // the AuthProvider can clear React state and the route guards redirect.
+    // No token, or the refresh above already failed. The session is over.
     if (
       event.code === SOCKET_CLOSE_CODES.NO_TOKEN ||
       event.code === SOCKET_CLOSE_CODES.INVALID_TOKEN
@@ -153,8 +144,7 @@ export class ConversationSocket {
       return;
     }
 
-    // Authorization failure (not a participant) — not an auth-expiry issue.
-    // Just close; the user is still logged in.
+    // Not a participant. Still logged in, so nothing to refresh.
     if (event.code === SOCKET_CLOSE_CODES.NOT_PARTICIPANT) {
       this.opts.onStatusChange("closed");
       return;
@@ -172,8 +162,6 @@ export class ConversationSocket {
     }, this.reconnectDelayMs);
   };
 
-  // ── Utilities ───────────────────────────────────────────────────────────
-
   /** Did this connection outlive an accept-then-reject handshake? */
   private wasStable(): boolean {
     return (
@@ -182,10 +170,9 @@ export class ConversationSocket {
   }
 
   private buildUrl(): string {
-    // Translate the HTTP baseUrl into its WS equivalent so cookies and origin
-    // align with the REST API.
+    // Same host as the REST API, so the auth cookie and origin line up.
     const base = new URL(this.opts.baseUrl);
     const protocol = base.protocol === "https:" ? "wss:" : "ws:";
-    return `${protocol}//${base.host}/ws/conversations/${this.opts.conversationId}/`;
+    return `${protocol}//${base.host}${this.opts.path}`;
   }
 }

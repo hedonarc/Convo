@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AUTH_EXPIRED_EVENT, authApi } from "@/shared/api";
 
+import { RealtimeSocket } from "../services/RealtimeSocket";
 import type { SocketStatus } from "../services/socketEvents";
-import { UserSocket } from "../services/UserSocket";
 import type {
   UserSocketEvent,
   UserSocketOutgoing,
@@ -15,18 +15,19 @@ interface UseUserSocketResult {
 }
 
 /**
- * One per-user WebSocket while a user is logged in. Surfaces cross-
- * conversation server pushes via the `onEvent` callback — read via a ref
- * so consumers can pass inline arrows without re-running the connect effect.
+ * One socket per logged-in user, carrying pushes that span conversations.
  *
- * The returned `send` is a stable reference that forwards to the underlying
- * socket; safe to depend on or pass to other hooks.
+ * `onEvent` is read through a ref so an inline arrow does not re-run the
+ * connect effect. `send` is a stable reference, safe to depend on.
  */
 export function useUserSocket(
   onEvent: (event: UserSocketEvent) => void,
 ): UseUserSocketResult {
   const [status, setStatus] = useState<SocketStatus>("idle");
-  const socketRef = useRef<UserSocket | null>(null);
+  const socketRef = useRef<RealtimeSocket<
+    UserSocketEvent,
+    UserSocketOutgoing
+  > | null>(null);
   const onEventRef = useRef(onEvent);
 
   useEffect(() => {
@@ -34,10 +35,9 @@ export function useUserSocket(
   });
 
   useEffect(() => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
-    const socket = new UserSocket({
-      baseUrl,
+    const socket = new RealtimeSocket<UserSocketEvent, UserSocketOutgoing>({
+      path: "/ws/user/",
+      baseUrl: import.meta.env.VITE_API_URL || "http://localhost:8000",
       onEvent: (event) => onEventRef.current(event),
       onStatusChange: setStatus,
       refreshAuth: authApi.refreshAccessToken,

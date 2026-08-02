@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { AUTH_EXPIRED_EVENT, authApi } from "@/shared/api";
 
-import { ConversationSocket } from "../services/ConversationSocket";
+import { RealtimeSocket } from "../services/RealtimeSocket";
 import type {
   IncomingEvent,
   OutgoingAction,
@@ -18,35 +18,32 @@ interface UseConversationSocketResult {
 }
 
 /**
- * Opens one ConversationSocket per active conversation. The `onEvent` callback
- * is read via a ref on every frame, so consumers can pass inline arrow
- * functions without re-running the connect effect.
+ * Opens one socket per active conversation. `onEvent` is read through a ref on
+ * every frame, so an inline arrow does not re-run the connect effect.
  */
 export function useConversationSocket(
   conversationId: number,
   onEvent: (event: IncomingEvent) => void,
 ): UseConversationSocketResult {
   const [status, setStatus] = useState<SocketStatus>("idle");
-  const socketRef = useRef<ConversationSocket | null>(null);
+  const socketRef = useRef<RealtimeSocket<
+    IncomingEvent,
+    OutgoingAction
+  > | null>(null);
   const onEventRef = useRef(onEvent);
 
-  // Keep the ref pointed at the latest callback so the socket layer always
-  // calls the freshest version without re-running the connect effect.
   useEffect(() => {
     onEventRef.current = onEvent;
   });
 
   useEffect(() => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
-    const socket = new ConversationSocket({
-      conversationId,
-      baseUrl,
+    const socket = new RealtimeSocket<IncomingEvent, OutgoingAction>({
+      path: `/ws/conversations/${conversationId}/`,
+      baseUrl: import.meta.env.VITE_API_URL || "http://localhost:8000",
       onEvent: (event) => onEventRef.current(event),
       onStatusChange: setStatus,
-      // If the access token has expired, try refreshing and reconnecting once
-      // before giving up. If the refresh fails the socket emits onAuthExpired,
-      // mirroring the REST interceptor's handling for consistent UX.
+      // An expired access token is worth one refresh-and-retry; if that
+      // fails, onAuthExpired matches how the REST interceptor gives up.
       refreshAuth: authApi.refreshAccessToken,
       onAuthExpired: () => window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT)),
     });
@@ -60,7 +57,7 @@ export function useConversationSocket(
   }, [conversationId]);
 
   const send: UseConversationSocketResult["send"] = (action, data) => {
-    socketRef.current?.send(action, data);
+    socketRef.current?.send({ action, data } as OutgoingAction);
   };
 
   return { status, send };
