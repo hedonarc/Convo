@@ -2,6 +2,26 @@
 
 Convo is a repository for a real-time chat platform frontend.
 
+<p align="center">
+  <img src="docs/screenshots/chat-light.png" alt="Convo chat, light theme" width="900">
+</p>
+
+<details>
+<summary>Dark theme</summary>
+
+<p align="center">
+  <img src="docs/screenshots/chat-dark.png" alt="Convo chat, dark theme" width="900">
+</p>
+
+</details>
+
+Messages arrive over a WebSocket, the sidebar reorders itself as they land, and
+the ticks track each message from sent to delivered to read. Presence, typing
+indicators and unread state all update without a refresh.
+
+> Screenshots are of a local build running against seeded data — see
+> [Seeing it with data in it](#seeing-it-with-data-in-it).
+
 ## Architecture
 
 - `src/`: React frontend using Vite and Tailwind CSS.
@@ -31,6 +51,22 @@ Convo is a repository for a real-time chat platform frontend.
 1. Install all dependencies: `pnpm install`
 2. Run development servers: `pnpm run dev`
 3. Frontend docs: [`docs/frontend/setup.md`](./docs/frontend/setup.md)
+
+## Seeing it with data in it
+
+A fresh database gives you an empty sidebar, which makes it hard to tell
+whether anything works. The backend ships a seeder that fills one with a cast
+and conversations covering every visible state — unread, delivered, read,
+edited, deleted, and empty:
+
+```bash
+cd ../convo-backend
+make seed-fresh
+```
+
+Then log in as `demo` / `demo12345`. Every seeded peer shares that password, so
+signing a second browser in as `maya` is enough to watch typing, presence and
+receipts move between two live clients.
 
 ## Development and Contributing
 
